@@ -1,0 +1,112 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" onLoad="RB_onLoad">
+  <ribbon>
+    <tabs>
+      <tab id="TabWorks" label="作業​​" insertBeforeQ="TabAddIns">
+        <group id="RB1" label="レポート​​" imageMso="PrintSetupDialog">
+          <button id="RB11" onAction="RB11_onAction" label="編集サイン" imageMso="SignatureLineInsert" size="large" />
+          <button id="RB12" onAction="RB12_onAction" label="ページフォーマット" imageMso="PrintSetupDialog" size="large" />
+          <splitButton id="RB13s" size="large">
+            <button id="RB13_0" onAction="RB13_onAction" label="テキスト整形" imageMso="ContentControlRichText" />
+            <menu id="RB13m">
+              <button id="RB13_1" onAction="RB13_onAction" label="トリム" imageMso="ClearFormatting" />
+              <button id="RB13_2" onAction="RB13_onAction" label="シングルライン" imageMso="Clear" />
+              <button id="RB13_3" onAction="RB13_onAction" label="スペース削除" imageMso="Clear" />
+              <menuSeparator id="RB13z" />
+              <button id="RB13_4" onAction="RB13_onAction" label="大文字" imageMso="ChangeStylesMenu" />
+              <button id="RB13_5" onAction="RB13_onAction" label="小文字" />
+              <button id="RB13_6" onAction="RB13_onAction" label="小文字(先頭大文字)" />
+              <button id="RB13_7" onAction="RB13_onAction" label="全角" />
+              <button id="RB13_8" onAction="RB13_onAction" label="半角" />
+              <button id="RB13_9" onAction="RB13_onAction" label="半角(ASCII)" />
+            </menu>
+          </splitButton>
+          <menu id="RB14m" label="​​非表示削除" imageMso="TableDeleteRowsAndColumnsMenu" >
+            <button id="RB14_1" onAction="RB14_onAction" label="​​非表示行列削除" imageMso="TableDeleteRowsAndColumnsMenu" />
+            <button id="RB14_2" onAction="RB14_onAction" label="​​非表示行列削除(行)" />
+            <button id="RB14_3" onAction="RB14_onAction" label="​非表示​行列削除(列)" />
+            <button id="RB14_4" onAction="RB14_onAction" label="非表示シート削除" imageMso="SheetDelete" />
+            <menuSeparator id="RB14z" />
+            <button id="RB14_8" onAction="RB14_onAction" label="全表示​​(シート)" imageMso="WindowUnhide" />
+            <button id="RB14_9" onAction="RB14_onAction" label="全表示​​(名前)" />
+          </menu>
+          <splitButton id="RB15s">
+            <button id="RB15_1" onAction="RB15_onAction" label="目次​​シート" imageMso="IndexInsert" />
+            <menu id="RB15m">
+              <button id="RB15_2" onAction="RB15_onAction" label="シート一覧" imageMso="RecordsSubdatasheetMenu" />
+              <button id="RB15_3" onAction="RB15_onAction" label="名前一覧" imageMso="NameDefineMenu" />
+              <button id="RB15_4" onAction="RB15_onAction" label="リンク一覧" imageMso="AccessRelinkLists" />
+              <button id="RB15_5" onAction="RB15_onAction" label="プロパティ一覧" imageMso="ShowCustomPropertiesPage" />
+              <button id="RB15_6" onAction="RB15_onAction" label="コメント一覧" imageMso="ShowNotesPage" />
+              <button id="RB15_7" onAction="RB15_onAction" label="ファイル一覧" imageMso="SharingOpenWssDocumentList" />
+              <menuSeparator id="RB15z" />
+              <button id="RB15_8" onAction="RB15_onAction" label="調査シート" />
+            </menu>
+          </splitButton>
+          <splitButton id="RB16s">
+            <button id="RB16_1" onAction="RB16_onAction" label="ファイル一覧" imageMso="HeaderFooterFilePathInsert" />
+            <menu id="RB16m">
+              <button id="RB16_2" onAction="RB16_onAction" label="フォルダパス" imageMso="Folder" />
+              <button id="RB16_3" onAction="RB16_onAction" label="ファイルリスト" imageMso="FileNew" />
+              <menuSeparator id="RB16z1" />
+              <toggleButton id="RB16b1" onAction="RB16b_onAction" getPressed="RB16b_getPressed" label="リンクあり" />
+              <toggleButton id="RB16b2" onAction="RB16b_onAction" getPressed="RB16b_getPressed" label="フォルダあり" />
+              <toggleButton id="RB16b3" onAction="RB16b_onAction" getPressed="RB16b_getPressed" label="再帰あり" />
+              <menuSeparator id="RB16z2" />
+              <button id="RB16_4" onAction="RB16_onAction" label="パス短縮・展開" />
+              <button id="RB16_5" onAction="RB16_onAction" label="区切り文字変更" />
+              <button id="RB16_6" onAction="RB16_onAction" label="絶対パス" />
+              <button id="RB16_7" onAction="RB16_onAction" label="相対パス" />
+              <button id="RB16_8" onAction="RB16_onAction" label="基準パス" />
+              <button id="RB16_9" onAction="RB16_onAction" label="パスセグメント化" />
+            </menu>
+          </splitButton>
+        </group>
+        <group id="RB2" label="罫線枠" imageMso="ReviewAllowUsersToEditRanges">
+          <splitButton id="RB21s" size="large">
+            <button id="RB21_0" onAction="RB21_onAction" label="囲い​​" imageMso="DataFormSource" />
+            <menu id="RB21m">
+              <button id="RB21_1" onAction="RB21_onAction" label="囲い​​のみ" imageMso="DataFormSource" />
+              <button id="RB21_2" onAction="RB21_onAction" label="囲い(行番号付き)" />
+              <menuSeparator id="RB21z1" />
+              <button id="RB21_3" onAction="RB21_onAction" label="選択(ヘッダ)" imageMso="TableStyleRowHeaders" />
+              <button id="RB21_4" onAction="RB21_onAction" label="選択(項目列)" imageMso="TableStyleFirstColumn" />
+              <button id="RB21_5" onAction="RB21_onAction" label="選択(テーブル)" imageMso="TableSelect" />
+              <menuSeparator id="RB21z2" />
+              <button id="RB28" onAction="RB28_onAction" label="テーブルクリア" imageMso="TableStyleClear" />
+            </menu>
+          </splitButton>
+          <button id="RB22" onAction="RB22_onAction" label="フィルタ" imageMso="Filter" />
+          <button id="RB23" onAction="RB23_onAction" label="幅調整" imageMso="TableAutoFitContents" />
+          <button id="RB24" onAction="RB24_onAction" label="枠固定" imageMso="FreezePanes" />
+          <button id="RB25" onAction="RB25_onAction" label="見出し色" imageMso="FontFillBackColorPicker" />
+          <!-- <button id="RB25" onAction="RB25_onAction" label="見出し色" getImage="RB25_getImage" /> -->
+          <button id="RB26" onAction="RB26_onAction" label="囲いクリア" imageMso="Clear" />
+          <button id="RB27" onAction="RB27_onAction" getLabel="RB27_getLabel" />
+        </group>
+        <group id="RB3" label="テンプレート" imageMso="ComAddInsDialog">
+          <button id="RB31" onAction="RB3_onAction" getEnabled="RB3_getEnabled" label="​​読み込み" imageMso="SheetInsert" size="large" />
+          <button id="RB32" onAction="RB3_onAction" getEnabled="RB3_getEnabled" label="書き込み" imageMso="GroupMoveData" />
+          <button id="RB33" onAction="RB3_onAction" getLabel="RB33_getLabel" imageMso="ListMacros" />
+          <button id="RB34" onAction="RB3_onAction" label="テーブル作成" imageMso="ViewsDatasheetView" />
+          <button id="RB35" onAction="RB3_onAction" label="​​テーブル読み込み" imageMso="NewTableStyleWord" />
+          <button id="RB36" onAction="RB3_onAction" label="テーブル更新" imageMso="TableAutoFormat" />
+          <button id="RB37" onAction="RB3_onAction" label="test7" imageMso="CustomTablesGallery" />
+          <button id="RB38" onAction="RB3_onAction" label="test8" imageMso="BlackAndWhiteDontShow" />
+          <button id="RB39" onAction="RB3_onAction" label="開発" imageMso="AddInManager" />
+        </group>
+        <group id="RB4" label="読み込み" imageMso="ComAddInsDialog">
+          <button id="RB4_1" onAction="RB_onAction" getLabel="RB_getLabel" getImage="RB_onGetImage" getVisible="RB_getVisible" getSize="RB_getSize" />
+          <button id="RB4_2" onAction="RB_onAction" getLabel="RB_getLabel" getImage="RB_onGetImage" getVisible="RB_getVisible" getSize="RB_getSize" />
+          <button id="RB4_3" onAction="RB_onAction" getLabel="RB_getLabel" getImage="RB_onGetImage" getVisible="RB_getVisible" getSize="RB_getSize" />
+          <button id="RB4_4" onAction="RB_onAction" getLabel="RB_getLabel" getImage="RB_onGetImage" getVisible="RB_getVisible" getSize="RB_getSize" />
+          <button id="RB4_5" onAction="RB_onAction" getLabel="RB_getLabel" getImage="RB_onGetImage" getVisible="RB_getVisible" getSize="RB_getSize" />
+          <button id="RB4_6" onAction="RB_onAction" getLabel="RB_getLabel" getImage="RB_onGetImage" getVisible="RB_getVisible" getSize="RB_getSize" />
+          <button id="RB4_7" onAction="RB_onAction" getLabel="RB_getLabel" getImage="RB_onGetImage" getVisible="RB_getVisible" getSize="RB_getSize" />
+          <button id="RB4_8" onAction="RB_onAction" getLabel="RB_getLabel" getImage="RB_onGetImage" getVisible="RB_getVisible" getSize="RB_getSize" />
+          <button id="RB4_9" onAction="RB_onAction" getLabel="RB_getLabel" getImage="RB_onGetImage" getVisible="RB_getVisible" getSize="RB_getSize" />
+        </group>
+      </tab>
+    </tabs>
+  </ribbon>
+</customUI>

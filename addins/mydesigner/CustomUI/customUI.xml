@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" onLoad="RD_onLoad">
+  <ribbon>
+    <tabs>
+      <tab id="RD0" label="作図​​" insertAfterQ="TabAddIns">
+        <group id="RD1" label="図形操作" imageMso="ComAddInsDialog">
+          <editBox id="RD11_1" onChange="RD_onChange" label="無効名称" getText="RD_getText" sizeString="wwwww" />
+          <button id="RD12" onAction="RD12_onAction" label="​​図形リスト" imageMso="PlayMacro" size="large" />
+          <button id="RD13" onAction="RD13_onAction" label="​​設定更新" imageMso="ObjectFormatDialog" size="large" />
+          <button id="RD14" onAction="RD14_onAction" label="図形削除" imageMso="Clear" size="large" />
+          <button id="RD15" onAction="RD15_onAction" label="絵に変換" imageMso="SelectionPane" size="large" />
+          <button id="RD16" onAction="RD16_onAction" label="基本装飾" imageMso="SelectionPane" size="large" />
+          <button id="RD17" onAction="RD17_onAction" label="装飾(初期設定)" imageMso="SelectionPane" size="large" />
+          <button id="RD18" onAction="RD18_onAction" label="装飾②" imageMso="SelectionPane" size="large" />
+          <button id="RD19" onAction="RD19_onAction" label="左右反転" imageMso="SelectionPane" size="large" />
+        </group>
+        <group id="RD2" label="ツール" imageMso="ComAddInsDialog">
+          <splitButton id="RD21" size="large">
+            <button id="RD21_1" onAction="RD21_onAction" label="​​方眼紙" imageMso="GridSettings" />
+            <menu id="RD21_m">
+              <button id="RD21_2" onAction="RD21_onAction" label="軸線" imageMso="DrawingCanvasResize" />
+            </menu>
+          </splitButton>
+        </group>
+        <group id="RD3" label="IDF" imageMso="ComAddInsDialog">
+          <splitButton id="RD31" size="large">
+            <button id="RD31_1" onAction="RD31_onAction" label="​​読み込み" imageMso="GetExternalDataImportClassic" />
+            <menu id="RD31_m">
+              <button id="RD31_2" onAction="RD31_onAction" label="エクスポート" imageMso="ExportTextFile" />
+            </menu>
+          </splitButton>
+          <splitButton id="RD32" size="large">
+            <button id="RD32_1" onAction="RD32_onAction" label="​​描画" imageMso="ShapesMoreShapes" />
+            <menu id="RD32_m">
+              <button id="RD32_2" onAction="RD32_onAction" label="​​描画" imageMso="ShapesMoreShapes" />
+              <button id="RD32_3" onAction="RD32_onAction" label="​​描画" imageMso="ShapesMoreShapes" />
+            </menu>
+          </splitButton>
+          <editBox id="RD33_2" onChange="RD_onChange" label="比率" getText="RD_getText" sizeString="wwwww" />
+          <editBox id="RD33_3" onChange="RD_onChange" label="目盛り" getText="RD_getText" sizeString="wwwww" />
+          <checkBox id="RD33_4" onAction="RD_onAction" label="原点" />
+          <checkBox id="RD33_5" onAction="RD_onAction" label="背景" />
+          <checkBox id="RD33_6" onAction="RD_onAction" label="方眼紙" />
+          <!-- <button id="RD14" onAction="RD58_onAction" label="​ｘｘｘ" imageMso="GetExternalDataFromText" size="large" /> -->
+          <!-- <button id="RD15" onAction="RD59_onAction" label="​ｘｘｘ" imageMso="ObjectFormatDialog" size="large" /> -->
+          <!-- <button id="RD16" onAction="RD60_onAction" label="​ｘｘｘ" imageMso="ShapeStylesGallery" size="large" /> -->
+          <!-- <button id="RD17" onAction="RD61_onAction" label="​ｘｘｘ" imageMso="ShowTrackingPage" size="large" /> -->
+          <!-- <button id="RD18" onAction="RD62_onAction" label="​ｘｘｘ" imageMso="ViewGridlinesToggleExcel" size="large" /> -->
+          <!-- <button id="RD19" onAction="RD63_onAction" label="​ｘｘｘ" imageMso="ShapesMoreShapes" size="large" /> -->
+          <!-- <button id="RD20" onAction="RD64_onAction" label="​ｘｘｘ" imageMso="ShowDetailsPage" size="large" /> -->
+          <control idQ="ObjectsSelect" visible="true" />
+          <control idQ="SelectionPane" visible="true" />
+        </group>
+          <!--   ShowDetailsPage -->
+          <!-- <dropDown id="RD31" onAction="RD31_onAction" label="シート名" getItemCount="RD31_getItemCount" getItemID="RD31_getItemID" getItemLabel="RD31_getItemLabel" getSelectedItemID="RD31_getSelectedItemID" /> -->
+          <!-- <button id="RD21d" onAction="RD21_onAction" tag="8" label="見出し色" getImage="RD21a_onGetImage" /> -->
+          <!--<editBox id="RD36" onChange="RD26_onChange" label="名前" getText="RD16_getText" sizeString="wwwwwwwwwww" />-->
+      </tab>
+    </tabs>
+  </ribbon>
+</customUI>
