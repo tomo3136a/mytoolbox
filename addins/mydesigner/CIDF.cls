@@ -169,6 +169,7 @@ Private Sub SetHeader(no As Integer, va As Object)
 End Sub
 
 Private Sub SetOutLine(no As Integer, va As Object)
+    Dim s As String
     Select Case no
     Case 1
         Set pcitem = New CIDFItem
@@ -176,13 +177,16 @@ Private Sub SetOutLine(no As Integer, va As Object)
         Call pcitem.SetData(no, va)
     Case 2
         Call pcitem.SetOutLineData(va)
-        Call pitems.Add(pcitem.name & pitems.Count, pcitem)
+        s = pcitem.name & pitems.Count
+        If pitems.Exists(s) Then pitems.Remove s
+        Call pitems.Add(s, pcitem)
     Case Else
         Call pcitem.SetData(no, va)
     End Select
 End Sub
 
 Private Sub SetKeepOut(no As Integer, va As Object)
+    Dim s As String
     Select Case no
     Case 1
         Set pcitem = New CIDFItem
@@ -190,13 +194,16 @@ Private Sub SetKeepOut(no As Integer, va As Object)
         Call pcitem.SetData(no, va)
     Case 2
         Call pcitem.SetKeepOutData(va)
-        Call pitems.Add(pcitem.name & pitems.Count, pcitem)
+        s = pcitem.name & pitems.Count
+        If pitems.Exists(s) Then pitems.Remove s
+        Call pitems.Add(s, pcitem)
     Case Else
         Call pcitem.SetData(no, va)
     End Select
 End Sub
 
 Private Sub SetRegion(no As Integer, va As Object)
+    Dim s As String
     Select Case no
     Case 1
         Set pcitem = New CIDFItem
@@ -204,7 +211,9 @@ Private Sub SetRegion(no As Integer, va As Object)
         Call pcitem.SetData(no, va)
     Case 2
         Call pcitem.SetRegionData(no, va)
-        Call pitems.Add(pcitem.name & pitems.Count, pcitem)
+        s = pcitem.name & pitems.Count
+        If pitems.Exists(s) Then pitems.Remove s
+        Call pitems.Add(s, pcitem)
     Case Else
         Call pcitem.SetData(no, va)
     End Select
@@ -244,6 +253,7 @@ Private Sub SetPlacement(no As Integer, va As Object)
 End Sub
 
 Private Sub SetSymbol(no As Integer, va As Object)
+    Dim s As String
     Select Case no
     Case 1
         Set pcitem = New CIDFItem
@@ -251,7 +261,9 @@ Private Sub SetSymbol(no As Integer, va As Object)
         Call pcitem.SetData(no, va)
     Case 2
         Call pcitem.SetData(no, va)
-        Call plib.Add(pcitem.name, pcitem)
+        s = pcitem.name
+        If plib.Exists(s) Then plib.Remove s
+        Call plib.Add(s, pcitem)
     Case Else
         If va(0) = "PROP" Then
             'TODO: PROP Çê›íË
