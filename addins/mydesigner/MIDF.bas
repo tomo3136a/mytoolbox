@@ -9,19 +9,24 @@ Private g_idf_path As String
 '----------------------------------------
 
 'IDFファイル読み込み
-Public Sub ImportIDF(Optional path As String, _
+Public Sub ImportIDF( _
         Optional ce As Boolean, _
         Optional enc As Integer = 932)
     '読み込みファイル選択
-    If path = "" Then
-        path = g_idf_path
-        If path = "" Then path = ActiveWorkbook.path
-        path = SelectFile(path _
-            , "IDFファイル選択" _
-            , "IDFファイル;*.emn;*.emp,すべてのファイル")
-        If path = "" Then Exit Sub
-        g_idf_path = fso.GetParentFolderName(path)
-    End If
+    Dim path As String
+    path = g_idf_path
+    If path = "" Then path = ActiveWorkbook.path
+    With Application.FileDialog(msoFileDialogOpen)
+        .Filters.Clear
+        .Filters.Add "IDFファイル", "*.emn"
+        .Filters.Add "ライブラリファイル", "*.emp"
+        .InitialFileName = path & "\"
+        .AllowMultiSelect = False
+        If .Show = True Then
+            path = .SelectedItems(1)
+        End If
+    End With
+    g_idf_path = fso.GetParentFolderName(path)
     If Not fso.FileExists(path) Then Exit Sub
     '
     '画面チラつき防止処置
@@ -92,56 +97,20 @@ Public Sub ImportIDF(Optional path As String, _
 End Sub
 
 'IDFファイル書き出し
-Public Sub ExportIDF(ws As Worksheet, Optional path As String)
+Public Sub ExportIDF(ws As Worksheet)
     '書き出しファイル選択
-    If path = "" Then
-        path = g_idf_path
-        If path = "" Then path = ActiveWorkbook.path
-        path = fso.BuildPath(path, ws.name)
-        path = Application.GetSaveAsFilename(path, _
-            FileFilter:="IDFファイル,*.emn,ライブラリファイル,*.emp")
-        If path = "False" Then Exit Sub
-        g_idf_path = fso.GetParentFolderName(path)
-    End If
-    '
-    Dim ra As Range
-    Set ra = ws.UsedRange
-    Dim r As Long
-    Dim c As Long
-    Dim n As Long
-    Dim sect As String
-    Dim line As String
-    Open path For Output As #1
-    For r = 1 To ra.Rows.Count
-        line = ""
-        Dim s0 As String
-        Dim s1 As String
-        s0 = Trim(ra(r, 1).Value)
-        If Left(s0, 1) = "." Then
-            sect = s0
-            n = 0
-        End If
-        If s0 = "" Then line = "  "
-        For c = 1 To ra.Columns.Count
-            s1 = Trim(ra(r, c).Value)
-            If InStr(s1, " ") Then s1 = Chr(34) & s1 & Chr(34)
-            If Trim(s1) = "" Then s1 = "   "
-            line = line + s1 + "  "
-        Next c
-        Print #1, RTrim(line)
-        n = n + 1
-    Next r
-    Close #1
-End Sub
-
-
-'IDFファイル書き出し
-Public Sub SaveIDF(ws As Worksheet)
     Dim path As String
     path = g_idf_path
     If path = "" Then path = ActiveWorkbook.path
-    path = fso.BuildPath(path, ws.name)
-    path = Application.GetSaveAsFilename(path, FileFilter:="IDFファイル,*.emn,ライブラリファイル,*.emp")
+    Dim name As String
+    name = re_replace(ws.name, "\s*\(\d+\)$", "")
+    path = fso.BuildPath(path, name)
+    Dim idx As Integer
+    If LCase(Right(path, 4)) = ".emn" Then idx = 1
+    If LCase(Right(path, 4)) = ".emp" Then idx = 2
+    Dim flt As String
+    flt = "IDFファイル,*.emn,ライブラリファイル,*.emp"
+    path = Application.GetSaveAsFilename(path, flt, idx)
     If path = "False" Then Exit Sub
     g_idf_path = fso.GetParentFolderName(path)
     '
@@ -165,16 +134,7 @@ Public Sub SaveIDF(ws As Worksheet)
         If s0 = "" Then line = "  "
         For c = 1 To ra.Columns.Count
             s1 = Trim(ra(r, c).Value)
-            Dim f As Boolean
-            f = False
-            If InStr(s1, " ") Then
-                f = True
-            ElseIf c = 3 And n = 1 Then
-                If sect = ".HEADER" Then f = True
-            ElseIf c = 5 And n > 0 Then
-                If sect = ".NOTES" Then f = True
-            End If
-            If f Then s1 = Chr(34) & s1 & Chr(34)
+            If InStr(s1, " ") Then s1 = Chr(34) & s1 & Chr(34)
             If Trim(s1) = "" Then s1 = "   "
             line = line + s1 + "  "
         Next c
