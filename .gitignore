@@ -61,6 +61,7 @@ Debug/
 *.vdproj
 
 # ignore
+*.lnk
 *.bak
 _*/
 _*
@@ -71,5 +72,8 @@ doxygen/
 *.log
 *.srec
 
+# office
 *.xlsx
+*.xlsm
+*.xlam
 *.docx
