@@ -1,4 +1,7 @@
 Attribute VB_Name = "Dev"
+'[参照設定]
+'「Microsoft Visual Basic for Application Extensibility 5.3」
+
 Option Explicit
 Option Private Module
 
@@ -40,10 +43,10 @@ Sub AddinDevApp(id As Integer)
     Case 35
     Case 37
         'アドインソースのエクスポート
-        ExportAllMacro g_addin
+        ExportModules g_addin
     Case 38
         'アドインソースのインポート
-        ImportAllMacro g_addin
+        ImportModules g_addin
     Case 4
         '閉じる
         ToggleAddin ActiveWorkbook.name
@@ -203,8 +206,8 @@ Private Sub DeployAddin(name As String)
     AddIns(AddinName(name)).Installed = True
 End Sub
 
-'ソースエクスポート
-Private Sub ExportAllMacro(Optional name As String)
+'モジュールソースコードエクスポート
+Private Sub ExportModules(Optional name As String)
     If name = "" Then Exit Sub
     name = Replace(name, ".xlam", "")
     '
@@ -246,20 +249,24 @@ Private Sub ExportAllMacro(Optional name As String)
     '
     Dim m As Object
     For Each m In col
-        Select Case m.Type
-        Case 1
-            Call m.Export(path & "\" & m.name & ".bas")
-        Case 2
-            Call m.Export(path & "\" & m.name & ".cls")
-        Case 3
-            Call m.Export(path & "\" & m.name & ".frm")
-        Case 100
-            If m.name = "ThisWorkbook" Then
-                Call m.Export(path & "\" & m.name & ".cls2")
-            End If
-        Case Else
-            MsgBox "エクスポート対象外： " & m.Type & ":" & m.name
-        End Select
+        If m.CodeModule.CountOfLines > 0 Then
+            '1:vbext_ct_StdModule
+            '2:vbext_ct_ClassModule
+            '3:vbext_ct_MSForm
+            '100:vbext_ct_Document
+            Select Case m.Type
+            Case 1
+                Call m.Export(path & "\" & m.name & ".bas")
+            Case 2
+                Call m.Export(path & "\" & m.name & ".cls")
+            Case 3
+                Call m.Export(path & "\" & m.name & ".frm")
+            Case 100
+                Call m.Export(path & "\" & m.name & ".cls")
+            Case Else
+                MsgBox "エクスポート対象外： " & m.Type & ":" & m.name
+            End Select
+        End If
     Next m
     '
     With CreateObject("Wscript.Shell")
@@ -267,8 +274,8 @@ Private Sub ExportAllMacro(Optional name As String)
     End With
 End Sub
 
-'ソースインポート
-Private Sub ImportAllMacro(Optional name As String)
+'モジュールソースコードインポート
+Private Sub ImportModules(Optional name As String)
     If name = "" Then Exit Sub
     name = fso.GetBaseName(name)
     name = Replace(name, ".xlam", "")
@@ -300,19 +307,19 @@ Private Sub ImportAllMacro(Optional name As String)
         Dim fi As Variant
         For Each fi In .SelectedItems
             Dim s As String
-            s = LCase(fso.GetExtensionName(fi))
-            Select Case s
+            s = fso.GetBaseName(fi)
+            Select Case LCase(fso.GetExtensionName(fi))
             Case "bas"
-                col.Remove col(fso.GetBaseName(fi))
+                col.Remove col(s)
                 col.Import fi
             Case "frm"
-                col.Remove col(fso.GetBaseName(fi))
+                col.Remove col(s)
                 col.Import fi
             Case "cls"
-                col.Remove col(fso.GetBaseName(fi))
+                col.Remove col(s)
                 col.Import fi
             Case "cls2"
-                Call col(fso.GetBaseName(fi)).Item.CodeModule.AddFromFile(fi)
+                col(s).Item.CodeModule.AddFromFile fi
             End Select
         Next fi
     End With
