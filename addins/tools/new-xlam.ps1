@@ -5,9 +5,10 @@ if ($name -eq "") { Write-Host "no name"; exit }
 
 $root=Join-Path (get-location).path $name
 if (-not (Test-Path $root)) { [void](mkdir $root) }
-Set-Location $root
+Push-Location $root
+$out="${env:APPDATA}/Microsoft/Addins"
 
-$xlam=Join-Path $root ($name+".xlam")
+$xlam=Join-Path $out ($name+".xlam")
 if (-not (Test-Path $xlam)) {
     "# Create ${xlam}"|Out-Host
     $app=New-Object -ComObject Excel.Application
@@ -71,7 +72,4 @@ if (-not (Test-Path $path)) {
 }
 7za.exe u -y $xlam "customUI/customUI.xml"|Out-Null
 
-$out="${env:APPDATA}/Microsoft/Addins"
-Copy-Item $xlam $out
-
-Set-Location ..
+Pop-Location
