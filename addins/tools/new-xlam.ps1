@@ -51,22 +51,21 @@ if (-not (Test-Path $path)) {
 $path=$root+"\customUI\customUI.xml"
 if (-not (Test-Path $path)) {
     "# Add customUI/customUI.xml"|Out-Host
-    #$ns="http://schemas.microsoft.com/office/2006/01/customui"
-    #$ns="http://schemas.microsoft.com/office/2009/07/customui"
-    $txt='<?xml version="1.0" encoding="UTF-8"?>
+    $xml=[xml]@"
+<?xml version="1.0" encoding="UTF-8"?>
 <customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui">
   <ribbon>
     <tabs>
-      <tab id="T1" label="tab">
-        <group id="G1" label="group" autoScale="true">
-          <button id="B1" label="button" imageMso="ListMacros"
-            onAction="M1" size="large" />
+      <tab id="Tab${name}" label="tab">
+        <group id="${name}.G1" label="group" autoScale="true">
+          <button id="${name}.B1" label="button" imageMso="ListMacros"
+            onAction="${name}.M1" size="large" />
         </group>
       </tab>
     </tabs>
   </ribbon>
-</customUI>'
-    $xml=[xml]$txt
+</customUI>
+"@
     mkdir -Force ($root+"\customUI")|Out-Null
     $xml.Save($path)
 }
