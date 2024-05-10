@@ -18,7 +18,7 @@ Private pa As Double        'angle(0=lne, 360=circle, othrs=arc)
 
 '----------------------------------------
 
-Public Sub SetData(va As Object)
+Public Sub SetData(va As Variant)
     plabel = va(0)
     px = va(1)
     py = va(2)

@@ -24,11 +24,11 @@ Private pcol As Collection  '座標データ
 
 '----------------------------------------
 
-Public Sub SetData(no As Integer, vs As Object)
+Public Sub SetData(no As Integer, vs As Variant)
     Select Case no
     Case 1
         Set pcol = New Collection
-        If vs.Count > 1 Then powner = vs(1)
+        powner = vs(1)
     Case 2
         pname = vs(0)
         pnumb = vs(1)
@@ -43,7 +43,7 @@ Public Sub SetData(no As Integer, vs As Object)
     End Select
 End Sub
 
-Public Sub SetOutLineData(vs As Object)
+Public Sub SetOutLineData(vs As Variant)
     Select Case psect
     Case "BOARD_OUTLINE"
         pname = "BOARD_OUTLINE"
@@ -78,7 +78,7 @@ Public Sub SetOutLineData(vs As Object)
     End Select
 End Sub
 
-Public Sub SetKeepOutData(vs As Object)
+Public Sub SetKeepOutData(vs As Variant)
     Select Case psect
     Case "ROUTE_KEEPOUT"
         pname = "ROUTE_KEEPOUT_" & vs(0)
@@ -101,7 +101,7 @@ Public Sub SetKeepOutData(vs As Object)
     End Select
 End Sub
 
-Public Sub SetRegionData(no As Integer, vs As Object)
+Public Sub SetRegionData(no As Integer, vs As Variant)
     Select Case psect
     Case "PLACE_REGION"
         pname = "PLACE_REGION_" & vs(0)
@@ -112,7 +112,7 @@ Public Sub SetRegionData(no As Integer, vs As Object)
     End Select
 End Sub
 
-Public Sub SetDorillHoleData(no As Integer, vs As Object)
+Public Sub SetDorillHoleData(no As Integer, vs As Variant)
     Select Case psect
     Case "BOARD_OUTLINE"
         pname = "BOARD_OUTLINE"

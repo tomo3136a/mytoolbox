@@ -19,7 +19,7 @@ Private ps As String        'text
 
 '----------------------------------------
 
-Public Sub SetData(va As Object)
+Public Sub SetData(va As Variant)
     px = va(0)
     py = va(1)
     ph = va(2)
@@ -83,7 +83,7 @@ Public Function Draw(ws As Worksheet, x As Double, y As Double, a As Double, Opt
     Set sh = ws.Shapes.AddTextbox(msoTextOrientationHorizontal, tx, ty, tw, th)
     With sh
         .TextFrame.Characters.Font.Size = ph * g * 2
-        .TextFrame.Characters.Text = ps
+        .TextFrame.Characters.text = ps
         With .TextFrame2
             .MarginLeft = 0
             .MarginRight = 0

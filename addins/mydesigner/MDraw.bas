@@ -6,24 +6,41 @@ Option Private Module
 Private g_ignore As String      '無効検索文字
 Private g_scale As Double       'スケール
 Private g_axes As Double        '軸間隔
-Private g_flag As Integer       'モード
+Private g_flag As Integer       'モード(0:,1:,2:,3:)
 
 Private ptype_col As Variant
 Private ptypename As Variant
 Private pshapetypename As Variant
 
 '----------------------------------------
+'パラメータ制御
+'----------------------------------------
+
+Public Sub ResetDrawParam(Optional id As Integer)
+    If id = 0 Or id = 1 Then g_ignore = ""
+    If id = 0 Or id = 2 Then g_scale = 1
+    If id = 0 Or id = 3 Then g_axes = 100
+    If id = 0 Or id = 4 Then g_flag = 0
+End Sub
 
 Public Sub SetDrawParam(id As Integer, ByVal val As String)
     Select Case id
     Case 1
         g_ignore = val
     Case 2
+        If val <= 0 Then
+            MsgBox "比率の設定が間違っています。(設定値>0)" & Chr(10) _
+                & "設定値： " & val
+            Exit Sub
+        End If
         g_scale = val
-        If g_scale <= 0 Then g_scale = 0.05
     Case 3
+        If val <= 0 Then
+            MsgBox "目盛りの設定が間違っています。(設定値>0)" & Chr(10) _
+                & "設定値： " & val
+            Exit Sub
+        End If
         g_axes = val
-        If g_axes <= 0 Then g_axes = 100
     Case 4
         g_flag = (g_flag And (65535 - 1)) Or (val * 1)
     Case 5
@@ -34,18 +51,22 @@ Public Sub SetDrawParam(id As Integer, ByVal val As String)
 End Sub
 
 Public Function GetDrawParam(id As Integer) As String
-    Dim val As String
     Select Case id
     Case 1
-        val = g_ignore
+        GetDrawParam = g_ignore
     Case 2
-        If g_scale <= 0 Then g_scale = 0.05
-        val = g_scale
+        If g_scale <= 0 Then
+            ResetDrawParam id
+            MsgBox "比率の設定を初期化しました。(設定値" & g_scale & ")"
+        End If
+        GetDrawParam = g_scale
     Case 3
-        If g_axes <= 0 Then g_axes = 100
-        val = g_axes
+        If g_axes <= 0 Then
+            MsgBox "目盛りの設定を初期化しました。(設定値" & g_scale & ")"
+            ResetDrawParam id
+        End If
+        GetDrawParam = g_axes
     End Select
-    GetDrawParam = val
 End Function
 
 Public Function IsDrawParam(id As Integer) As Boolean
@@ -261,15 +282,15 @@ Public Function ConvToPic() As String
 End Function
 
 '図形を全て削除
-Public Sub RemoveSharp()
+Public Sub RemoveSharp(ws As Worksheet)
     On Error Resume Next
     Application.ScreenUpdating = False
     '
     Dim i As Long
-    For i = ActiveSheet.Shapes.Count To 1 Step -1
+    For i = ws.Shapes.Count To 1 Step -1
         Dim sh As Shape
-        Set sh = ActiveSheet.Shapes(i)
-        ActiveSheet.Shapes(i).Delete
+        Set sh = ws.Shapes(i)
+        ws.Shapes(i).Delete
     Next i
     '
     Application.ScreenUpdating = True
@@ -307,7 +328,7 @@ Public Sub ListShape(ra As Range, ws As Worksheet, igptn As String)
         If igptn <> "" Then
             If Not re_test(sp.name, igptn) Then
                 Call ListShape2(ce, sp, "", igptn)
-                'Set ce = ce.Offset(1)
+                Set ce = ce.Offset(1)
             End If
         End If
     Next sp

@@ -31,7 +31,9 @@ End Function
 
 '•¶š—ñ—L–³
 Public Function re_test(s As String, ptn As String) As Boolean
+    On Error Resume Next
     re_test = regex(ptn).test(s)
+    On Error GoTo 0
 End Function
 
 '•¶š—ñ’Šo
@@ -370,6 +372,31 @@ Function StrSheetProperty(ws As Worksheet, name As String) As String
     idx = SheetPropertyIndex(ws, name)
     If idx > 0 Then StrSheetProperty = ws.CustomProperties(idx).Value
 End Function
+
+
+'----------------------------------------
+'‰æ–Êƒ`ƒ‰‚Â‚«–h~
+'----------------------------------------
+
+Public Sub ScreenUpdateOff()
+    '‰æ–Êƒ`ƒ‰‚Â‚«–h~ˆ’u
+    Application.Calculation = xlCalculationManual
+    Application.ScreenUpdating = False
+    Application.DisplayAlerts = False
+    Application.EnableEvents = False
+    Application.Interactive = False
+    Application.Cursor = xlWait
+End Sub
+
+Public Sub ScreenUpdateOn()
+    '‰æ–Êƒ`ƒ‰‚Â‚«–h~ˆ’u‰ğœ
+    Application.Cursor = xlDefault
+    Application.Interactive = True
+    Application.EnableEvents = True
+    Application.DisplayAlerts = True
+    Application.ScreenUpdating = True
+    Application.Calculation = xlCalculationAutomatic
+End Sub
 
 
 '----------------------------------------

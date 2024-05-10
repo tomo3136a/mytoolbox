@@ -23,7 +23,7 @@ Private psts As String      'status: PLACED, UNPLACED, ECAD, MCAD
 
 '----------------------------------------
 
-Public Sub SetData(no As Integer, vs As Object)
+Public Sub SetData(no As Integer, vs As Variant)
     Select Case no
     Case 1
     Case 2

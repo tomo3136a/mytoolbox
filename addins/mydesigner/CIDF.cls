@@ -106,7 +106,7 @@ End Property
 
 '----------------------------------------
 
-Public Sub Parse(va As Object)
+Public Sub Parse(va As Variant)
     Dim s As String
     s = va(0)
     precno = precno + 1
@@ -157,7 +157,7 @@ End Sub
 
 '----------------------------------------
 
-Private Sub SetHeader(no As Integer, va As Object)
+Private Sub SetHeader(no As Integer, va As Variant)
     Select Case no
     Case 1
         Set pcitem = New CIDFFile
@@ -168,7 +168,7 @@ Private Sub SetHeader(no As Integer, va As Object)
     End Select
 End Sub
 
-Private Sub SetOutLine(no As Integer, va As Object)
+Private Sub SetOutLine(no As Integer, va As Variant)
     Dim s As String
     Select Case no
     Case 1
@@ -185,7 +185,7 @@ Private Sub SetOutLine(no As Integer, va As Object)
     End Select
 End Sub
 
-Private Sub SetKeepOut(no As Integer, va As Object)
+Private Sub SetKeepOut(no As Integer, va As Variant)
     Dim s As String
     Select Case no
     Case 1
@@ -202,7 +202,7 @@ Private Sub SetKeepOut(no As Integer, va As Object)
     End Select
 End Sub
 
-Private Sub SetRegion(no As Integer, va As Object)
+Private Sub SetRegion(no As Integer, va As Variant)
     Dim s As String
     Select Case no
     Case 1
@@ -219,7 +219,7 @@ Private Sub SetRegion(no As Integer, va As Object)
     End Select
 End Sub
 
-Private Sub SetHole(no As Integer, va As Object)
+Private Sub SetHole(no As Integer, va As Variant)
     Select Case no
     Case 1
     Case Else
@@ -229,7 +229,7 @@ Private Sub SetHole(no As Integer, va As Object)
     End Select
 End Sub
 
-Private Sub SetNote(no As Integer, va As Object)
+Private Sub SetNote(no As Integer, va As Variant)
     Select Case no
     Case 1
     Case Else
@@ -239,7 +239,7 @@ Private Sub SetNote(no As Integer, va As Object)
     End Select
 End Sub
 
-Private Sub SetPlacement(no As Integer, va As Object)
+Private Sub SetPlacement(no As Integer, va As Variant)
     Select Case no
     Case 1
     Case 2
@@ -252,7 +252,7 @@ Private Sub SetPlacement(no As Integer, va As Object)
     End Select
 End Sub
 
-Private Sub SetSymbol(no As Integer, va As Object)
+Private Sub SetSymbol(no As Integer, va As Variant)
     Dim s As String
     Select Case no
     Case 1
@@ -277,35 +277,44 @@ End Sub
 '“Ç‚Ýž‚Ý
 '----------------------------------------
 
-Public Function ReadRage(ra As Range) As Boolean
+Private Function Readline(line As String) As Boolean
+    Dim re As Object
+    Set re = regex("(\""[^""]*\""|\S+)+")
+    With fso.GetFile(path).OpenAsTextStream
+        Do Until .AtEndOfStream = True
+            Dim mc As Object
+            Set mc = re.Execute(.Readline)
+            If mc.Count > 0 Then Parse mc
+        Loop
+        .Close
+    End With
+    Readline = True
+End Function
+
+Public Function ReadRange(ra As Range) As Boolean
     Dim ws As Worksheet
     Set ws = ra.Worksheet
     Set ra = ws.UsedRange
+    Dim arr As Variant
+    arr = ra.Range(ra, ra.Offset(0, 8)).Value
     Dim r As Long
     Dim c As Integer
-    For r = 1 To ra.Rows.Count
-        Dim rr As Range
-        For c = 1 To ra.Columns.Count
-            If Not Trim(ra(r, c)) = "" Then
-                Dim rs As Range
-                Set rs = ra.Cells(r, c)
-                Dim re As Range
-                Set re = ra.Cells(r, ra.Columns.Count)
-                Dim rc As Range
-                Set rc = ra.Range(rs, re)
-                Parse rc.Value
-                Exit For
-            End If
+    Dim vs As Variant
+    vs = Array("", "", "", "", "", "", "", "", "")
+    For r = LBound(arr, 1) To UBound(arr, 1)
+        For c = 1 To 8
+            vs(c - 1) = arr(r, c)
         Next c
+        Parse vs
     Next r
     ReadRange = True
 End Function
 
-Public Function LoadSheet() As Boolean
+Public Function LoadSheet(Optional path As String, Optional emp As Boolean) As Boolean
     Dim ws As Worksheet
     Set ws = SelectSheet()
     If ws Is Nothing Then Exit Function
-    LoadSheet = ReadRage(ws.UsedRange)
+    LoadSheet = ReadRange(ws.UsedRange)
 End Function
 
 Public Function ReadFile(path As String) As Boolean
@@ -314,8 +323,16 @@ Public Function ReadFile(path As String) As Boolean
     With fso.GetFile(path).OpenAsTextStream
         Do Until .AtEndOfStream = True
             Dim mc As Object
-            Set mc = re.Execute(.ReadLine)
-            If mc.Count > 0 Then Parse mc
+            Set mc = re.Execute(.Readline)
+            If mc.Count > 0 Then
+                Dim vs As Variant
+                vs = Array("", "", "", "", "", "", "", "")
+                Dim i As Integer
+                For i = 0 To mc.Count - 1
+                    vs(i) = mc(i)
+                Next i
+                Parse vs
+            End If
         Loop
         .Close
     End With
@@ -503,9 +520,8 @@ Private Function DrawPart(ws As Worksheet, id As String) As Shape
                 ElseIf pitems.Exists(s) Then
                     Set sym = pitems(s)
                     Set sh = sym.Draw(ws, g_px, g_py, g_pa, g_pg, sym)
-                ElseIf Not LoadFile(emp:=True) Then Exit Function
-                Else
-                    
+                ElseIf Not LoadSheet(emp:=True) Then
+                    If Not LoadFile(emp:=True) Then Exit Function
                 End If
             Loop
             If Not sh Is Nothing Then ns.Add sh.name

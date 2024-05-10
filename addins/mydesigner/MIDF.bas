@@ -7,7 +7,6 @@ Private g_idf_path As String
 '----------------------------------------
 'IDF作図機能
 '----------------------------------------
-
 'IDFファイル読み込み
 Public Sub ImportIDF( _
         Optional ce As Boolean, _
@@ -30,12 +29,7 @@ Public Sub ImportIDF( _
     If Not fso.FileExists(path) Then Exit Sub
     '
     '画面チラつき防止処置
-    Application.Calculation = xlCalculationManual
-    Application.ScreenUpdating = False
-    Application.DisplayAlerts = False
-    Application.EnableEvents = False
-    Application.Interactive = False
-    Application.Cursor = xlWait
+    ScreenUpdateOff
     '
     'ワークシート作成
     Dim ws_old As Worksheet
@@ -88,12 +82,7 @@ Public Sub ImportIDF( _
     Set ws = Nothing
     '
     '画面チラつき防止処置解除
-    Application.Cursor = xlDefault
-    Application.Interactive = True
-    Application.EnableEvents = True
-    Application.DisplayAlerts = True
-    Application.ScreenUpdating = True
-    Application.Calculation = xlCalculationAutomatic
+    ScreenUpdateOn
 End Sub
 
 'IDFファイル書き出し
@@ -144,15 +133,23 @@ Public Sub ExportIDF(ws As Worksheet)
     Close #1
 End Sub
 
-'IDF部品ファイル読み込み
+'IDFファイル描画
 Public Function DrawIDF( _
         ws As Worksheet, x As Double, y As Double, _
-        Optional path As String, Optional g As Double) As String
+        Optional path As String, Optional g As Double, _
+        Optional sheet_load As Boolean) As String
     '
     Dim idf As CIDF
     Set idf = New CIDF
-    If Not idf.LoadFile(path) Then Exit Function
+    If sheet_load Then
+        If Not idf.LoadSheet(path) Then Exit Function
+    Else
+        If Not idf.LoadFile(path) Then Exit Function
+    End If
     If idf.Count = 0 Then Exit Function
+    '
+    '画面チラつき防止処置
+    ScreenUpdateOff
     '
     If g = 0 Then g = GetDrawParam(2)
     Dim w As Double
@@ -173,6 +170,9 @@ Public Function DrawIDF( _
     Dim s As String
     s = idf.Draw(ws, x0, y0, 0#, g)
     If IsDrawParam(5) Then Call DrawAxis(ws, x0, y0, w, h)
+    '
+    '画面チラつき防止処置解除
+    ScreenUpdateOn
 End Function
 
 'IDF部品ファイル読み込み
@@ -184,6 +184,9 @@ Public Function DrawIDF2( _
     Set idf = New CIDF
     If Not idf.LoadSheet() Then Exit Function
     If idf.Count = 0 Then Exit Function
+    '
+    '画面チラつき防止処置
+    ScreenUpdateOff
     '
     If g = 0 Then g = GetDrawParam(2)
     Dim w As Double
@@ -203,8 +206,9 @@ Public Function DrawIDF2( _
     '
     Dim s As String
     s = idf.Draw(ws, x0, y0, 0#, g)
-    If IsDrawParam(5) Then
-        Call DrawAxis(ws, x0, y0, w, h)
-    End If
+    If IsDrawParam(5) Then Call DrawAxis(ws, x0, y0, w, h)
+    '
+    '画面チラつき防止処置解除
+    ScreenUpdateOn
 End Function
 

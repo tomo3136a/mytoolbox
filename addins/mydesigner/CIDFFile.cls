@@ -21,7 +21,7 @@ Private punits As String        'units:         MM, THOU(=0.0254mm)
 
 '----------------------------------------
 
-Public Sub SetData(no As Integer, va As Object)
+Public Sub SetData(no As Integer, va As Variant)
     Select Case no
     Case 1
     Case 2
@@ -38,7 +38,7 @@ End Sub
 
 '----------------------------------------
 
-Public Property Get Text() As String
+Public Property Get text() As String
     Dim s As String
     s = "File Type   :  " & ptype
     s = s & Chr(10) & "IDF vesion   : " & fmtver
@@ -53,7 +53,7 @@ Public Property Get Text() As String
     Case ""
         s = s + "(mils=1/1000inch)"
     End Select
-    Text = s
+    text = s
 End Property
 
 'Public Property Get FileType() As String

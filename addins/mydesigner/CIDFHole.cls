@@ -21,7 +21,7 @@ Private powner As String    'hole owner:        ECAD, MCAD, UNOWNED
 
 '----------------------------------------
 
-Public Sub SetData(va As Object)
+Public Sub SetData(va As Variant)
     pd = va(0)
     px = va(1)
     py = va(2)
