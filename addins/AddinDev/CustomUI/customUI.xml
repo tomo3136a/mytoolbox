@@ -3,29 +3,29 @@
   <ribbon>
     <tabs>
       <tab id="TabAddinDev" label="アドイン開発​​">
-        <group id="AddinDev_a" label="アドイン開発​​" imageMso="AddInManager">
-          <button id="AddinDev_1" onAction="AddinDev_onAction" tag="1" label="アドインフォルダ" imageMso="Folder" size="large" />
-          <button id="AddinDev_2" onAction="AddinDev_onAction" tag="2" label="imageMSO" imageMso="ActiveXImage" size="large" />
-          <separator id="AddinDev_s1" />
-          <box id="AddinDev_b1" boxStyle="vertical" >
-            <dropDown id="AddinDevSel_1" onAction="AddinDevSel_onAction" label="アドイン:" sizeString="aaaaaaaaaaaaaaaaaa"
+        <group id="AddinDev.g1" label="アドイン開発​​" imageMso="AddInManager">
+          <button id="AddinDev.1" onAction="AddinDev_onAction" tag="1" label="アドインフォルダ" imageMso="Folder" size="large" />
+          <button id="AddinDev.2" onAction="AddinDev_onAction" tag="2" label="imageMSOフォルダ" imageMso="ActiveXImage" size="large" />
+          <separator id="AddinDev.s1" />
+          <box id="AddinDev.g2" boxStyle="vertical">
+            <dropDown id="AddinDev.d1" onAction="AddinDevSel_onAction" label="アドイン:" sizeString="aaaaaaaaaaaaaaaaaa"
               getItemCount="AddinDevSel_getItemCount" getItemID="AddinDevSel_getItemID"
               getItemLabel="AddinDevSel_getItemLabel" getSelectedItemID="AddinDevSel_getSelectedItemID" />
-            <buttonGroup id="AddinDev_g1" >
-              <button id="AddinDev_31" onAction="AddinDev_onAction" tag="31" label="編集" imageMso="CodeEdit" />
-              <button id="AddinDev_32" onAction="AddinDev_onAction" tag="32" label="構築" imageMso="ResultsPaneStartFindAndReplace" />
-              <button id="AddinDev_33" onAction="AddinDev_onAction" tag="33" label="配置" imageMso="ReviewDisplayForReview" />
+            <buttonGroup id="AddinDev.g3">
+              <button id="AddinDev.31" onAction="AddinDev_onAction" tag="31" label="編集" imageMso="CodeEdit" />
+              <button id="AddinDev.32" onAction="AddinDev_onAction" tag="32" label="構築" imageMso="ResultsPaneStartFindAndReplace" />
+              <button id="AddinDev.33" onAction="AddinDev_onAction" tag="33" label="配置" imageMso="ReviewDisplayForReview" />
             </buttonGroup>
-            <buttonGroup id="AddinDev_g2" >
-              <button id="AddinDev_34" onAction="AddinDev_onAction" tag="34" label="シート編集" getEnabled="AddinDev_getEnabled" imageMso="WindowUnhide" />
-              <!-- <button id="AddinDev_35" onAction="AddinDev_onAction" tag="35" label="更新" imageMso="Refresh" /> -->
-              <button id="AddinDev_36" onAction="AddinDev_onAction" tag="36" label="情報" imageMso="RefreshStatus" />
+            <buttonGroup id="AddinDev.g4">
+              <button id="AddinDev.34" onAction="AddinDev_onAction" tag="34" label="シート編集" getEnabled="AddinDev_getEnabled" imageMso="WindowUnhide" />
+              <button id="AddinDev_35" onAction="AddinDev_onAction" tag="35" label="更新" imageMso="Refresh" />
+              <button id="AddinDev.36" onAction="AddinDev_onAction" tag="36" label="情報" imageMso="RefreshStatus" />
             </buttonGroup>
-            <button id="AddinDev_37" onAction="AddinDev_onAction" tag="37" label="エクスポート" imageMso="ExportSavedExports" size="large" />
-            <button id="AddinDev_38" onAction="AddinDev_onAction" tag="38" label="インポート" imageMso="ImportSavedImports" size="large" />
+            <button id="AddinDev.37" onAction="AddinDev_onAction" tag="37" label="エクスポート" imageMso="ExportSavedExports" size="large" />
+            <button id="AddinDev.38" onAction="AddinDev_onAction" tag="38" label="インポート" imageMso="ImportSavedImports" size="large" />
           </box>
-          <separator id="AddinDev_s2" />
-          <button id="AddinDev_4" onAction="AddinDev_onAction" tag="4" label="閉じる" getEnabled="AddinDev_getEnabled" imageMso="GroupMasterClose" size="large" />
+          <separator id="AddinDev.s2" />
+          <button id="AddinDev.4" onAction="AddinDev_onAction" label="閉じる" getEnabled="AddinDev_getEnabled" imageMso="GroupMasterClose" size="large" />
         </group>
       </tab>
     </tabs>
