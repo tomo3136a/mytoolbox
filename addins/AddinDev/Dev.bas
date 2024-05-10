@@ -32,8 +32,10 @@ Sub AddinDevApp(id As Integer)
         EditCustomUI g_addin
     Case 32
         'CustomUI マージ
-        Workbooks(g_addin).Save
-        MargeCustomUI g_addin
+        If g_addin <> "" Then
+            Workbooks(g_addin).Save
+            MargeCustomUI g_addin
+        End If
     Case 33
         'アドイン配置
         DeployAddin g_addin
@@ -126,29 +128,40 @@ Private Sub EditCustomUI(name As String)
     xlam = fso.BuildPath(AddinsPath, name)
     If Not fso.FileExists(xlam) Then Exit Sub
     '
+    Dim tmp As String
+    tmp = fso.BuildPath(AddinsPath, "tmp")
+    If Not fso.FolderExists(tmp) Then fso.CreateFolder tmp
+    '
+    Dim base As String
+    base = fso.GetBaseName(name)
+    '
     Dim zip As String
-    zip = xlam & ".zip"
+    zip = fso.BuildPath(tmp, base & ".zip")
     fso.CopyFile xlam, zip
     '
     Dim src As String
     src = fso.BuildPath(zip, "CustomUI")
     '
     Dim dst As String
-    dst = fso.BuildPath(AddinsPath, AddinName(name))
+    dst = fso.BuildPath(tmp, base)
     If Not fso.FolderExists(dst) Then fso.CreateFolder dst
     dst = fso.BuildPath(dst, "CustomUI")
     If Not fso.FolderExists(dst) Then fso.CreateFolder dst
     '
-    If Not fso.FileExists(fso.BuildPath(dst, "customUI.xml")) Then
+    Dim path As String
+    path = fso.BuildPath(dst, "customUI.xml")
+    If Not fso.FileExists(path) Then
         Dim shell As Object
         Set shell = CreateObject("Shell.Application")
-        shell.Namespace(CVar(dst)).CopyHere shell.Namespace(CVar(src)).Items
-        If Not shell Is Nothing Then
-            Set shell = Nothing
-        End If
+        Dim fo As Object
+        Set fo = shell.Namespace(CVar(dst))
+        fo.CopyHere shell.Namespace(CVar(src)).Items
+        If Not shell Is Nothing Then Set shell = Nothing
     End If
     '
-    Call CreateObject("Wscript.Shell").Run(dst & "\customUI.xml")
+    If fso.FileExists(zip) Then fso.DeleteFile zip
+    '
+    Call CreateObject("Wscript.Shell").Run(path)
 End Sub
 
 'CustomUI マージ
@@ -157,49 +170,66 @@ Private Sub MargeCustomUI(name As String)
     xlam = fso.BuildPath(AddinsPath, name)
     If Not fso.FileExists(xlam) Then Exit Sub
     '
+    Dim tmp As String
+    tmp = fso.BuildPath(AddinsPath, "tmp")
+    If Not fso.FolderExists(tmp) Then fso.CreateFolder tmp
+    '
+    Dim base As String
+    base = fso.GetBaseName(name)
+    '
     Dim zip As String
-    zip = xlam & ".zip"
+    zip = fso.BuildPath(tmp, base & ".zip")
     fso.CopyFile xlam, zip
     '
     Dim src As String
-    src = fso.BuildPath(AddinsPath, AddinName(name))
+    src = fso.BuildPath(tmp, base)
     src = fso.BuildPath(src, "CustomUI")
-    If Not fso.FileExists(fso.BuildPath(src, "customUI.xml")) Then
-        MsgBox "CustomUI.xml がありません。"
-        Exit Sub
-    End If
     '
     Dim dst As String
     dst = fso.BuildPath(zip, "CustomUI")
+    '
+    Dim path As String
+    path = fso.BuildPath(src, "customUI.xml")
+    If Not fso.FileExists(path) Then
+        MsgBox "CustomUI.xml がありません。"
+        Exit Sub
+    End If
     '
     Dim shell As Object
     Set shell = CreateObject("Shell.Application")
     Dim fo As Object
     Set fo = shell.Namespace(CVar(dst))
     fo.CopyHere shell.Namespace(CVar(src)).Items
-    If Not shell Is Nothing Then
-        Set shell = Nothing
-    End If
+    '
+    If Not shell Is Nothing Then Set shell = Nothing
 End Sub
 
 'アドイン配置
 Private Sub DeployAddin(name As String)
-    If name = ThisWorkbook.name Then
-        MsgBox name & " アドインは配置できません。" & Chr(10) & _
-        "zip ファイルを xlam ファイルに変換して" & _
-        "アドインを再インストールしてください。"
-        OpenAddinsFolder
-        AddIns(AddinName(name)).Installed = False
-        Exit Sub
-    End If
-    
     Dim xlam As String
     xlam = fso.BuildPath(AddinsPath, name)
     '
+    Dim tmp As String
+    tmp = fso.BuildPath(AddinsPath, "tmp")
+    If Not fso.FolderExists(tmp) Then Exit Sub
+    '
+    Dim base As String
+    base = fso.GetBaseName(name)
+    '
     Dim zip As String
-    zip = xlam & ".zip"
+    zip = fso.BuildPath(tmp, base & ".zip")
     If Not fso.FileExists(zip) Then Exit Sub
     '
+    If name = ThisWorkbook.name Then
+        xlam = fso.BuildPath(tmp, name)
+        If fso.FileExists(xlam) Then fso.DeleteFile xlam
+        fso.MoveFile zip, xlam
+        MsgBox name & " アドインは配置できません。" & Chr(10) & _
+        "tmp フォルダの xlam ファイルの" & _
+        "アドインを再インストールしてください。"
+        OpenAddinsFolder
+        Application.EnableEvents = False
+    End If
     AddIns(AddinName(name)).Installed = False
     If fso.FileExists(xlam) Then fso.DeleteFile xlam
     fso.MoveFile zip, xlam
@@ -284,7 +314,7 @@ Private Sub ImportModules(Optional name As String)
     Set wb = Application.Workbooks(Application.AddIns(name).name)
     '
     On Error Resume Next
-    Dim col As VBComponents
+    Dim col As Object     'VBComponents
     Set col = wb.VBProject.VBComponents
     On Error GoTo 0
     If col Is Nothing Then
@@ -397,17 +427,6 @@ End Function
 '----------------------------------
 'アドイン
 '----------------------------------
-
-'ユーザアドインフォルダ取得
-Function AddinsPath() As String
-    AddinsPath = ThisWorkbook.path
-End Function
-
-'アドイン名取得
-Function AddinName(Optional name As String) As String
-    If name = "" Then name = ThisWorkbook.name
-    AddinName = Replace(name, ".xlam", "")
-End Function
 
 'アドインブック表示・非表示トグル
 Sub ToggleAddin(Optional name As String)

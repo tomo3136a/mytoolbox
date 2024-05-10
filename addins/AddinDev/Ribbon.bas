@@ -42,12 +42,17 @@ End Sub
 
 'ÉAÉhÉCÉìëÄçÏ
 Private Sub AddinDev_onAction(ByVal control As IRibbonControl)
-    AddinDevApp CInt("0" & control.Tag)
-    If control.Tag = "35" Then g_ribbon.InvalidateControl "AddinDevSel_1"
+    AddinDevApp Val("0" & control.Tag)
+    If g_ribbon Is Nothing Then
+        MsgBox "g_ribbon"
+        Exit Sub
+    End If
+    g_ribbon.Invalidate
+    DoEvents
 End Sub
 
 Private Sub AddinDev_getEnabled(ByVal control As IRibbonControl, ByRef enable As Variant)
-    Select Case CInt("0" & control.Tag)
+    Select Case Val("0" & control.Tag)
     Case 4
         enable = (LCase(Right(ActiveWorkbook.name, 5)) = ".xlam")
     Case 34
