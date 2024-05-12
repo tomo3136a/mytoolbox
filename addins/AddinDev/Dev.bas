@@ -6,6 +6,7 @@ Option Explicit
 Option Private Module
 
 Private g_addin As String
+Private g_image As String
 
 '==================================
 'アドイン開発
@@ -13,6 +14,7 @@ Private g_addin As String
 
 Sub SetAddinName(s As String)
     g_addin = s
+    g_image = "Spelling"
 End Sub
 
 '----------------------------------
@@ -21,10 +23,13 @@ End Sub
 
 Sub AddinDevApp(id As Integer)
     Select Case id
-    Case 1
+    Case 11
+        'カレントフォルダを開く
+        OpenCurrentFolder
+    Case 12
         'アドインフォルダを開く
         OpenAddinsFolder
-    Case 2
+    Case 13
         'ImageMsoファイル保存
         SaveImageMso
     Case 31
@@ -32,10 +37,9 @@ Sub AddinDevApp(id As Integer)
         EditCustomUI g_addin
     Case 32
         'CustomUI マージ
-        If g_addin <> "" Then
-            Workbooks(g_addin).Save
-            MargeCustomUI g_addin
-        End If
+        If g_addin = "" Then Exit Sub
+        Workbooks(g_addin).Save
+        MargeCustomUI g_addin
     Case 33
         'アドイン配置
         DeployAddin g_addin
@@ -43,6 +47,12 @@ Sub AddinDevApp(id As Integer)
         'アドインブック表示・非表示トグル
         ToggleAddin g_addin
     Case 35
+        'アドインマネージャ
+        With Application.Dialogs(xlDialogAddinManager)
+            .Show
+        End With
+    Case 36
+        '情報
     Case 37
         'アドインソースのエクスポート
         ExportModules g_addin
@@ -52,14 +62,34 @@ Sub AddinDevApp(id As Integer)
     Case 4
         '閉じる
         ToggleAddin ActiveWorkbook.name
+    Case 51
+        'ダイアログ呼び出し
+        On Error Resume Next
+        If Application.Dialogs(ActiveCell.Value).Show Then
+            MsgBox True
+        Else
+            MsgBox False
+        End If
+        On Error GoTo 0
+    Case 52
+        If ActiveCell.Value <> "" Then g_image = ActiveCell.Value
+    Case 53
+    Case 54
     Case Else
         MsgBox g_addin
     End Select
 End Sub
 
 '----------------------------------
-'リソース
+'オープンフォルダ
 '----------------------------------
+
+'カレントフォルダを開く
+Private Sub OpenCurrentFolder()
+    With CreateObject("Wscript.Shell")
+        .Run ActiveWorkbook.path
+    End With
+End Sub
 
 'アドインフォルダを開く
 Private Sub OpenAddinsFolder()
@@ -68,10 +98,13 @@ Private Sub OpenAddinsFolder()
     End With
 End Sub
 
-'ImageMsoファイル保存
+'ImageMsoフォルダを開く
 Private Sub SaveImageMso()
+    Dim name As String
+    name = "ImageMso"
+    '
     Dim ws As Worksheet
-    Set ws = ThisWorkbook.Worksheets("AddinDev")
+    Set ws = ThisWorkbook.Worksheets(name)
     If ws Is Nothing Then Exit Sub
     '
     Dim ra As Range
@@ -87,7 +120,7 @@ Private Sub SaveImageMso()
     Dim parent As String
     parent = Environ("USERPROFILE") & "\Documents"
     If parent = "" Then Exit Sub
-    parent = fso.BuildPath(parent, "imageMso")
+    parent = fso.BuildPath(parent, name)
     If Not fso.FolderExists(parent) Then
         fso.CreateFolder parent
         If Not fso.FolderExists(parent) Then
