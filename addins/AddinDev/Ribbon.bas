@@ -8,7 +8,37 @@ Option Private Module
 
 Private g_ribbon As IRibbonUI
 
-Private Sub AddinDev_onLoad(ByVal ribbon As IRibbonUI)
+'----------------------------------------
+'ribbon helper
+'----------------------------------------
+
+Private Sub RefreshRibbon()
+    If Not g_ribbon Is Nothing Then g_ribbon.Invalidate
+    DoEvents
+End Sub
+
+Private Function RibbonID(control As IRibbonControl) As Integer
+    Dim s As String
+    s = control.Tag
+    If s = "" Then s = control.id
+    Dim vs As Variant
+    vs = Split(s, ".")
+    If UBound(vs) >= 0 Then
+        RibbonID = Val("0" & vs(UBound(vs)))
+        Exit Function
+    End If
+    vs = Split(s, "_")
+    If UBound(vs) >= 0 Then
+        RibbonID = Val("0" & vs(UBound(vs)))
+        Exit Function
+    End If
+End Function
+
+'----------------------------------------
+'ribbon initialize
+'----------------------------------------
+
+Private Sub onLoad(ByVal ribbon As IRibbonUI)
     Set g_ribbon = ribbon
 End Sub
 
@@ -16,26 +46,26 @@ End Sub
 'アドイン選択
 '----------------------------------
 
-Private Sub AddinDevSel_getItemCount(Control As IRibbonControl, ByRef returnedVal)
+Private Sub getItemCount(control As IRibbonControl, ByRef returnedVal)
     returnedVal = UserAddinCount
 End Sub
 
-Private Sub AddinDevSel_getItemID(Control As IRibbonControl, index As Integer, ByRef returnedVal)
+Private Sub getItemID(control As IRibbonControl, index As Integer, ByRef returnedVal)
     returnedVal = index
 End Sub
 
-Private Sub AddinDevSel_getItemLabel(Control As IRibbonControl, index As Integer, ByRef returnedVal)
+Private Sub getItemLabel(control As IRibbonControl, index As Integer, ByRef returnedVal)
     returnedVal = UserAddinName(index)
 End Sub
 
-Private Sub AddinDevSel_getSelectedItemID(Control As IRibbonControl, ByRef returnedVal)
+Private Sub getSelectedItemID(control As IRibbonControl, ByRef returnedVal)
     Dim i As Integer
     i = CurrentAddinID
     SetAddinName UserAddinName(i)
     returnedVal = i
 End Sub
 
-Private Sub AddinDevSel_onAction(Control As IRibbonControl, id As String, index As Integer)
+Private Sub onActionDropDown(control As IRibbonControl, id As String, index As Integer)
     SetAddinName UserAddinName(index)
 End Sub
 
@@ -43,16 +73,16 @@ End Sub
 'アドイン操作
 '----------------------------------
 
-Private Sub AddinDev_onAction(ByVal Control As IRibbonControl)
-    AddinDevApp Val("0" & Control.Tag)
+Private Sub onAction(ByVal control As IRibbonControl)
+    AddinDevApp RibbonID(control)
+    If RibbonID(control) <> 52 Then Exit Sub
     If g_ribbon Is Nothing Then Exit Sub
-    If Val("0" & Control.Tag) <> 52 Then Exit Sub
     g_ribbon.Invalidate
     DoEvents
 End Sub
 
-Private Sub AddinDev_getEnabled(ByVal Control As IRibbonControl, ByRef enable As Variant)
-    Select Case Val("0" & Control.Tag)
+Private Sub getEnabled(ByVal control As IRibbonControl, ByRef enable As Variant)
+    Select Case RibbonID(control)
     Case 4
         enable = (LCase(Right(ActiveWorkbook.name, 5)) = ".xlam")
     Case 34
@@ -60,8 +90,8 @@ Private Sub AddinDev_getEnabled(ByVal Control As IRibbonControl, ByRef enable As
     End Select
 End Sub
 
-Private Sub AddinDev_getImage(ByVal Control As IRibbonControl, ByRef image As Variant)
-    Select Case Val("0" & Control.Tag)
+Private Sub getImage(ByVal control As IRibbonControl, ByRef image As Variant)
+    Select Case RibbonID(control)
     Case 52
         Dim id As Integer
         id = Val("0" + ActiveCell.Value)

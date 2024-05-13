@@ -32,6 +32,7 @@ Sub AddinDevApp(id As Integer)
     Case 13
         'ImageMsoファイル保存
         SaveImageMso
+    '
     Case 31
         'CustomUI 編集
         EditCustomUI g_addin
