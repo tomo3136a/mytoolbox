@@ -103,8 +103,12 @@ Private Sub getImage(ByVal control As IRibbonControl, ByRef image As Variant)
         If ActiveCell.Value = "" Then Exit Sub
         image = ActiveCell.Value
     Case 54
-        If ActiveCell.Value = "" Then Exit Sub
-        Set image = CommandBars.GetImageMso(ActiveCell.Value, 48, 48)
+        Dim v As Integer
+        v = Val(ActiveCell.Value)
+        If v = 0 Then Exit Sub
+        Dim pic As IPictureDisp
+        Set pic = Application.CommandBars.GetImageMso(v, 32, 32)
+        Set image = pic
     Case Else
         'Do Nothing
     End Select
