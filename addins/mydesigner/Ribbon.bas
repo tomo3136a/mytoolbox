@@ -60,6 +60,7 @@ Private Sub Designer_onLoad(ByVal Ribbon As IRibbonUI)
     Call ResetDrawParam
 End Sub
 
+'テキスト入力
 Private Sub Designer_onChange(ByRef control As IRibbonControl, ByRef text As String)
     Call SetDrawParam(RibbonID(control), text)
 End Sub
@@ -68,6 +69,7 @@ Private Sub Designer_getText(ByRef control As IRibbonControl, ByRef text As Vari
     text = GetDrawParam(RibbonID(control))
 End Sub
 
+'チェックボックス
 Private Sub Designer_onAction(ByRef control As IRibbonControl, ByRef pressed As Boolean)
     Dim v As Integer
     If pressed Then v = 1
