@@ -225,7 +225,7 @@ Function SelectCell(Optional ra As Range, Optional s As String, Optional ptn As 
         .AddValues ra
         .Show
         Dim i As Integer
-        i = .Index
+        i = .index
         Dim v As Variant
         For Each v In ra
             If i = 0 Then Exit For

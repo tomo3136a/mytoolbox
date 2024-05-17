@@ -7,6 +7,7 @@ Option Private Module
 '========================================
 
 Private g_ribbon As IRibbonUI
+Private g_select As Integer
 
 '----------------------------------------
 'common
@@ -98,34 +99,20 @@ Private Sub Designer1_onAction(ByVal control As IRibbonControl)
         '図形を絵に変換
         Call ConvToPic
     Case 5
-        '図形基本設定
+        'テキストボックス基本設定
         Call SetShapeStyle
     Case 6
+        '埋め込み表示ON/OFF
+        Call InvertFillVisible
         'オブジェクトの初期化
-        Call DefaultShapeSetting
-    Case 7
-        '装飾②
-        Dim v As Variant
-        For Each v In ActiveSheet.Shapes
-            Dim sh As Shape
-            Set sh = v
-            Dim u As Variant
-            For Each u In sh.GroupItems
-                Dim s As String
-                s = u.name
-            Next u
-        Next v
+        'Call DefaultShapeSetting
     Case 8
-        '左右反転
-        obj.ShapeRange.Flip msoFlipHorizontal
     Case 9
-        '上下反転
-        obj.ShapeRange.Flip msoFlipVertical
     End Select
 End Sub
 
 '----------------------------------------
-'2x. 作図機能(部品)
+'2x. ツール機能
 '----------------------------------------
 
 '図形アイテム
@@ -133,6 +120,74 @@ Private Sub Designer2_onAction(ByVal control As IRibbonControl)
     On Error Resume Next
     Call DrawGraphItem(RibbonID(control), SelectRange)
     On Error GoTo 0
+End Sub
+
+'部品選択
+Private Sub Designer2_getItemCount(control As IRibbonControl, ByRef returnedVal)
+    Dim ws As Worksheet
+    Set ws = TargetSheet("#shapes")
+    If ws Is Nothing Then Exit Sub
+    returnedVal = ws.Shapes.Count
+End Sub
+
+Private Sub Designer2_getItemID(control As IRibbonControl, index As Integer, ByRef returnedVal)
+    returnedVal = index
+End Sub
+
+Private Sub Designer2_getItemLabel(control As IRibbonControl, index As Integer, ByRef returnedVal)
+    Dim ws As Worksheet
+    Set ws = TargetSheet("#shapes")
+    If ws Is Nothing Then Exit Sub
+    returnedVal = ws.Shapes(1 + index).name
+End Sub
+
+Private Sub Designer2_getSelectedItemID(control As IRibbonControl, ByRef returnedVal)
+    returnedVal = g_select
+End Sub
+
+Private Sub Designer2_onActionDropDown(control As IRibbonControl, id As String, index As Integer)
+    Dim ws As Worksheet
+    Set ws = TargetSheet("#shapes")
+    If ws Is Nothing Then Exit Sub
+    Call SetDrawParam(10, ws.Shapes(index + 1).name)
+    g_select = index
+    If Not g_ribbon Is Nothing Then g_ribbon.InvalidateControl control.id
+End Sub
+
+'ターゲットシート取得
+Private Function TargetSheet(s As String) As Worksheet
+    Dim v As Variant
+    Dim ws As Worksheet
+    For Each v In ActiveWorkbook.Worksheets
+        If v.name = s Then Set ws = v
+    Next v
+    If ws Is Nothing Then
+        For Each v In ThisWorkbook.Worksheets
+            If v.name = s Then ws = v
+        Next v
+    End If
+    If ws Is Nothing Then Exit Function
+    Set TargetSheet = ws
+End Function
+
+'ダイナミックメニュー
+Private Sub Designer2_getMenuContent(ByVal control As IRibbonControl, ByRef returnedVal)
+    Dim xml As String
+
+    xml = "<menu xmlns=""http://schemas.microsoft.com/office/2009/07/customui"">" & _
+          "<button id=""but1"" imageMso=""Help"" label=""Help"" onAction=""HelpMacro""/>" & _
+          "<button id=""but2"" imageMso=""FindDialog"" label=""Find"" onAction=""FindMacro""/>" & _
+          "</menu>"
+
+    returnedVal = xml
+End Sub
+
+Sub HelpMacro(control As IRibbonControl)
+    MsgBox "Help macro"
+End Sub
+
+Sub FindMacro(control As IRibbonControl)
+    MsgBox "Find macro"
 End Sub
 
 '----------------------------------------

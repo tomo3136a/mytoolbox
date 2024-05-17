@@ -40,8 +40,8 @@ Public Function Result() As String
     Result = sValue
 End Function
 
-Public Function Index() As Integer
-    Index = ListBox1.ListIndex
+Public Function index() As Integer
+    index = ListBox1.ListIndex
 End Function
 
 Public Sub AddItem(s As String)

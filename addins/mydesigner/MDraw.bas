@@ -7,6 +7,7 @@ Private g_ignore As String      '無効検索文字
 Private g_scale As Double       'スケール
 Private g_axes As Double        '軸間隔
 Private g_flag As Integer       'モード(0:,1:,2:,3:)
+Private g_part As String        '部品名
 
 Private ptype_col As Variant
 Private ptypename As Variant
@@ -19,8 +20,9 @@ Private pshapetypename As Variant
 Public Sub ResetDrawParam(Optional id As Integer)
     If id = 0 Or id = 1 Then g_ignore = ""
     If id = 0 Or id = 2 Then g_scale = 1
-    If id = 0 Or id = 3 Then g_axes = 100
+    If id = 0 Or id = 3 Then g_axes = 10
     If id = 0 Or id = 4 Then g_flag = 0
+    If id = 0 Or id = 10 Then g_part = ""
 End Sub
 
 Public Sub SetDrawParam(id As Integer, ByVal val As String)
@@ -47,6 +49,8 @@ Public Sub SetDrawParam(id As Integer, ByVal val As String)
         g_flag = (g_flag And (65535 - 2)) Or (val * 2)
     Case 6
         g_flag = (g_flag And (65535 - 4)) Or (val * 4)
+    Case 10
+        g_part = val
     End Select
 End Sub
 
@@ -106,9 +110,54 @@ Public Sub SetShapeStyle(Optional sr As ShapeRange)
     s = sh.Left & "," & sh.Top & "," & sh.Width & "," & sh.Height
     sr.AlternativeText = s
     sr.Title = s
-    
+    '
     On Error GoTo 0
 End Sub
+
+Public Sub InvertFillVisible(Optional sr As ShapeRange)
+    On Error Resume Next
+    If sr Is Nothing Then Set sr = Selection.ShapeRange
+    Dim ws As Worksheet
+    Set ws = sr.Parent
+    '
+    Dim sh As Object
+    Set sh = ws.Shapes(sr.name)
+    With sr.Fill
+        If .Visible = msoTrue Then
+            .Visible = msoFalse
+        Else
+            .Visible = msoTrue
+        End If
+    End With
+    '
+    On Error GoTo 0
+End Sub
+
+'ターゲットシート取得
+Private Function TargetSheet(s As String) As Worksheet
+    Dim v As Variant
+    Dim ws As Worksheet
+    For Each v In ActiveWorkbook.Worksheets
+        If v.name = s Then Set ws = v
+    Next v
+    If ws Is Nothing Then
+        For Each v In ThisWorkbook.Worksheets
+            If v.name = s Then ws = v
+        Next v
+    End If
+    If ws Is Nothing Then Exit Function
+    Set TargetSheet = ws
+End Function
+
+
+Public Function DrawParts(ws As Worksheet, x0 As Double, y0 As Double, s As String) As String
+    Dim cs As Worksheet
+    Set cs = TargetSheet("#shapes")
+    If cs Is Nothing Then Exit Function
+    Dim sh As Shape
+    cs.Shapes(g_part).Copy
+    ws.Paste
+End Function
 
 'アイテム作画
 Public Function DrawGraphItem(id As Integer, Optional ra As Range) As String
@@ -123,9 +172,17 @@ Public Function DrawGraphItem(id As Integer, Optional ra As Range) As String
     '
     Select Case id
     Case 1
+        '方眼紙描画
         DrawGraphItem = DrawGraph2(ra.Worksheet, ra.Left, ra.Top + ra.Height, ra.Width, ra.Height)
     Case 2
+        '軸描画
         DrawGraphItem = DrawAxis2(ra.Worksheet, ra.Left, ra.Top + ra.Height, ra.Width, ra.Height, 10)
+    Case 3
+        '原点描画
+        DrawGraphItem = DrawAxis2(ra.Worksheet, ra.Left, ra.Top + ra.Height, ra.Width, ra.Height, 10)
+    Case 4
+        '部品描画
+        DrawGraphItem = DrawParts(ra.Worksheet, ra.Left, ra.Top + ra.Height, g_part)
     End Select
     If Not DrawGraphItem = "" Then ra.Worksheet.Shapes(DrawGraphItem).Select
     '

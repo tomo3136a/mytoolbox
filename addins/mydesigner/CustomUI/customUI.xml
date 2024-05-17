@@ -2,41 +2,49 @@
 <customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" onLoad="Designer_onLoad">
   <ribbon>
     <tabs>
-      <tab id="TabDesigner" label="作図​​" insertAfterQ="TabAddIns">
+      <tab id="TabDesigner" label="作図" insertAfterQ="TabAddIns">
         <group id="g1" label="図形操作" imageMso="ComAddInsDialog">
-          <button id="b1.1" onAction="Designer1_onAction" label="​​図形リスト" imageMso="PlayMacro" size="large" />
-          <button id="b1.2" onAction="Designer1_onAction" label="​​設定更新" imageMso="ObjectFormatDialog" size="large" />
+          <button id="b1.1" onAction="Designer1_onAction" label="図形リスト" imageMso="PlayMacro" size="large" />
+          <button id="b1.2" onAction="Designer1_onAction" label="設定更新" imageMso="ObjectFormatDialog" size="large" />
           <button id="b1.3" onAction="Designer1_onAction" label="全図形削除" imageMso="Clear" size="large" />
-          <button id="b1.4" onAction="Designer1_onAction" label="絵に変換" imageMso="SelectionPane" size="large" />
-          <button id="b1.5" onAction="Designer1_onAction" label="基本装飾" imageMso="SelectionPane" size="large" />
-          <button id="b1.6" onAction="Designer1_onAction" label="装飾(初期設定)" imageMso="SelectionPane" size="large" />
-          <button id="b1.7" onAction="Designer1_onAction" label="装飾②" imageMso="SelectionPane" size="large" />
-          <button id="b1.8" onAction="Designer1_onAction" label="左右反転" imageMso="SelectionPane" size="large" />
+          <button id="b1.4" onAction="Designer1_onAction" label="絵に変換" imageMso="SelectionPane" />
+          <button id="b1.5" onAction="Designer1_onAction" label="テキストボックス設定" imageMso="SelectionPane" />
+          <button id="b1.6" onAction="Designer1_onAction" label="塗りつぶしON/OFF" imageMso="SelectionPane" />
+          <!-- <button id="b1.7" onAction="Designer1_onAction" label="装飾②" imageMso="SelectionPane" size="large" /> -->
+          <!-- <button id="b1.8" onAction="Designer1_onAction" label="左右反転" imageMso="SelectionPane" /> -->
+          <!-- <button id="b1.9" onAction="Designer1_onAction" label="上下反転" imageMso="SelectionPane" /> -->
+          <control idQ="ObjectFlipHorizontal" visible="true" />
+          <control idQ="ObjectFlipVertical" visible="true" />
           <control idQ="ObjectsSelect" visible="true" />
           <control idQ="SelectionPane" visible="true" />
-          <editBox id="c1.1" onChange="Designer_onChange" label="無効名称" getText="Designer_getText" sizeString="wwwww" />
+          <editBox id="c1.1" onChange="Designer_onChange" label="無効名称" getText="Designer_getText" sizeString="wwwwwwwww" />
         </group>
         <group id="g2" label="ツール" imageMso="ComAddInsDialog">
           <splitButton id="s21" size="large">
-            <button id="b2.1" onAction="Designer2_onAction" label="​​方眼紙" imageMso="GridSettings" />
+            <button id="b2.1" onAction="Designer2_onAction" label="方眼紙" imageMso="GridSettings" />
             <menu id="m21">
               <button id="b2.2" onAction="Designer2_onAction" label="軸線" imageMso="DrawingCanvasResize" />
               <button id="b2.3" onAction="Designer2_onAction" label="原点" imageMso="DrawingCanvasResize" />
             </menu>
           </splitButton>
+          <dropDown id="c21" onAction="Designer2_onActionDropDown" label="部品:" sizeString="aaaaaaaaaaaaaaaaaa"
+            getItemCount="Designer2_getItemCount" getItemID="Designer2_getItemID"
+            getItemLabel="Designer2_getItemLabel" getSelectedItemID="Designer2_getSelectedItemID" />
+          <button id="b2.4" onAction="Designer2_onAction" label="配置" imageMso="ShapesInsertGallery" />
+          <dynamicMenu id="A" label="Menu A" imageMso="FormatPainter" getContent="Designer2_getMenuContent" size="large" />
         </group>
         <group id="g3" label="IDF" imageMso="ComAddInsDialog">
           <splitButton id="s31" size="large">
-            <button id="b3.1" onAction="Designer3_onAction" label="​​読み込み" imageMso="GetExternalDataImportClassic" />
+            <button id="b3.1" onAction="Designer3_onAction" label="読み込み" imageMso="GetExternalDataImportClassic" />
             <menu id="m31">
               <button id="b3.2" onAction="Designer3_onAction" label="エクスポート" imageMso="ExportTextFile" />
             </menu>
           </splitButton>
           <splitButton id="s32" size="large">
-            <button id="b3.3" onAction="Designer3_onAction" label="​​描画" imageMso="ShapesMoreShapes" />
+            <button id="b3.3" onAction="Designer3_onAction" label="描画" imageMso="ShapesMoreShapes" />
             <menu id="Designer.m32">
-              <button id="b3.4" onAction="Designer3_onAction" label="​​描画(シート)" imageMso="ShapesMoreShapes" />
-              <button id="b3.5" onAction="Designer3_onAction" label="​​描画" imageMso="ShapesMoreShapes" />
+              <button id="b3.4" onAction="Designer3_onAction" label="描画(シート)" imageMso="ShapesMoreShapes" />
+              <button id="b3.5" onAction="Designer3_onAction" label="描画" imageMso="ShapesMoreShapes" />
             </menu>
           </splitButton>
           <editBox id="c3.2" onChange="Designer_onChange" label="比率" getText="Designer_getText" sizeString="wwwww" />
