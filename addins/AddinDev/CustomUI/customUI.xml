@@ -21,9 +21,9 @@
             <buttonGroup id="g33">
               <button id="b.34" onAction="AddinDev.Ribbon.onAction" label="シート編集" getEnabled="AddinDev.Ribbon.getEnabled" imageMso="WindowUnhide" />
               <button id="b.35" onAction="AddinDev.Ribbon.onAction" label="マネージャ" imageMso="Refresh" />
-              <button id="b.36" onAction="AddinDev.Ribbon.onAction" label="情報" imageMso="RefreshStatus" />
             </buttonGroup>
-            <button id="b.37" onAction="AddinDev.Ribbon.onAction" label="エクスポート" imageMso="ExportSavedExports" size="large" />
+              <!-- <button id="b.36" onAction="AddinDev.Ribbon.onAction" label="エクスポート" imageMso="ExportSavedExports" size="large" /> -->
+              <button id="b.37" onAction="AddinDev.Ribbon.onAction" label="エクスポート" imageMso="ExportSavedExports" size="large" />
             <button id="b.38" onAction="AddinDev.Ribbon.onAction" label="インポート" imageMso="ImportSavedImports" size="large" />
           </box>
           <separator id="s31" />
@@ -31,9 +31,9 @@
         </group>
         <group id="g5" label="VBA開発" imageMso="AddInManager">
           <button id="b.51" onAction="AddinDev.Ribbon.onAction" label="ダイアログ" imageMso="FormsMenu" size="large" />
-          <button id="b.52" onAction="AddinDev.Ribbon.onAction" label="imageMSO" getImage="AddinDev.Ribbon.getImage" size="large" />
-          <button id="b.53" onAction="AddinDev.Ribbon.onAction" label="imageMSO" getImage="AddinDev.Ribbon.getImage" size="large" />
-          <button id="b.54" onAction="AddinDev.Ribbon.onAction" label="imageMSO" getImage="AddinDev.Ribbon.getImage" size="large" />
+          <!-- <button id="b.52" onAction="AddinDev.Ribbon.onAction" label="imageMSO" getImage="AddinDev.Ribbon.getImage" size="large" /> -->
+          <!-- <button id="b.53" onAction="AddinDev.Ribbon.onAction" label="imageMSO" getImage="AddinDev.Ribbon.getImage" size="large" /> -->
+          <!-- <button id="b.54" onAction="AddinDev.Ribbon.onAction" label="imageMSO" getImage="AddinDev.Ribbon.getImage" size="large" /> -->
         </group>
       </tab>
     </tabs>

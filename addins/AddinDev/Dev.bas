@@ -53,7 +53,8 @@ Sub AddinDevApp(id As Integer)
             .Show
         End With
     Case 36
-        '情報
+        'アドインソースのエクスポート
+        'ExportCustomUI g_addin
     Case 37
         'アドインソースのエクスポート
         ExportModules g_addin
@@ -332,6 +333,23 @@ Private Sub ExportModules(Optional name As String)
             End Select
         End If
     Next m
+    '
+    Dim src As String
+    src = fso.BuildPath(AddinsPath, "tmp")
+    src = fso.BuildPath(src, name)
+    src = fso.BuildPath(src, "CustomUI")
+    If fso.FileExists(fso.BuildPath(src, "customUI.xml")) Then
+        Dim dst As String
+        dst = fso.BuildPath(path, "CustomUI")
+        If Not fso.FolderExists(dst) Then fso.CreateFolder dst
+        '
+        Dim shell As Object
+        Set shell = CreateObject("Shell.Application")
+        Dim fo As Object
+        Set fo = shell.Namespace(CVar(dst))
+        fo.CopyHere shell.Namespace(CVar(src)).Items
+        If Not shell Is Nothing Then Set shell = Nothing
+    End If
     '
     With CreateObject("Wscript.Shell")
         .Run path

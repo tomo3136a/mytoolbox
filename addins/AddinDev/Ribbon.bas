@@ -91,6 +91,7 @@ Private Sub getEnabled(ByVal control As IRibbonControl, ByRef enable As Variant)
 End Sub
 
 Private Sub getImage(ByVal control As IRibbonControl, ByRef image As Variant)
+    On Error Resume Next
     Select Case RibbonID(control)
     Case 52
         Dim id As Integer
@@ -112,5 +113,6 @@ Private Sub getImage(ByVal control As IRibbonControl, ByRef image As Variant)
     Case Else
         'Do Nothing
     End Select
+    On Error GoTo 0
 End Sub
 
