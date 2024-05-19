@@ -2,8 +2,8 @@
 <customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" onLoad="works_onLoad">
   <ribbon>
     <tabs>
-      <tab id="TabWorks" label="作業​​" insertBeforeQ="TabAddIns">
-        <group id="g1" label="レポート​​" imageMso="PrintSetupDialog">
+      <tab id="TabWorks" label="作業" insertBeforeQ="TabAddIns">
+        <group id="g1" label="レポート" imageMso="PrintSetupDialog">
           <button id="b11" onAction="works11_onAction" label="編集サイン" imageMso="SignatureLineInsert" size="large" />
           <button id="b12" onAction="works12_onAction" label="ページフォーマット" imageMso="PrintSetupDialog" size="large" />
           <splitButton id="s13" size="large">
@@ -22,18 +22,18 @@
             </menu>
           </splitButton>
           <splitButton id="s14">
-            <button id="b14.1" onAction="works14_onAction" label="​​非表示行列削除" imageMso="TableDeleteRowsAndColumnsMenu" />
+            <button id="b14.1" onAction="works14_onAction" label="非表示行列削除" imageMso="TableDeleteRowsAndColumnsMenu" />
             <menu id="m14">
-              <button id="b14.2" onAction="works14_onAction" label="​​非表示行列削除(行)" />
+              <button id="b14.2" onAction="works14_onAction" label="非表示行列削除(行)" />
               <button id="b14.3" onAction="works14_onAction" label="​非表示​行列削除(列)" />
               <button id="b14.4" onAction="works14_onAction" label="非表示シート削除" imageMso="SheetDelete" />
               <menuSeparator id="z14" />
-              <button id="b14.8" onAction="works14_onAction" label="全表示​​(シート)" imageMso="WindowUnhide" />
-              <button id="b14.9" onAction="works14_onAction" label="全表示​​(名前)" />
+              <button id="b14.8" onAction="works14_onAction" label="全表示(シート)" imageMso="WindowUnhide" />
+              <button id="b14.9" onAction="works14_onAction" label="全表示(名前)" />
             </menu>
           </splitButton>
           <splitButton id="s15">
-            <button id="b15.1" onAction="works15_onAction" label="目次​​シート" imageMso="IndexInsert" />
+            <button id="b15.1" onAction="works15_onAction" label="目次シート" imageMso="IndexInsert" />
             <menu id="m15">
               <button id="b15.2" onAction="works15_onAction" label="シート一覧" imageMso="RecordsSubdatasheetMenu" />
               <button id="b15.3" onAction="works15_onAction" label="名前一覧" imageMso="NameDefineMenu" />
@@ -65,11 +65,11 @@
           </splitButton>
         </group>
         <group id="g2" label="罫線枠" imageMso="ReviewAllowUsersToEditRanges">
-          <button id="b20" onAction="works20_onAction" label="開始位置​​" imageMso="DataFormSource" size="large" />
+          <button id="b20" onAction="works20_onAction" label="開始位置" imageMso="DataFormSource" size="large" />
           <splitButton id="s21" size="large">
-            <button id="b21.0" onAction="works21_onAction" label="囲い​​" imageMso="DataFormSource" />
+            <button id="b21.0" onAction="works21_onAction" label="囲い" imageMso="DataFormSource" />
             <menu id="m21">
-              <button id="b21.1" onAction="works21_onAction" label="囲い​​のみ" imageMso="DataFormSource" />
+              <button id="b21.1" onAction="works21_onAction" label="囲いのみ" imageMso="DataFormSource" />
               <button id="b21.2" onAction="works21_onAction" label="囲い(行番号付き)" />
               <menuSeparator id="z21a" />
               <button id="b21.3" onAction="works21_onAction" label="選択(ヘッダ)" imageMso="TableStyleRowHeaders" />
@@ -83,7 +83,7 @@
           <button id="b25" onAction="works25_onAction" label="見出し色" imageMso="FontColorCycle" />
           <!-- <button id="b25" onAction="works25_onAction" label="見出し色" getImage="works25_getImage" /> -->
           <splitButton id="s26">
-            <button id="b26.1" onAction="works26_onAction" label="表クリア​​" imageMso="Clear" />
+            <button id="b26.1" onAction="works26_onAction" label="表クリア" imageMso="Clear" />
             <menu id="m26">
               <button id="b26.2" onAction="works26_onAction" label="囲いクリア" imageMso="TableStyleClear" />
               <button id="b26.3" onAction="works26_onAction" label="テーブルクリア" imageMso="PivotClearCustomOrdering" />
@@ -92,11 +92,11 @@
           <button id="b27" onAction="works27_onAction" getLabel="works27_getLabel" />
         </group>
         <group id="g3" label="テンプレート" imageMso="ComAddInsDialog">
-          <button id="b31" onAction="works3_onAction" getEnabled="works3_getEnabled" label="​​読み込み" imageMso="SheetInsert" size="large" />
+          <button id="b31" onAction="works3_onAction" getEnabled="works3_getEnabled" label="読み込み" imageMso="SheetInsert" size="large" />
           <button id="b32" onAction="works3_onAction" getEnabled="works3_getEnabled" label="書き込み" imageMso="GroupMoveData" />
           <button id="b33" onAction="works3_onAction" getLabel="works3_getLabel" imageMso="ListMacros" />
           <button id="b34" onAction="works3_onAction" label="テーブル作成" imageMso="ViewsDatasheetView" />
-          <button id="b35" onAction="works3_onAction" label="​​テーブル読み込み" imageMso="NewTableStyleWord" />
+          <button id="b35" onAction="works3_onAction" label="テーブル読み込み" imageMso="NewTableStyleWord" />
           <button id="b36" onAction="works3_onAction" label="テーブル更新" imageMso="TableAutoFormat" />
           <button id="b37" onAction="works3_onAction" label="test7" imageMso="CustomTablesGallery" />
           <button id="b38" onAction="works3_onAction" label="test8" imageMso="BlackAndWhiteDontShow" />
