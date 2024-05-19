@@ -30,8 +30,13 @@ End Function
 'ribbon helper
 '----------------------------------------
 
-Private Sub RefreshRibbon()
-    If Not g_ribbon Is Nothing Then g_ribbon.Invalidate
+Private Sub RefreshRibbon(Optional id As String)
+    If g_ribbon Is Nothing Then Exit Sub
+    If id = "" Then
+        g_ribbon.Invalidate
+    Else
+        g_ribbon.InvalidateControl id
+    End If
     DoEvents
 End Sub
 
