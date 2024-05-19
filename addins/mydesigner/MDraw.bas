@@ -78,6 +78,51 @@ Public Function IsDrawParam(id As Integer) As Boolean
 End Function
 
 '----------------------------------------
+'図形属性制御
+'----------------------------------------
+
+Function GetShapeProp(sr As ShapeRange, k As String) As String
+    Dim line As Variant
+    For Each line In Split(sr.AlternativeText, Chr(10), , vbTextCompare)
+        Dim kv As Variant
+        kv = Split(line, ":", 2, vbTextCompare)
+        If UBound(kv) > 0 Then
+            If UCase(k) = UCase(Trim(kv(0))) Then
+                GetShapeProp = Trim(kv(1))
+                Exit For
+            End If
+        End If
+    Next line
+End Function
+
+Sub SetShapeProp(sr As ShapeRange, k As String, v As String)
+    Dim lines As Variant
+    lines = Split(sr.AlternativeText, Chr(10), , vbTextCompare)
+    Dim line As Variant
+    Dim i As Integer
+    For i = 0 To lines.Count
+        line = lines(i)
+        Dim kv As Variant
+        kv = Split(line, ":", 2, vbTextCompare)
+        If UBound(kv) > 0 Then
+            If k = Trim(kv(0)) Then
+                lines(i) = k & ":" & Trim(v)
+                Exit For
+            End If
+        Else
+            If k = Trim(kv(0)) Then
+                lines(i) = ""
+                Exit For
+            End If
+        End If
+    Next i
+    line = Replace(Join(lines, Chr(10)), Chr(10) & Chr(10), Chr(10))
+    sr.AlternativeText = line
+End Sub
+
+
+
+'----------------------------------------
 
 '図形装飾
 Public Sub SetShapeStyle(Optional sr As ShapeRange)
@@ -155,8 +200,10 @@ Public Function DrawParts(ws As Worksheet, x0 As Double, y0 As Double, s As Stri
     Set cs = TargetSheet("#shapes")
     If cs Is Nothing Then Exit Function
     Dim sh As Shape
-    cs.Shapes(g_part).Copy
-    ws.Paste
+    If g_part <> "" Then
+        cs.Shapes(g_part).Copy
+        ws.Paste
+    End If
 End Function
 
 'アイテム作画

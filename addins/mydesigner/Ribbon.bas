@@ -98,8 +98,18 @@ Private Sub Designer1_onAction(ByVal control As IRibbonControl)
         '図形の更新
         Call UpdateShape(ActiveCell)
     Case 3
-        '図形を全て削除
-        Call RemoveSharp(ActiveSheet)
+        '図形を削除
+        Dim s As String
+        s = TypeName(Selection)
+        If TypeName(Selection) = "Range" Then
+            If Selection.Count = 1 Then
+                If MsgBox("全図形を削除しますか？", vbYesNo) = vbYes Then
+                    'Call RemoveSharp(ActiveSheet)
+                End If
+            End If
+        Else
+            Selection.Delete
+        End If
     Case 4
         '図形を絵に変換
         Call ConvToPic
@@ -112,6 +122,10 @@ Private Sub Designer1_onAction(ByVal control As IRibbonControl)
         'オブジェクトの初期化
         'Call DefaultShapeSetting
     Case 8
+        Dim s2 As String
+        s2 = GetShapeProp(Selection.ShapeRange, "zero")
+        
+
     Case 9
     End Select
 End Sub
@@ -125,6 +139,7 @@ Private Sub Designer2_onAction(ByVal control As IRibbonControl)
     On Error Resume Next
     Call DrawGraphItem(RibbonID(control), SelectRange)
     On Error GoTo 0
+    RefreshRibbon "c21"
 End Sub
 
 '部品選択

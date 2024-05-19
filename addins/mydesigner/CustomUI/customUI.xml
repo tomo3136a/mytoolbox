@@ -6,12 +6,12 @@
         <group id="g1" label="図形操作" imageMso="ComAddInsDialog">
           <button id="b1.1" onAction="Designer1_onAction" label="図形リスト" imageMso="PlayMacro" size="large" />
           <button id="b1.2" onAction="Designer1_onAction" label="設定更新" imageMso="ObjectFormatDialog" size="large" />
-          <button id="b1.3" onAction="Designer1_onAction" label="全図形削除" imageMso="Clear" size="large" />
+          <button id="b1.3" onAction="Designer1_onAction" label="図形全削除" imageMso="Clear" size="large" />
           <button id="b1.4" onAction="Designer1_onAction" label="絵に変換" imageMso="SelectionPane" />
           <button id="b1.5" onAction="Designer1_onAction" label="テキストボックス設定" imageMso="SelectionPane" />
           <button id="b1.6" onAction="Designer1_onAction" label="塗りつぶしON/OFF" imageMso="SelectionPane" />
           <!-- <button id="b1.7" onAction="Designer1_onAction" label="装飾②" imageMso="SelectionPane" size="large" /> -->
-          <!-- <button id="b1.8" onAction="Designer1_onAction" label="左右反転" imageMso="SelectionPane" /> -->
+          <button id="b1.8" onAction="Designer1_onAction" label="原点" imageMso="SelectionPane" />
           <!-- <button id="b1.9" onAction="Designer1_onAction" label="上下反転" imageMso="SelectionPane" /> -->
           <control idQ="ObjectFlipHorizontal" visible="true" />
           <control idQ="ObjectFlipVertical" visible="true" />
@@ -30,8 +30,9 @@
           <dropDown id="c21" onAction="Designer2_onActionDropDown" label="部品:" sizeString="aaaaaaaaaaaaaaaaaa"
             getItemCount="Designer2_getItemCount" getItemID="Designer2_getItemID"
             getItemLabel="Designer2_getItemLabel" getSelectedItemID="Designer2_getSelectedItemID" />
-          <button id="b2.4" onAction="Designer2_onAction" label="配置" imageMso="ShapesInsertGallery" />
-          <dynamicMenu id="A" label="Menu A" imageMso="FormatPainter" getContent="Designer2_getMenuContent" size="large" />
+            <button id="b2.4" onAction="Designer2_onAction" label="配置" imageMso="ShapesInsertGallery" />
+            <button id="b2.5" onAction="Designer2_onAction" label="更新" imageMso="ObjectRotateFree" />
+            <dynamicMenu id="A" label="Menu A" imageMso="FormatPainter" getContent="Designer2_getMenuContent" size="large" />
         </group>
         <group id="g3" label="IDF" imageMso="ComAddInsDialog">
           <splitButton id="s31" size="large">
