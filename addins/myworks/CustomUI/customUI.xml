@@ -22,12 +22,13 @@
             </menu>
           </splitButton>
           <splitButton id="s14">
-            <button id="b14.1" onAction="works14_onAction" label="非表示行列削除" imageMso="TableDeleteRowsAndColumnsMenu" />
+            <button id="b14.1" onAction="works14_onAction" label="非表示削除" imageMso="TableDeleteRowsAndColumnsMenu" />
             <menu id="m14">
-              <button id="b14.2" onAction="works14_onAction" label="非表示行列削除(行)" />
-              <button id="b14.3" onAction="works14_onAction" label="​非表示​行列削除(列)" />
+              <button id="b14.2" onAction="works14_onAction" label="非表示削除(行)" />
+              <button id="b14.3" onAction="works14_onAction" label="​非表示削除(列)" />
+              <menuSeparator id="z14a" />
               <button id="b14.4" onAction="works14_onAction" label="非表示シート削除" imageMso="SheetDelete" />
-              <menuSeparator id="z14" />
+              <menuSeparator id="z14b" />
               <button id="b14.8" onAction="works14_onAction" label="全表示(シート)" imageMso="WindowUnhide" />
               <button id="b14.9" onAction="works14_onAction" label="全表示(名前)" />
             </menu>

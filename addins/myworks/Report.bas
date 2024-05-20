@@ -193,13 +193,14 @@ Sub ShowHide(mode As Integer)
     Select Case mode
     Case 1
         '非表示行削除・非表示列削除
-        Call DeleteHide
+        DeleteHideColumn
+        DeleteHideRow
     Case 2
         '非表示列削除
-        Call DeleteHide(c:=False)
+        DeleteHideColumn
     Case 3
         '非表示行削除
-        Call DeleteHide(r:=False)
+        DeleteHideRow
     Case 4
         '非表示シート削除
         Call DeleteHideSheet
@@ -216,21 +217,27 @@ Sub ShowHide(mode As Integer)
     Application.ScreenUpdating = True
 End Sub
 
-'非表示行削除・非表示列削除
-Private Sub DeleteHide(Optional r As Boolean = True, Optional c As Boolean = True)
+'非表示行削除
+Private Sub DeleteHideRow()
     Dim ra As Range
     Set ra = Selection
     Dim i As Long
-    If r Then
-        For i = Cells.SpecialCells(xlCellTypeLastCell).Row To 1 Step -1
-            If Rows(i).Hidden Then Rows(i).Delete
-        Next i
-    End If
-    If c Then
-        For i = Cells.SpecialCells(xlCellTypeLastCell).Column To 1 Step -1
-            If Columns(i).Hidden Then Columns(i).Delete
-        Next i
-    End If
+    For i = Cells.SpecialCells(xlCellTypeLastCell).Row + 1 To 1 Step -1
+        If Rows(i).Hidden Then Rows(i).Delete
+    Next i
+    On Error Resume Next
+    ra.Select
+    On Error GoTo 0
+End Sub
+
+'非表示列削除
+Private Sub DeleteHideColumn()
+    Dim ra As Range
+    Set ra = Selection
+    Dim i As Long
+    For i = Cells.SpecialCells(xlCellTypeLastCell).Column + 1 To 1 Step -1
+        If Columns(i).Hidden Then Columns(i).Delete
+    Next i
     On Error Resume Next
     ra.Select
     On Error GoTo 0
