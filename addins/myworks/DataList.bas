@@ -154,7 +154,7 @@ Private Sub SheetList(ByRef ra As Range, wb As Workbook)
     '
     Dim ws As Worksheet
     For Each ws In wb.Worksheets
-        If TestInfoSheet(ws) Then
+        If ws.name = ActiveSheet.name Then
         Else
             no = no + 1
             ra.Value = no
@@ -203,7 +203,7 @@ Private Sub NameList(ByRef ra As Range, wb As Workbook)
             sts = "エラー"
             err.Clear
         End If
-        ra.Offset(0, 5).Value = typename(nm.Parent)
+        ra.Offset(0, 5).Value = TypeName(nm.Parent)
         ra.Offset(0, 6).Value = nm.Parent.name
         ra.Offset(0, 7).Value = nm.Comment
         If sts <> "" Then ra.Offset(0, 2).Value = sts
@@ -335,7 +335,7 @@ Private Sub PropList(ByRef ra As Range, wb As Workbook)
                 no = no + 1
                 ra.Value = no
                 ra.Offset(0, 1).Value = cp.name
-                ra.Offset(0, 3).Value = typename(cp.Value)
+                ra.Offset(0, 3).Value = TypeName(cp.Value)
                 ra.Offset(0, 4).Value = cp.Value
                 ra.Offset(0, 5).Value = ws.name
                 If err Then sts = "エラー": err.Clear
@@ -360,7 +360,7 @@ Private Sub CommentList(ByRef ra As Range, wb As Workbook)
             no = no + 1
             ra.Value = no
             ra.Offset(0, 1).Value = ws.name
-            If typename(cm.Parent) = "Range" Then
+            If TypeName(cm.Parent) = "Range" Then
                 ra.Offset(0, 3).Value = cm.Parent.Address
             End If
             ra.Offset(0, 4).Value = cm.text

@@ -36,8 +36,8 @@ End Sub
 
 Function GetTableMargin(Optional mode As Integer = xlColumns) As Integer
     Dim v As Integer
-    If g_rows_margin < 2 Then g_rows_margin = 1
-    If g_columns_margin < 2 Then g_columns_margin = 1
+    If g_rows_margin < 2 Then g_rows_margin = 2
+    If g_columns_margin < 2 Then g_columns_margin = 2
     If mode = xlRows Then v = g_rows_margin
     If mode = xlColumns Then v = g_columns_margin
     If v < 1 Or v > 9 Then v = 1
@@ -47,6 +47,19 @@ End Function
 '----------------------------------------
 '表の範囲取得
 '----------------------------------------
+
+'テーブル先頭取得
+Function MoveTableLeftTop(ra As Range) As Range
+    Dim rs As Range
+    Set rs = FarLeft(ra)
+    Set rs = FarTop(rs)
+    Set rs = FarLeft(rs)
+    If rs <> "" And rs.Offset(0, 1) = "" Then Set rs = rs.Offset(1)
+    If rs <> "" And rs.Offset(0, 1) = "" Then Set rs = rs.Offset(1)
+    If rs <> "" And rs.Offset(0, 1) = "" Then Set rs = rs.Offset(1)
+    If rs <> "" And rs.Offset(0, 1) = "" Then Set rs = rs.Offset(1)
+    rs.Select
+End Function
 
 '列見出し取得
 Function HeaderRange(ra As Range) As Range

@@ -66,31 +66,30 @@
           </splitButton>
         </group>
         <group id="g2" label="罫線枠" imageMso="ReviewAllowUsersToEditRanges">
-          <button id="b20" onAction="works20_onAction" label="開始位置" imageMso="DataFormSource" size="large" />
-          <splitButton id="s21" size="large">
-            <button id="b21.0" onAction="works21_onAction" label="囲い" imageMso="DataFormSource" />
-            <menu id="m21">
-              <button id="b21.1" onAction="works21_onAction" label="囲いのみ" imageMso="DataFormSource" />
-              <button id="b21.2" onAction="works21_onAction" label="囲い(行番号付き)" />
-              <menuSeparator id="z21a" />
-              <button id="b21.3" onAction="works21_onAction" label="選択(ヘッダ)" imageMso="TableStyleRowHeaders" />
-              <button id="b21.4" onAction="works21_onAction" label="選択(項目列)" imageMso="TableStyleFirstColumn" />
-              <button id="b21.5" onAction="works21_onAction" label="選択(テーブル)" imageMso="TableSelect" />
+          <button id="b21" onAction="works21_onAction" label="開始位置" imageMso="DataFormSource" size="large" />
+          <splitButton id="s22" size="large">
+            <button id="b22.0" onAction="works22_onAction" label="囲い" imageMso="DataFormSource" />
+            <menu id="m22">
+              <button id="b22.1" onAction="works22_onAction" label="囲いのみ" imageMso="DataFormSource" />
+              <button id="b22.2" onAction="works22_onAction" label="囲い(行番号付き)" />
+              <menuSeparator id="z22a" />
+              <button id="b22.3" onAction="works22_onAction" label="選択(ヘッダ)" imageMso="TableStyleRowHeaders" />
+              <button id="b22.4" onAction="works22_onAction" label="選択(項目列)" imageMso="TableStyleFirstColumn" />
+              <button id="b22.5" onAction="works22_onAction" label="選択(テーブル)" imageMso="TableSelect" />
             </menu>
           </splitButton>
-          <button id="b22" onAction="works22_onAction" label="フィルタ" imageMso="Filter" />
-          <button id="b23" onAction="works23_onAction" label="幅調整" imageMso="TableAutoFitContents" />
-          <button id="b24" onAction="works24_onAction" label="枠固定" imageMso="FreezePanes" />
-          <button id="b25" onAction="works25_onAction" label="見出し色" imageMso="FontColorCycle" />
-          <!-- <button id="b25" onAction="works25_onAction" label="見出し色" getImage="works25_getImage" /> -->
-          <splitButton id="s26">
-            <button id="b26.1" onAction="works26_onAction" label="表クリア" imageMso="Clear" />
-            <menu id="m26">
-              <button id="b26.2" onAction="works26_onAction" label="囲いクリア" imageMso="TableStyleClear" />
-              <button id="b26.3" onAction="works26_onAction" label="テーブルクリア" imageMso="PivotClearCustomOrdering" />
+          <button id="b23" onAction="works23_onAction" label="フィルタ" imageMso="Filter" />
+          <button id="b24" onAction="works24_onAction" label="幅調整" imageMso="TableAutoFitContents" />
+          <button id="b25" onAction="works25_onAction" label="枠固定" imageMso="FreezePanes" />
+          <button id="b26" onAction="works26_onAction" label="見出し色" imageMso="FontColorCycle" />
+          <splitButton id="s27">
+            <button id="b27.1" onAction="works27_onAction" label="表クリア" imageMso="Clear" />
+            <menu id="m27">
+              <button id="b27.2" onAction="works27_onAction" label="囲いクリア" imageMso="TableStyleClear" />
+              <button id="b27.3" onAction="works27_onAction" label="テーブルクリア" imageMso="PivotClearCustomOrdering" />
             </menu>
           </splitButton>
-          <button id="b27" onAction="works27_onAction" getLabel="works27_getLabel" />
+          <button id="b28" onAction="works28_onAction" getLabel="works28_getLabel" />
         </group>
         <group id="g3" label="テンプレート" imageMso="ComAddInsDialog">
           <button id="b31" onAction="works3_onAction" getEnabled="works3_getEnabled" label="読み込み" imageMso="SheetInsert" size="large" />

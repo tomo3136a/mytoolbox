@@ -79,6 +79,7 @@ End Sub
 
 'レポートサイン
 Private Sub works11_onAction(ByVal control As IRibbonControl)
+    If TypeName(Selection) <> "Range" Then Exit Sub
     Call ReportSign(Selection)
 End Sub
 
@@ -89,6 +90,7 @@ End Sub
     
 'テキスト変換
 Private Sub works13_onAction(ByVal control As IRibbonControl)
+    If TypeName(Selection) <> "Range" Then Exit Sub
     Call Cells_Conv(Selection, RB_ID(control))
 End Sub
     
@@ -119,33 +121,45 @@ End Sub
 '2x:罫線枠
 '----------------------------------------
 
-'枠設定
+'移動
 Private Sub works21_onAction(ByVal control As IRibbonControl)
+    If TypeName(Selection) <> "Range" Then Exit Sub
+    Call MoveTableLeftTop(Selection)
+End Sub
+    
+'枠設定
+Private Sub works22_onAction(ByVal control As IRibbonControl)
+    If TypeName(Selection) <> "Range" Then Exit Sub
     Call KeisenWaku(RibbonID(control), Selection)
 End Sub
     
 'フィルタ
-Private Sub works22_onAction(ByVal control As IRibbonControl)
+Private Sub works23_onAction(ByVal control As IRibbonControl)
+    If TypeName(Selection) <> "Range" Then Exit Sub
     Call KeisenWaku(6, Selection)
 End Sub
     
 '幅調整
-Private Sub works23_onAction(ByVal control As IRibbonControl)
+Private Sub works24_onAction(ByVal control As IRibbonControl)
+    If TypeName(Selection) <> "Range" Then Exit Sub
     Call KeisenWaku(7, Selection)
 End Sub
     
 '枠固定
-Private Sub works24_onAction(ByVal control As IRibbonControl)
+Private Sub works25_onAction(ByVal control As IRibbonControl)
+    If TypeName(Selection) <> "Range" Then Exit Sub
     Call KeisenWaku(8, Selection)
 End Sub
         
 '見出し色
-Private Sub works25_onAction(ByVal control As IRibbonControl)
+Private Sub works26_onAction(ByVal control As IRibbonControl)
+    If TypeName(Selection) <> "Range" Then Exit Sub
     Call KeisenWaku(9, Selection)
 End Sub
 
 '囲いクリア
-Private Sub works26_onAction(ByVal control As IRibbonControl)
+Private Sub works27_onAction(ByVal control As IRibbonControl)
+    If TypeName(Selection) <> "Range" Then Exit Sub
     Select Case RibbonID(control)
     Case 1
         '表クリア
@@ -160,14 +174,14 @@ Private Sub works26_onAction(ByVal control As IRibbonControl)
     End Select
 End Sub
 
-'マージン
-Private Sub works27_onAction(ByVal control As IRibbonControl)
+'マージン表示・設定
+Private Sub works28_onAction(ByVal control As IRibbonControl)
     SetTableMargin xlRows
     SetTableMargin xlColumns
     g_ribbon.InvalidateControl control.id
 End Sub
 
-Private Sub works27_getLabel(ByRef control As Office.IRibbonControl, ByRef label As Variant)
+Private Sub works28_getLabel(ByRef control As Office.IRibbonControl, ByRef label As Variant)
    label = "行: " & GetTableMargin(xlRows) & ", 列: " & GetTableMargin(xlColumns)
 End Sub
 
