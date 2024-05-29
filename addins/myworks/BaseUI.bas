@@ -114,7 +114,7 @@ Function SelectFiles( _
             .Filters.Add s, dic(s)
         Next s
         If path <> "" Then
-            path = RE_REPLACE(path, "^\((\w+)\)", "%$1%")
+            path = re_replace(path, "^\((\w+)\)", "%$1%")
             If Right(path, 1) <> "\" Then path = path & "\"
             'If Not fso.FileExists(path) Then path = path & "\"
             .InitialFileName = path
@@ -156,7 +156,7 @@ Function SelectFolder( _
     If path = "" Then
         path = ActiveWorkbook.path
     Else
-        path = RE_REPLACE(path, "^\((\w+)\)", "%$1%")
+        path = re_replace(path, "^\((\w+)\)", "%$1%")
     End If
     '
     If mode = 1 Then
@@ -273,7 +273,7 @@ Sub OpenWorkbook()
     Dim ws As Worksheet
     Set ws = SelectSheet(wb)
     ws.name = UniqueSheetName(wb, ws.name)
-    ws.Copy After:=old
+    ws.Copy after:=old
     wb.Close
     Application.EnableEvents = True
     Application.ScreenUpdating = fsu

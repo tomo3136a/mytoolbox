@@ -34,7 +34,7 @@ Private Sub CopyAddinSheet()
     Dim ws As Worksheet
     Set ws = SelectSheet(ThisWorkbook, "^[^#]")
     If ws Is Nothing Then Exit Sub
-    ws.Copy After:=ActiveSheet
+    ws.Copy after:=ActiveSheet
 End Sub
 
 'アドインブックのテンプレートシート更新
@@ -49,7 +49,7 @@ Private Function UpdateAddinSheet(ws As Worksheet)
     Next ws2
     If ws2 Is Nothing Then
         ThisWorkbook.IsAddin = False
-        ws.Copy After:=ThisWorkbook.Sheets(1)
+        ws.Copy after:=ThisWorkbook.Sheets(1)
         ThisWorkbook.IsAddin = True
     Else
         Dim old As Range

@@ -7,46 +7,58 @@ Option Explicit
 Option Private Module
 
 '----------------------------------------
-'årê¸òg
+'menu
 '----------------------------------------
 
+'ÉeÅ[ÉuÉãëIë
+Sub SelectTable(mode As Integer, ra As Range)
+    Select Case mode
+    Case 1
+        TableRow(ra).Select
+    Case 2
+        TableColumn(ra).Select
+    Case 3
+        TableRange(HeaderRange(ra)).Select
+    Case 11
+        HeaderRange(ra).Select
+    Case 12
+        TableRange(ra).Select
+    Case Else
+         FarLeftTop ra
+    End Select
+End Sub
+
 'årê¸òg
-Sub KeisenWaku(mode As Integer, ra As Range)
-    Dim asu As Boolean
-    asu = Application.ScreenUpdating
-    Application.ScreenUpdating = False
-    '
+Sub TableWaku(mode As Integer, ra As Range)
     Select Case mode
     Case 1
         Waku ra
     Case 2
         AddLineNo ra
     Case 3
-        HeaderRange(ra).Select
-    Case 4
-        TableRange(ra).Select
-    Case 5
-        TableRange(HeaderRange(ra)).Select
-    Case 6
         HeaderFilter ra
-    Case 7
+    Case 4
         HeaderAutoFit ra
-    Case 8
+    Case 5
         HeaderFixed ra
-    Case 9
+    Case 6
         HeaderColor ra
-    Case 10
+    Case 7
         WakuClear ra
-    Case 11
-        WakuClear ra
+    Case 8
         TableRange(HeaderRange(ra)).Clear
+    Case 9
+        FarLeftTop ra
+        TableRange(HeaderRange(ra).Offset(1)).Clear
     Case Else
+        FarLeftTop ra
         Waku ra, fit:=True
     End Select
-    '
-    Application.ScreenUpdating = asu
 End Sub
 
+'----------------------------------------
+'API
+'----------------------------------------
 
 'àÕÇ¢
 Sub Waku(ra As Range, _
@@ -115,6 +127,7 @@ End Sub
 
 'ògå≈íË
 Sub HeaderFixed(ra As Range)
+    Application.ScreenUpdating = False
     If ActiveWindow.FreezePanes Then
         'Application.ScreenUpdating = True
         ActiveWindow.FreezePanes = False
@@ -132,7 +145,7 @@ Sub HeaderFixed(ra As Range)
     Else
         ce.Offset(1).Select
     End If
-    'Application.ScreenUpdating = True
+    Application.ScreenUpdating = True
     ActiveWindow.FreezePanes = True
     '
     old.Select

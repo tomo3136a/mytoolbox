@@ -22,6 +22,7 @@ Private Function RB_TAG(control As IRibbonControl) As Integer
     RB_TAG = val(control.Tag)
 End Function
 
+'ID番号取得
 Private Function RB_ID(control As IRibbonControl) As Integer
     If control.Tag = "" Then
         RB_ID = val(Right(control.id, 1))
@@ -30,7 +31,7 @@ Private Function RB_ID(control As IRibbonControl) As Integer
     End If
 End Function
 
-'ID番号取得
+'リボンID番号取得
 Private Function RibbonID(control As IRibbonControl) As Integer
     Dim s As String
     s = control.Tag
@@ -67,6 +68,7 @@ Private Sub works_onLoad(ByVal Ribbon As IRibbonUI)
     Application.OnKey "{F1}", "works_ShortcutKey"
     '
     RBTable_Init
+    SetDataListParam 1, True
 End Sub
 
 Private Sub works_ShortcutKey()
@@ -87,23 +89,31 @@ End Sub
 Private Sub works12_onAction(ByVal control As IRibbonControl)
     Call PagePreview
 End Sub
-    
+
 'テキスト変換
 Private Sub works13_onAction(ByVal control As IRibbonControl)
     If TypeName(Selection) <> "Range" Then Exit Sub
     Call Cells_Conv(Selection, RB_ID(control))
 End Sub
-    
+
 '表示・非表示
 Private Sub works14_onAction(ByVal control As IRibbonControl)
     Call ShowHide(RibbonID(control))
 End Sub
-    
+
 '目次シート作成
 Private Sub works15_onAction(ByVal control As IRibbonControl)
     Call AddInfoSheet(RibbonID(control))
 End Sub
-    
+
+Private Sub works15_onChecked(ByRef control As IRibbonControl, ByRef pressed As Boolean)
+    Call SetDataListParam(RibbonID(control), pressed)
+End Sub
+
+Private Sub works15_getPressed(control As IRibbonControl, ByRef returnedVal)
+    returnedVal = GetDataListParam(RibbonID(control))
+End Sub
+
 'パス名
 Private Sub works16_onAction(ByVal control As IRibbonControl)
     Call GetPath(Selection, RibbonID(control))
@@ -117,61 +127,55 @@ Private Sub works16_getPressed(control As IRibbonControl, ByRef returnedVal)
     returnedVal = GetPathParam(RibbonID(control))
 End Sub
 
+'拡張条件付き書式
+Private Sub works17_onAction(ByVal control As IRibbonControl)
+    If TypeName(Selection) <> "Range" Then Exit Sub
+    Call AddUserFormat(Selection, RibbonID(control))
+End Sub
+
+'定型式挿入
+Private Sub works18_onAction(ByVal control As IRibbonControl)
+    If TypeName(Selection) <> "Range" Then Exit Sub
+    Call InsertFormula(Selection, RibbonID(control))
+End Sub
+
 '----------------------------------------
 '2x:罫線枠
 '----------------------------------------
 
-'移動
+'移動・選択
 Private Sub works21_onAction(ByVal control As IRibbonControl)
     If TypeName(Selection) <> "Range" Then Exit Sub
-    Call MoveTableLeftTop(Selection)
+    Application.ScreenUpdating = False
+    SelectTable RibbonID(control), Selection
+    Application.ScreenUpdating = True
 End Sub
-    
+
 '枠設定
 Private Sub works22_onAction(ByVal control As IRibbonControl)
     If TypeName(Selection) <> "Range" Then Exit Sub
-    Call KeisenWaku(RibbonID(control), Selection)
-End Sub
-    
-'フィルタ
-Private Sub works23_onAction(ByVal control As IRibbonControl)
-    If TypeName(Selection) <> "Range" Then Exit Sub
-    Call KeisenWaku(6, Selection)
-End Sub
-    
-'幅調整
-Private Sub works24_onAction(ByVal control As IRibbonControl)
-    If TypeName(Selection) <> "Range" Then Exit Sub
-    Call KeisenWaku(7, Selection)
-End Sub
-    
-'枠固定
-Private Sub works25_onAction(ByVal control As IRibbonControl)
-    If TypeName(Selection) <> "Range" Then Exit Sub
-    Call KeisenWaku(8, Selection)
-End Sub
-        
-'見出し色
-Private Sub works26_onAction(ByVal control As IRibbonControl)
-    If TypeName(Selection) <> "Range" Then Exit Sub
-    Call KeisenWaku(9, Selection)
+    Application.ScreenUpdating = False
+    Call TableWaku(RibbonID(control), Selection)
+    Application.ScreenUpdating = True
 End Sub
 
 '囲いクリア
 Private Sub works27_onAction(ByVal control As IRibbonControl)
     If TypeName(Selection) <> "Range" Then Exit Sub
+    Application.ScreenUpdating = False
     Select Case RibbonID(control)
     Case 1
-        '表クリア
-        Call KeisenWaku(10, Selection)
-        Call KeisenWaku(11, Selection)
-    Case 2
         '囲いクリア
-        Call KeisenWaku(10, Selection)
-    Case 3
+        Call TableWaku(7, Selection)
+    Case 2
         'テーブルクリア
-        Call KeisenWaku(11, Selection)
+        Call TableWaku(8, Selection)
+    Case Else
+        '表クリア
+        Call TableWaku(7, Selection)
+        Call TableWaku(8, Selection)
     End Select
+    Application.ScreenUpdating = True
 End Sub
 
 'マージン表示・設定
@@ -186,7 +190,7 @@ Private Sub works28_getLabel(ByRef control As Office.IRibbonControl, ByRef label
 End Sub
 
 '----------------------------------------
-'テンプレート機能
+'3x:テンプレート機能
 '----------------------------------------
 
 Private Sub works3_onAction(ByVal control As IRibbonControl)

@@ -37,6 +37,44 @@ Function fso() As Object
 End Function
 
 '----------------------------------------
+'正規表現
+'----------------------------------------
+
+'文字列判定
+Public Function re_test(s As String, ptn As String) As Boolean
+    On Error Resume Next
+    re_test = regex(ptn).test(s)
+    On Error GoTo 0
+End Function
+
+'文字列抽出
+Public Function re_match(s As String, ptn As String, _
+        Optional idx As Integer = 0, _
+        Optional idx2 As Integer = -1) As Variant
+    Dim re As Object
+    Set re = regex(ptn)
+    Dim mc As Object
+    Set mc = re.Execute(s)
+    
+    If idx >= mc.Count Then
+        re_match = ""
+    ElseIf idx < 0 Then
+        re_match = mc.Count
+    ElseIf idx2 < 0 Then
+        re_match = mc(idx).Value
+    ElseIf idx2 < mc(idx).SubMatches.Count Then
+        re_match = mc(idx).SubMatches(idx2)
+    Else
+        re_match = ""
+    End If
+End Function
+
+'文字列置き換え
+Public Function re_replace(s As String, ptn As String, rep As String) As String
+    re_replace = regex(ptn).Replace(s, rep)
+End Function
+
+'----------------------------------------
 'シート名操作
 '----------------------------------------
 
@@ -306,7 +344,7 @@ Function GetAbstructPath(path As String, base As String) As String
     Dim p As String
     Dim s As String, s2 As String
     p = path
-    s = RE_MATCH(p, "^[\(%](\w+)[\)%]", 0, 0)
+    s = re_match(p, "^[\(%](\w+)[\)%]", 0, 0)
     If s <> "" Then
         s2 = Environ(s)
         If s2 <> "" Then p = s2 & Mid(p, Len(s) + 3)
@@ -316,12 +354,12 @@ Function GetAbstructPath(path As String, base As String) As String
     If InStr(1, p, ":\") = 0 Then p = base & p
     Do
         s = p
-        p = RE_REPLACE(p, "\\[^\\]+\\[.][.]\\", "\")
+        p = re_replace(p, "\\[^\\]+\\[.][.]\\", "\")
         If s = p Then Exit Do
     Loop
     Do
         s = p
-        p = RE_REPLACE(p, "\\[.]\\", "\")
+        p = re_replace(p, "\\[.]\\", "\")
         If s = p Then Exit Do
     Loop
     GetAbstructPath = p

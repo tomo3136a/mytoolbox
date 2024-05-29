@@ -183,7 +183,7 @@ Private Sub Cells_StrConvNarrow(ra As Range)
 End Sub
 
 '---------------------------------------------
-'表示操作
+'表示/非表示操作
 '---------------------------------------------
 
 Sub ShowHide(mode As Integer)
@@ -221,8 +221,13 @@ End Sub
 Private Sub DeleteHideRow()
     Dim ra As Range
     Set ra = Selection
+    Dim e As Long
+    'e = Cells.SpecialCells(xlCellTypeLastCell).Row
+    'e = FarBottom(ra).Row
+    e = ra.Worksheet.UsedRange.Row
+    e = e + ra.Worksheet.UsedRange.Rows.Count
     Dim i As Long
-    For i = Cells.SpecialCells(xlCellTypeLastCell).Row + 1 To 1 Step -1
+    For i = e + 1 To 1 Step -1
         If Rows(i).Hidden Then Rows(i).Delete
     Next i
     On Error Resume Next
@@ -235,6 +240,11 @@ Private Sub DeleteHideColumn()
     Dim ra As Range
     Set ra = Selection
     Dim i As Long
+    Dim e As Long
+    'e = Cells.SpecialCells(xlCellTypeLastCell).column
+    'e = FarBottom(ra).Row
+    e = ra.Worksheet.UsedRange.Row
+    e = e + ra.Worksheet.UsedRange.Rows.Count
     For i = Cells.SpecialCells(xlCellTypeLastCell).Column + 1 To 1 Step -1
         If Columns(i).Hidden Then Columns(i).Delete
     Next i
@@ -304,5 +314,153 @@ Private Sub VisibleHideName()
     If cnt > 0 Then
         MsgBox "名前を" & cnt & "件表示にしました。" & msg
     End If
+End Sub
+
+Sub AddUserFormat(ra As Range, mode As Integer)
+    Select Case mode
+    Case 1
+        '数式に条件付き書式を追加
+        Call AddFormulaConditionColor(ra)
+    Case 2
+        '参照に色を付ける
+        Call MarkRef(ra)
+    Case 4
+        '空白に条件付き書式を追加
+        Call AddBlankConditionColor(ra)
+    Case 9
+        Call SelectRef(ra)
+    Case 3
+        '参照スタイル削除
+        Call ClearMarkRef
+    End Select
+End Sub
+
+Private Sub NewStyle(ra As Range, name As String)
+    If ra Is Nothing Then Exit Sub
+    If name = "" Then Exit Sub
+    
+    Dim wb As Workbook
+    Set wb = ra.Parent.Parent
+    On Error Resume Next
+    If ra.Parent.Parent.Styles(name) Is Nothing Then
+        With ra.Parent.Parent.Styles.Add(name)
+            .IncludeNumber = False
+            .IncludeFont = False
+            .IncludeAlignment = False
+            .IncludeBorder = False
+            .IncludePatterns = True
+            .IncludeProtection = False
+            With .Interior
+                .Pattern = xlSolid
+                .PatternColorIndex = 0
+                .ThemeColor = xlThemeColorAccent3
+                .TintAndShade = 0.8
+                .PatternTintAndShade = 0
+            End With
+        End With
+    End If
+    On Error GoTo 0
+    ra.Style = name
+End Sub
+
+Private Sub AddFormulaConditionColor(ra As Range)
+    Dim s As String
+    s = ra.Cells(1, 1).Address(False, False)
+    ra.FormatConditions.Add Type:=xlExpression, Formula1:="=ISFORMULA(" & s & ")"
+    ra.FormatConditions(ra.FormatConditions.Count).SetFirstPriority
+    
+    Dim i As Long
+    Call Application.Dialogs(xlDialogEditColor).Show(1)
+    i = ActiveWorkbook.Colors(1)
+
+    With ra.FormatConditions(1).Interior
+        .PatternColorIndex = xlAutomatic
+        .color = i
+        .TintAndShade = 0
+    End With
+    ra.FormatConditions(1).StopIfTrue = False
+End Sub
+
+Private Sub AddBlankConditionColor(ra As Range)
+    Dim s As String
+    s = ra.Cells(1, 1).Address(False, False)
+    ra.FormatConditions.Add Type:=xlExpression, Formula1:="=TRIM(" & s & ")="""""
+    ra.FormatConditions(ra.FormatConditions.Count).SetFirstPriority
+    
+    Dim i As Long
+    'Call Application.Dialogs(xlDialogEditColor).Show(1)
+    'i = ActiveWorkbook.Colors(1)
+    i = RGB(127, 127, 127)
+
+    With ra.FormatConditions(1).Interior
+        .PatternColorIndex = xlAutomatic
+        .color = i
+        .TintAndShade = 0
+    End With
+    ra.FormatConditions(1).StopIfTrue = False
+End Sub
+
+
+Private Sub SelectRef(ra As Range)
+    Dim wb As Workbook
+    Set wb = ra.Parent.Parent
+    
+    Dim ra2 As Range
+    On Error Resume Next
+    Set ra2 = ra.DirectPrecedents
+    On Error GoTo 0
+    If ra2 Is Nothing Then Exit Sub
+    Set ra2 = ra.Find("!", LookIn:=xlFormulas, LookAt:=xlPart, SearchFormat:=False)
+    'Set ra2 = ra2.DirectDependents
+    'Set ra2 = Intersect(ra, ra2)
+    
+    ra2.Select
+End Sub
+
+Private Sub MarkRef(ra As Range)
+    Dim wb As Workbook
+    Set wb = ra.Parent.Parent
+    
+    Dim ra2 As Range
+    On Error Resume Next
+    Set ra2 = ra.DirectPrecedents
+    On Error GoTo 0
+    If ra2 Is Nothing Then Exit Sub
+    Set ra2 = ra2.DirectDependents
+    Set ra2 = Intersect(ra, ra2)
+    
+    Dim s As String
+    s = "参照"
+    On Error Resume Next
+    If wb.Styles(s) Is Nothing Then
+        With wb.Styles.Add(s)
+            .IncludeNumber = False
+            .IncludeFont = False
+            .IncludeAlignment = False
+            .IncludeBorder = False
+            .IncludePatterns = True
+            .IncludeProtection = False
+            With .Interior
+                .Pattern = xlSolid
+                .PatternColorIndex = 0
+                .ThemeColor = xlThemeColorAccent3
+                .TintAndShade = 0.799981688894314
+                .PatternTintAndShade = 0
+            End With
+        End With
+    End If
+    On Error GoTo 0
+    ra2.Style = s
+End Sub
+
+Private Sub ClearMarkRef()
+    Dim s As String
+    s = "参照"
+    ActiveWorkbook.Styles(s).Delete
+End Sub
+
+Private Sub InsertFunction(ra As Range)
+    Dim s As String
+    s = "=LEFT(A1,MIN(FIND({1,2,3,4,5,6,7,8,9,0},ASC(A1)&1234567890))-1)"
 End Sub
 

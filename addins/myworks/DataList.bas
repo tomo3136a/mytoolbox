@@ -6,6 +6,28 @@ Attribute VB_Name = "DataList"
 Option Explicit
 Option Private Module
 
+Private g_sheet As Boolean
+
+'----------------------------------
+'‹¤’Ê‹@”\
+'----------------------------------
+
+Sub SetDataListParam(id As Integer, ByVal val As String)
+    Select Case id
+    Case 1
+        g_sheet = val
+    End Select
+End Sub
+
+Function GetDataListParam(id As Integer) As String
+    Dim val As String
+    Select Case id
+    Case 1
+        val = g_sheet
+    End Select
+    GetDataListParam = val
+End Function
+
 '---------------------------------------------
 '‹¤’Ê
 '---------------------------------------------
@@ -32,13 +54,17 @@ Sub AddInfoSheet(mode As Integer)
     '
     Dim wb As Workbook
     Set wb = ActiveWorkbook
-    Dim ws As Worksheet
-    Set ws = wb.Worksheets.Add
-    Call SetInfoSheet(ws, Title)
-    If Title <> "" Then ws.name = UniqueSheetName(wb, Title)
-    '
+    
     Dim ra As Range
-    Set ra = ws.Cells(2, 2)
+    If g_sheet Then
+        Dim ws As Worksheet
+        Set ws = wb.Worksheets.Add
+        Call SetInfoSheet(ws, Title)
+        If Title <> "" Then ws.name = UniqueSheetName(wb, Title)
+        Set ra = ws.Cells(2, 2)
+    Else
+        Set ra = ActiveCell
+    End If
     '
     Call AddInfoTable(mode, ra, Title, wb)
     '
