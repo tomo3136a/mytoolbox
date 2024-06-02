@@ -1,4 +1,8 @@
 Attribute VB_Name = "Dev"
+'==================================
+'アドイン開発
+'==================================
+
 '[参照設定]
 '「Microsoft Visual Basic for Application Extensibility 5.3」
 
@@ -8,20 +12,11 @@ Option Private Module
 Private g_addin As String
 Private g_image As String
 
-'==================================
-'アドイン開発
-'==================================
-
-Sub SetAddinName(s As String)
-    g_addin = s
-    g_image = "Spelling"
-End Sub
-
 '----------------------------------
 'アプリケーションI/F
 '----------------------------------
 
-Sub AddinDevApp(id As Integer)
+Sub App(id As Integer)
     Select Case id
     Case 11
         'カレントフォルダを開く
@@ -38,8 +33,9 @@ Sub AddinDevApp(id As Integer)
         EditCustomUI g_addin
     Case 32
         'CustomUI マージ
-        If g_addin = "" Then Exit Sub
+        On Error Resume Next
         Workbooks(g_addin).Save
+        On Error GoTo 0
         MargeCustomUI g_addin
     Case 33
         'アドイン配置
@@ -54,14 +50,14 @@ Sub AddinDevApp(id As Integer)
         End With
     Case 36
         'アドインソースのエクスポート
-        'ExportCustomUI g_addin
-    Case 37
-        'アドインソースのエクスポート
         ExportModules g_addin
-    Case 38
+    Case 37
         'アドインソースのインポート
         ImportModules g_addin
-    Case 4
+    Case 38
+        'アドイン再読み込み
+        ReloadAddin g_addin
+    Case 39
         '閉じる
         ToggleAddin ActiveWorkbook.name
     Case 51
@@ -81,6 +77,19 @@ Sub AddinDevApp(id As Integer)
         MsgBox g_addin
     End Select
 End Sub
+
+'----------------------------------
+'設定
+'----------------------------------
+
+Sub SetAddinName(s As String)
+    g_addin = s
+    g_image = "About"
+End Sub
+
+Function GetButtonImage() As String
+    GetButtonImage = g_image
+End Function
 
 '----------------------------------
 'オープンフォルダ
@@ -196,7 +205,9 @@ Private Sub EditCustomUI(name As String)
     '
     If fso.FileExists(zip) Then fso.DeleteFile zip
     '
-    Call CreateObject("Wscript.Shell").Run(path)
+    With CreateObject("Wscript.Shell")
+        .Run path
+    End With
 End Sub
 
 'CustomUI マージ
@@ -268,6 +279,12 @@ Private Sub DeployAddin(name As String)
     AddIns(AddinName(name)).Installed = False
     If fso.FileExists(xlam) Then fso.DeleteFile xlam
     fso.MoveFile zip, xlam
+    AddIns(AddinName(name)).Installed = True
+End Sub
+
+'アドイン再読み込み
+Private Sub ReloadAddin(name As String)
+    AddIns(AddinName(name)).Installed = False
     AddIns(AddinName(name)).Installed = True
 End Sub
 
@@ -479,6 +496,17 @@ End Function
 '----------------------------------
 'アドイン
 '----------------------------------
+
+'ユーザアドインフォルダ取得
+Function AddinsPath() As String
+    AddinsPath = ThisWorkbook.path
+End Function
+
+'アドイン名取得
+Function AddinName(Optional name As String) As String
+    If name = "" Then name = ThisWorkbook.name
+    AddinName = Replace(name, ".xlam", "")
+End Function
 
 'アドインブック表示・非表示トグル
 Sub ToggleAddin(Optional name As String)

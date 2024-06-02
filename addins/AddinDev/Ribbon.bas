@@ -12,11 +12,6 @@ Private g_ribbon As IRibbonUI
 'ribbon helper
 '----------------------------------------
 
-Private Sub RefreshRibbon()
-    If Not g_ribbon Is Nothing Then g_ribbon.Invalidate
-    DoEvents
-End Sub
-
 Private Function RibbonID(control As IRibbonControl) As Integer
     Dim s As String
     s = control.Tag
@@ -34,6 +29,11 @@ Private Function RibbonID(control As IRibbonControl) As Integer
     End If
 End Function
 
+Private Sub RefreshRibbon()
+    If Not g_ribbon Is Nothing Then g_ribbon.Invalidate
+    DoEvents
+End Sub
+
 '----------------------------------------
 'ribbon initialize
 '----------------------------------------
@@ -42,9 +42,9 @@ Private Sub onLoad(ByVal ribbon As IRibbonUI)
     Set g_ribbon = ribbon
 End Sub
 
-'----------------------------------
-'アドイン選択
-'----------------------------------
+'----------------------------------------
+'select addin
+'----------------------------------------
 
 Private Sub getItemCount(control As IRibbonControl, ByRef returnedVal)
     returnedVal = UserAddinCount
@@ -74,16 +74,22 @@ End Sub
 '----------------------------------
 
 Private Sub onAction(ByVal control As IRibbonControl)
-    AddinDevApp RibbonID(control)
-    If RibbonID(control) <> 52 Then Exit Sub
+    App RibbonID(control)
     If g_ribbon Is Nothing Then Exit Sub
-    g_ribbon.Invalidate
-    DoEvents
+    Select Case RibbonID(control)
+    Case 52
+        g_ribbon.Invalidate
+        DoEvents
+    Case 1
+        g_ribbon.Invalidate
+        DoEvents
+    Case Else
+    End Select
 End Sub
 
 Private Sub getEnabled(ByVal control As IRibbonControl, ByRef enable As Variant)
     Select Case RibbonID(control)
-    Case 4
+    Case 39
         enable = (LCase(Right(ActiveWorkbook.name, 5)) = ".xlam")
     Case 34
         enable = (LCase(Right(ActiveWorkbook.name, 5)) <> ".xlam")
@@ -93,16 +99,18 @@ End Sub
 Private Sub getImage(ByVal control As IRibbonControl, ByRef image As Variant)
     On Error Resume Next
     Select Case RibbonID(control)
-    Case 52
+    Case 53
         Dim id As Integer
-        id = Val("0" + ActiveCell.Value)
-        id = 2
+        id = Val("0" + GetButtonImage)
         Dim v1 As Variant
         Set v1 = Application.CommandBars.FindControl(id:=id)
         Set image = Application.CommandBars.FindControl(id:=id).Picture
-    Case 53
-        If ActiveCell.Value = "" Then Exit Sub
-        image = ActiveCell.Value
+    Case 52
+        If GetButtonImage = "" Then
+            image = "About"
+        Else
+            image = GetButtonImage
+        End If
     Case 54
         Dim v As Integer
         v = Val(ActiveCell.Value)

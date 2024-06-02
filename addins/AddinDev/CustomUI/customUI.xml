@@ -8,7 +8,7 @@
           <button id="b.12" onAction="AddinDev.Ribbon.onAction" label="アドインフォルダ" imageMso="Folder" size="large" />
           <button id="b.13" onAction="AddinDev.Ribbon.onAction" label="imageMSOフォルダ" imageMso="ControlImage" size="large" />
         </group>
-        <group id="g3" label="アドイン開発​​" imageMso="AddInManager">
+        <group id="g3" label="アドイン編集" imageMso="AddInManager">
           <box id="g31" boxStyle="vertical">
             <dropDown id="c31" onAction="AddinDev.Ribbon.onActionDropDown" label="アドイン:" sizeString="aaaaaaaaaaaaaaaaaa"
               getItemCount="AddinDev.Ribbon.getItemCount" getItemID="AddinDev.Ribbon.getItemID"
@@ -22,16 +22,16 @@
               <button id="b.34" onAction="AddinDev.Ribbon.onAction" label="シート編集" getEnabled="AddinDev.Ribbon.getEnabled" imageMso="WindowUnhide" />
               <button id="b.35" onAction="AddinDev.Ribbon.onAction" label="マネージャ" imageMso="Refresh" />
             </buttonGroup>
-              <!-- <button id="b.36" onAction="AddinDev.Ribbon.onAction" label="エクスポート" imageMso="ExportSavedExports" size="large" /> -->
-              <button id="b.37" onAction="AddinDev.Ribbon.onAction" label="エクスポート" imageMso="ExportSavedExports" size="large" />
-            <button id="b.38" onAction="AddinDev.Ribbon.onAction" label="インポート" imageMso="ImportSavedImports" size="large" />
+            <button id="b.36" onAction="AddinDev.Ribbon.onAction" label="エクスポート" imageMso="ExportSavedExports" size="large" />
+            <button id="b.37" onAction="AddinDev.Ribbon.onAction" label="インポート" imageMso="ImportSavedImports" size="large" />
+            <button id="b.38" onAction="AddinDev.Ribbon.onAction" label="再読み込み" imageMso="Recurrence" size="large" />
           </box>
           <separator id="s31" />
-          <button id="b.4" onAction="AddinDev.Ribbon.onAction" label="閉じる" getEnabled="AddinDev.Ribbon.getEnabled" imageMso="GroupMasterClose" size="large" />
+          <button id="b.39" onAction="AddinDev.Ribbon.onAction" label="閉じる" getEnabled="AddinDev.Ribbon.getEnabled" imageMso="GroupMasterClose" size="large" />
         </group>
         <group id="g5" label="VBA開発" imageMso="AddInManager">
           <button id="b.51" onAction="AddinDev.Ribbon.onAction" label="ダイアログ" imageMso="FormsMenu" size="large" />
-          <!-- <button id="b.52" onAction="AddinDev.Ribbon.onAction" label="imageMSO" getImage="AddinDev.Ribbon.getImage" size="large" /> -->
+          <button id="b.52" onAction="AddinDev.Ribbon.onAction" label="imageMSO" getImage="AddinDev.Ribbon.getImage" size="large" />
           <!-- <button id="b.53" onAction="AddinDev.Ribbon.onAction" label="imageMSO" getImage="AddinDev.Ribbon.getImage" size="large" /> -->
           <!-- <button id="b.54" onAction="AddinDev.Ribbon.onAction" label="imageMSO" getImage="AddinDev.Ribbon.getImage" size="large" /> -->
         </group>
