@@ -1,6 +1,6 @@
 Attribute VB_Name = "Util"
 Option Explicit
-'Option Private Module
+Option Private Module
 
 '========================================
 '汎用計算モジュール
@@ -92,33 +92,5 @@ Private Function GetFileBytes(path As String) As Byte()
     '
     GetFileBytes = ba
     Erase ba
-End Function
-
-'----------------------------------------
-'文字列抜き出し
-'----------------------------------------
-
-'英字文字抜き出し
-Public Function ToAlpha(s As String) As String
-    Dim ss As String
-    Dim i As Integer
-    For i = 1 To Len(s)
-        Dim c As String
-        c = Mid(s, i, 1)
-        If c Like "[A-Z]" Then ss = ss + c
-    Next i
-    ToAlpha = ss
-End Function
-
-'数字抜き出し
-Public Function ToNum(s As String) As Integer
-    Dim ss As String
-    Dim i As Integer
-    For i = 1 To Len(s)
-        Dim c As String
-        c = Mid(s, i, 1)
-        If c Like "[0-9]" Then ss = ss + c
-    Next i
-    ToNum = CInt(ss)
 End Function
 

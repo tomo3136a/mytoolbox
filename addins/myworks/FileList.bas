@@ -6,43 +6,12 @@ Attribute VB_Name = "FileList"
 Option Explicit
 Option Private Module
 
-Private g_link As Boolean
-Private g_folder As Boolean
-Private g_subdir As Boolean
-
-'----------------------------------
-'共通機能
-'----------------------------------
-
-Sub SetPathParam(id As Integer, ByVal val As String)
-    Select Case id
-    Case 1
-        g_link = val
-    Case 2
-        g_folder = val
-    Case 3
-        g_subdir = val
-    End Select
-End Sub
-
-Function GetPathParam(id As Integer) As String
-    Dim val As String
-    Select Case id
-    Case 1
-        val = g_link
-    Case 2
-        val = g_folder
-    Case 3
-        val = g_subdir
-    End Select
-    GetPathParam = val
-End Function
-
 '----------------------------------------
+'機能呼び出し
+'----------------------------------------
+
 'パス取得
-'----------------------------------------
-
-Sub GetPath(ra As Range, mode As Integer)
+Sub PathMenu(mode As Integer, ra As Range)
     Application.ScreenUpdating = False
     '
     Select Case mode
@@ -51,10 +20,10 @@ Sub GetPath(ra As Range, mode As Integer)
         Call GetFileList(ra)
     Case 2
         'フォルダーパス取得
-        Call GetFolderPath(ra, g_link)
+        Call GetFolderPath(ra, GetParamBool("path", 1))
     Case 3
         'ファイルパス取得
-        Call GetFilePath(ra, g_link)
+        Call GetFilePath(ra, GetParamBool("path", 1))
     Case 4
         'パス名変換
         Call ChangePath(ra)
@@ -226,7 +195,7 @@ Private Sub GetFolderPath(ra As Range, link As Boolean)
     ce.Value = GetShortPath(path)
     If Not link Then Exit Sub
     Application.CutCopyMode = False
-    ce.Worksheet.Hyperlinks.Add Anchor:=ce, Address:=path
+    ce.Worksheet.Hyperlinks.Add Anchor:=ce, address:=path
 End Sub
 
 Private Function GetFolder(ra As Range) As String
@@ -259,7 +228,7 @@ Private Sub GetFilePath(ra As Range, link As Boolean)
         If link Then
             Application.CutCopyMode = False
             ce.Worksheet.Hyperlinks.Add _
-                Anchor:=ce, Address:=fi
+                Anchor:=ce, address:=fi
         End If
         Set ce = ce.Offset(1)
         clrf = True
@@ -296,19 +265,57 @@ Private Sub GetFileListSubFolder(ByRef ra As Range, path As String, n As Integer
     Dim no As Integer
     no = ra.Offset(-1).Value
     Dim obj As Variant
+    Dim re As Object
+    Set re = regex("^[~._]|bak$|tmp$")
     '
     'フォルダリスト
     For Each obj In fso.GetFolder(path).SubFolders
-        Dim p As String
-        p = fso.BuildPath(path, obj.name)
-        If g_folder Then
+        If GetParamBool("path", 4) Or Not re.test(obj.name) Then
+            Dim p As String
+            p = fso.BuildPath(path, obj.name)
+            If GetParamBool("path", 2) Then
+                no = no + 1
+                ra.Clear
+                ra.Value = no
+                With obj
+                    ra.Offset(0, 1).Value = sp & .name & "/"
+                    ra.Offset(0, 2).Value = n
+                    ra.Offset(0, 3).Value = "フォルダ"
+                    ra.Offset(0, 4).Style = "Comma [0]"
+                    ra.Offset(0, 4).Value = .Size
+                    ra.Offset(0, 5).NumberFormatLocal = "yyyy/mm/dd hh:mm:ss;@"
+                    ra.Offset(0, 5).Value = .DateLastModified
+                End With
+                Set ra = ra.Offset(1)
+            End If
+            If GetParamBool("path", 3) Then
+                If Left(obj.name, 1) = "." Then
+                ElseIf Left(obj.name, 1) = "_" Then
+                ElseIf GetParamBool("path", 2) Then
+                    Call GetFileListSubFolder(ra, p, n + 1, sp + "    ")
+                    no = ra.Offset(-1).Value
+                Else
+                    Call GetFileListSubFolder(ra, p, n + 1, fso.BuildPath(sp, obj.name))
+                    no = ra.Offset(-1).Value
+                End If
+            End If
+        End If
+    Next obj
+    '
+    'ファイルリスト
+    For Each obj In fso.GetFolder(path).Files
+        If GetParamBool("path", 4) Or Not re.test(obj.name) Then
             no = no + 1
-            ra.Clear
             ra.Value = no
             With obj
-                ra.Offset(0, 1).Value = sp & .name & "/"
+                p = fso.BuildPath(path, .name)
+                If GetParamBool("path", 2) Then
+                    ra.Offset(0, 1).Value = sp & .name
+                Else
+                    ra.Offset(0, 1).Value = fso.BuildPath(sp, .name)
+                End If
                 ra.Offset(0, 2).Value = n
-                ra.Offset(0, 3).Value = "フォルダ"
+                ra.Offset(0, 3).Value = "ファイル"
                 ra.Offset(0, 4).Style = "Comma [0]"
                 ra.Offset(0, 4).Value = .Size
                 ra.Offset(0, 5).NumberFormatLocal = "yyyy/mm/dd hh:mm:ss;@"
@@ -316,38 +323,6 @@ Private Sub GetFileListSubFolder(ByRef ra As Range, path As String, n As Integer
             End With
             Set ra = ra.Offset(1)
         End If
-        If g_subdir Then
-            If Left(obj.name, 1) = "." Then
-            ElseIf Left(obj.name, 1) = "_" Then
-            ElseIf g_folder Then
-                Call GetFileListSubFolder(ra, p, n + 1, sp + "    ")
-                no = ra.Offset(-1).Value
-            Else
-                Call GetFileListSubFolder(ra, p, n + 1, fso.BuildPath(sp, obj.name))
-                no = ra.Offset(-1).Value
-            End If
-        End If
-    Next obj
-    '
-    'ファイルリスト
-    For Each obj In fso.GetFolder(path).Files
-        no = no + 1
-        ra.Value = no
-        With obj
-            p = fso.BuildPath(path, .name)
-            If g_folder Then
-                ra.Offset(0, 1).Value = sp & .name
-            Else
-                ra.Offset(0, 1).Value = fso.BuildPath(sp, .name)
-            End If
-            ra.Offset(0, 2).Value = n
-            ra.Offset(0, 3).Value = "ファイル"
-            ra.Offset(0, 4).Style = "Comma [0]"
-            ra.Offset(0, 4).Value = .Size
-            ra.Offset(0, 5).NumberFormatLocal = "yyyy/mm/dd hh:mm:ss;@"
-            ra.Offset(0, 5).Value = .DateLastModified
-        End With
-        Set ra = ra.Offset(1)
     Next obj
     '
     On Error GoTo 0

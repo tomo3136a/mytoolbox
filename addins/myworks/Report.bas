@@ -81,7 +81,7 @@ End Sub
 'テキスト変換
 '----------------------------------
 
-Sub Cells_Conv(ra As Range, Optional mode As Integer = 0)
+Sub MenuTextConv(mode As Integer, ra As Range)
     Select Case mode
     Case 1
         'トリム(冗長なスペース削除)
@@ -221,14 +221,14 @@ End Sub
 Private Sub DeleteHideRow()
     Dim ra As Range
     Set ra = Selection
+    Dim ws As Worksheet
+    Set ws = ra.Worksheet
     Dim e As Long
-    'e = Cells.SpecialCells(xlCellTypeLastCell).Row
-    'e = FarBottom(ra).Row
-    e = ra.Worksheet.UsedRange.Row
-    e = e + ra.Worksheet.UsedRange.Rows.Count
+    e = ws.UsedRange.Row
+    e = e + ws.UsedRange.Rows.Count
     Dim i As Long
     For i = e + 1 To 1 Step -1
-        If Rows(i).Hidden Then Rows(i).Delete
+        If ws.Rows(i).Hidden Then ws.Rows(i).Delete
     Next i
     On Error Resume Next
     ra.Select
@@ -239,14 +239,14 @@ End Sub
 Private Sub DeleteHideColumn()
     Dim ra As Range
     Set ra = Selection
-    Dim i As Long
+    Dim ws As Worksheet
+    Set ws = ra.Worksheet
     Dim e As Long
-    'e = Cells.SpecialCells(xlCellTypeLastCell).column
-    'e = FarBottom(ra).Row
-    e = ra.Worksheet.UsedRange.Row
-    e = e + ra.Worksheet.UsedRange.Rows.Count
-    For i = Cells.SpecialCells(xlCellTypeLastCell).Column + 1 To 1 Step -1
-        If Columns(i).Hidden Then Columns(i).Delete
+    e = ws.UsedRange.Column
+    e = e + ws.UsedRange.Columns.Count
+    Dim i As Long
+    For i = e + 1 To 1 Step -1
+        If ws.Columns(i).Hidden Then ws.Columns(i).Delete
     Next i
     On Error Resume Next
     ra.Select
@@ -316,57 +316,52 @@ Private Sub VisibleHideName()
     End If
 End Sub
 
-Sub AddUserFormat(ra As Range, mode As Integer)
+'---------------------------------------------
+'書式操作
+'---------------------------------------------
+
+Sub MenuUserFormat(mode As Integer, ra As Range)
     Select Case mode
     Case 1
         '数式に条件付き書式を追加
         Call AddFormulaConditionColor(ra)
     Case 2
-        '参照に色を付ける
-        Call MarkRef(ra)
-    Case 4
+        '0に条件付き書式を追加
+        Call AddZeroConditionColor(ra)
+    Case 3
         '空白に条件付き書式を追加
         Call AddBlankConditionColor(ra)
-    Case 9
-        Call SelectRef(ra)
-    Case 3
+    Case 4
+        '参照に色を付ける
+        Call MarkRef(ra)
+    Case 8
         '参照スタイル削除
         Call ClearMarkRef
     End Select
 End Sub
 
-Private Sub NewStyle(ra As Range, name As String)
-    If ra Is Nothing Then Exit Sub
-    If name = "" Then Exit Sub
-    
-    Dim wb As Workbook
-    Set wb = ra.Parent.Parent
-    On Error Resume Next
-    If ra.Parent.Parent.Styles(name) Is Nothing Then
-        With ra.Parent.Parent.Styles.Add(name)
-            .IncludeNumber = False
-            .IncludeFont = False
-            .IncludeAlignment = False
-            .IncludeBorder = False
-            .IncludePatterns = True
-            .IncludeProtection = False
-            With .Interior
-                .Pattern = xlSolid
-                .PatternColorIndex = 0
-                .ThemeColor = xlThemeColorAccent3
-                .TintAndShade = 0.8
-                .PatternTintAndShade = 0
-            End With
-        End With
-    End If
-    On Error GoTo 0
-    ra.Style = name
-End Sub
-
 Private Sub AddFormulaConditionColor(ra As Range)
     Dim s As String
-    s = ra.Cells(1, 1).Address(False, False)
+    s = ra.Cells(1, 1).address(False, False)
     ra.FormatConditions.Add Type:=xlExpression, Formula1:="=ISFORMULA(" & s & ")"
+    ra.FormatConditions(ra.FormatConditions.Count).SetFirstPriority
+    
+    Dim i As Long
+    Call Application.Dialogs(xlDialogEditColor).Show(1)
+    i = ActiveWorkbook.Colors(1)
+
+    With ra.FormatConditions(1).Interior
+        .PatternColorIndex = xlAutomatic
+        .color = i
+        .TintAndShade = 0
+    End With
+    ra.FormatConditions(1).StopIfTrue = False
+End Sub
+
+Private Sub AddZeroConditionColor(ra As Range)
+    Dim s As String
+    s = ra.Cells(1, 1).address(False, False)
+    ra.FormatConditions.Add Type:=xlExpression, Formula1:="=AND(" & s & "<>""""," & s & "=0)"
     ra.FormatConditions(ra.FormatConditions.Count).SetFirstPriority
     
     Dim i As Long
@@ -383,14 +378,14 @@ End Sub
 
 Private Sub AddBlankConditionColor(ra As Range)
     Dim s As String
-    s = ra.Cells(1, 1).Address(False, False)
+    s = ra.Cells(1, 1).address(False, False)
     ra.FormatConditions.Add Type:=xlExpression, Formula1:="=TRIM(" & s & ")="""""
     ra.FormatConditions(ra.FormatConditions.Count).SetFirstPriority
     
     Dim i As Long
     'Call Application.Dialogs(xlDialogEditColor).Show(1)
     'i = ActiveWorkbook.Colors(1)
-    i = RGB(127, 127, 127)
+    i = RGB(240, 240, 240)
 
     With ra.FormatConditions(1).Interior
         .PatternColorIndex = xlAutomatic
@@ -398,23 +393,6 @@ Private Sub AddBlankConditionColor(ra As Range)
         .TintAndShade = 0
     End With
     ra.FormatConditions(1).StopIfTrue = False
-End Sub
-
-
-Private Sub SelectRef(ra As Range)
-    Dim wb As Workbook
-    Set wb = ra.Parent.Parent
-    
-    Dim ra2 As Range
-    On Error Resume Next
-    Set ra2 = ra.DirectPrecedents
-    On Error GoTo 0
-    If ra2 Is Nothing Then Exit Sub
-    Set ra2 = ra.Find("!", LookIn:=xlFormulas, LookAt:=xlPart, SearchFormat:=False)
-    'Set ra2 = ra2.DirectDependents
-    'Set ra2 = Intersect(ra, ra2)
-    
-    ra2.Select
 End Sub
 
 Private Sub MarkRef(ra As Range)
@@ -459,8 +437,70 @@ Private Sub ClearMarkRef()
     ActiveWorkbook.Styles(s).Delete
 End Sub
 
-Private Sub InsertFunction(ra As Range)
-    Dim s As String
-    s = "=LEFT(A1,MIN(FIND({1,2,3,4,5,6,7,8,9,0},ASC(A1)&1234567890))-1)"
+Private Sub NewStyle(ra As Range, name As String)
+    If ra Is Nothing Then Exit Sub
+    If name = "" Then Exit Sub
+    
+    Dim wb As Workbook
+    Set wb = ra.Parent.Parent
+    On Error Resume Next
+    If ra.Parent.Parent.Styles(name) Is Nothing Then
+        With ra.Parent.Parent.Styles.Add(name)
+            .IncludeNumber = False
+            .IncludeFont = False
+            .IncludeAlignment = False
+            .IncludeBorder = False
+            .IncludePatterns = True
+            .IncludeProtection = False
+            With .Interior
+                .Pattern = xlSolid
+                .PatternColorIndex = 0
+                .ThemeColor = xlThemeColorAccent3
+                .TintAndShade = 0.8
+                .PatternTintAndShade = 0
+            End With
+        End With
+    End If
+    On Error GoTo 0
+    ra.Style = name
+End Sub
+
+'---------------------------------------------
+'定型式挿入
+'---------------------------------------------
+
+Sub MenuUserFormula(mode As Integer, ra As Range)
+    Dim v1 As Integer, v2 As Integer
+    Dim r0 As Range, r1 As Range, r2 As Range
+    Select Case mode
+    Case 1
+        '文字列分割(英字・数値)
+        ra.Offset(, 1).Formula2R1C1 = _
+            "=LET(v,RC[-1],LEFT(v,MIN(FIND({1,2,3,4,5,6,7,8,9,0},v&""1234567890""))-1))"
+        ra.Offset(, 2).FormulaR1C1 = "=MID(RC[-2],LEN(RC[-1])+1,LEN(RC[-2]))"
+    Case 2
+        '文字列分割(数値・英字・数値)
+        ra.Offset(, 1).FormulaR1C1 = "=IFERROR(VALUE(LEFT(RC[-1],2)),IFERROR(VALUE(LEFT(RC[-1],1)),""""))"
+        ra.Offset(, 2).Formula2R1C1 = _
+            "=LET(v,MID(RC[-2],LEN(RC[-1])+1,LEN(RC[-2])),LEFT(v,MIN(FIND({1,2,3,4,5,6,7,8,9,0},v&""1234567890""))-1))"
+        ra.Offset(, 3).FormulaR1C1 = "=MID(RC[-3],LEN(RC[-2]&RC[-1])+1,LEN(RC[-3]))"
+    Case 3
+        '差分マーカー
+        Set r0 = ra.Cells(1, 1)
+        On Error Resume Next
+        Set r1 = Application.InputBox("比較元位置1", "差分マーカ―", r0.Offset(0, 1).address, Type:=8)
+        On Error GoTo 0
+        If r1 Is Nothing Then Exit Sub
+        On Error Resume Next
+        Set r2 = Application.InputBox("比較元位置2", "差分マーカ―", r1.Offset(0, 1).address, Type:=8)
+        On Error GoTo 0
+        If r2 Is Nothing Then Exit Sub
+        If r2.address = r1.address Then Exit Sub
+        v1 = r1.Column - ra.Column
+        v2 = r2.Column - ra.Column
+        '
+        ra.Formula2R1C1 = _
+            "=IF(OFFSET(RC,0," & v1 & ")=OFFSET(RC,0," & v2 & "),""〇"","""")"
+    End Select
 End Sub
 

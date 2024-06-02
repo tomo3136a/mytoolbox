@@ -1,6 +1,6 @@
 Attribute VB_Name = "Common"
 '==================================
-'ã§í (ï\ëÄçÏ)
+'ã§í 
 '==================================
 
 Option Explicit
@@ -36,8 +36,8 @@ End Sub
 
 Function GetTableMargin(Optional mode As Integer = xlColumns) As Integer
     Dim v As Integer
-    If g_rows_margin < 2 Then g_rows_margin = 2
-    If g_columns_margin < 2 Then g_columns_margin = 2
+    If g_rows_margin < 1 Then g_rows_margin = 1
+    If g_columns_margin < 1 Then g_columns_margin = 1
     If mode = xlRows Then v = g_rows_margin
     If mode = xlColumns Then v = g_columns_margin
     If v < 1 Or v > 9 Then v = 1
@@ -64,7 +64,8 @@ Function FarLeftTop(ra As Range) As Range
             Set ce = ce.Offset(1)
         End If
     Next i
-    If ce <> "" Then ce.Select
+    'If ce <> "" Then ce.Select
+    If ce <> "" Then Set FarLeftTop = ce
 End Function
 
 'è„í[éÊìæ

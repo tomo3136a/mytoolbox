@@ -51,6 +51,7 @@ End Function
 Public Function re_match(s As String, ptn As String, _
         Optional idx As Integer = 0, _
         Optional idx2 As Integer = -1) As Variant
+    On Error Resume Next
     Dim re As Object
     Set re = regex(ptn)
     Dim mc As Object
@@ -67,11 +68,52 @@ Public Function re_match(s As String, ptn As String, _
     Else
         re_match = ""
     End If
+    On Error GoTo 0
 End Function
 
 '文字列置き換え
 Public Function re_replace(s As String, ptn As String, rep As String) As String
+    On Error Resume Next
     re_replace = regex(ptn).Replace(s, rep)
+    On Error GoTo 0
+End Function
+
+'----------------------------------
+'パラメータ機能
+'----------------------------------
+
+Sub SetParam(grp As String, k As String, ByVal v As String)
+    Static dic As Dictionary
+    Set dic = param_dict
+    Dim kw As String
+    kw = grp & "_" & k
+    On Error Resume Next
+    dic.Remove kw
+    dic.Add kw, v
+    On Error GoTo 0
+End Sub
+
+Function GetParam(grp As String, k As String) As String
+    Static dic As Dictionary
+    Set dic = param_dict
+    Dim kw As String
+    kw = grp & "_" & k
+    On Error Resume Next
+    GetParam = dic.Item(kw)
+    On Error GoTo 0
+End Function
+
+Function GetParamBool(grp As String, k As String) As Boolean
+    Dim s As String
+    s = GetParam(grp, k)
+    If s = "" Then s = "False"
+    GetParamBool = s
+End Function
+
+Private Function param_dict() As Dictionary
+    Static dic As Dictionary
+    If dic Is Nothing Then Set dic = New Dictionary
+    Set param_dict = dic
 End Function
 
 '----------------------------------------

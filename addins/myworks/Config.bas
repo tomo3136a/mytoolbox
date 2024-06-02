@@ -63,8 +63,6 @@ Function LoadConfig( _
     Set LoadConfig = ra
 End Function
 
-
-
 '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 Function SelectDictionary(dic As Object) As String

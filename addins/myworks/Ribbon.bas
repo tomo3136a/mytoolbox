@@ -12,23 +12,14 @@ Private g_ribbon As IRibbonUI
 'ribbon helper
 '----------------------------------------
 
-'コマンドID番号取得
-Private Function RB_CID(control As IRibbonControl) As Integer
-    RB_CID = val(Right(control.id, 1))
+'ID番号取得
+Private Function RB_ID(control As IRibbonControl) As Integer
+    RB_ID = val(Right(control.id, 1))
 End Function
 
 'TAG番号取得
 Private Function RB_TAG(control As IRibbonControl) As Integer
     RB_TAG = val(control.Tag)
-End Function
-
-'ID番号取得
-Private Function RB_ID(control As IRibbonControl) As Integer
-    If control.Tag = "" Then
-        RB_ID = val(Right(control.id, 1))
-    Else
-        RB_ID = val(control.Tag)
-    End If
 End Function
 
 'リボンID番号取得
@@ -68,7 +59,10 @@ Private Sub works_onLoad(ByVal Ribbon As IRibbonUI)
     Application.OnKey "{F1}", "works_ShortcutKey"
     '
     RBTable_Init
-    SetDataListParam 1, True
+    SetParam "path", 1, True
+    SetParam "path", 2, True
+    SetParam "path", 3, True
+    SetParam "info", 1, True
 End Sub
 
 Private Sub works_ShortcutKey()
@@ -93,50 +87,65 @@ End Sub
 'テキスト変換
 Private Sub works13_onAction(ByVal control As IRibbonControl)
     If TypeName(Selection) <> "Range" Then Exit Sub
-    Call Cells_Conv(Selection, RB_ID(control))
+    Call MenuTextConv(RibbonID(control), Selection)
 End Sub
 
-'表示・非表示
+'拡張書式
 Private Sub works14_onAction(ByVal control As IRibbonControl)
-    Call ShowHide(RibbonID(control))
-End Sub
-
-'目次シート作成
-Private Sub works15_onAction(ByVal control As IRibbonControl)
-    Call AddInfoSheet(RibbonID(control))
-End Sub
-
-Private Sub works15_onChecked(ByRef control As IRibbonControl, ByRef pressed As Boolean)
-    Call SetDataListParam(RibbonID(control), pressed)
-End Sub
-
-Private Sub works15_getPressed(control As IRibbonControl, ByRef returnedVal)
-    returnedVal = GetDataListParam(RibbonID(control))
-End Sub
-
-'パス名
-Private Sub works16_onAction(ByVal control As IRibbonControl)
-    Call GetPath(Selection, RibbonID(control))
-End Sub
-
-Private Sub works16_onChecked(ByRef control As IRibbonControl, ByRef pressed As Boolean)
-    Call SetPathParam(RibbonID(control), pressed)
-End Sub
-
-Private Sub works16_getPressed(control As IRibbonControl, ByRef returnedVal)
-    returnedVal = GetPathParam(RibbonID(control))
-End Sub
-
-'拡張条件付き書式
-Private Sub works17_onAction(ByVal control As IRibbonControl)
     If TypeName(Selection) <> "Range" Then Exit Sub
-    Call AddUserFormat(Selection, RibbonID(control))
+    Call MenuUserFormat(RibbonID(control), Selection)
 End Sub
 
 '定型式挿入
-Private Sub works18_onAction(ByVal control As IRibbonControl)
+Private Sub works15_onAction(ByVal control As IRibbonControl)
     If TypeName(Selection) <> "Range" Then Exit Sub
-    Call InsertFormula(Selection, RibbonID(control))
+    Call MenuUserFormula(RibbonID(control), Selection)
+End Sub
+
+'表示・非表示
+Private Sub works16_onAction(ByVal control As IRibbonControl)
+    Call ShowHide(RibbonID(control))
+End Sub
+
+'パス名
+Private Sub works17_onAction(ByVal control As IRibbonControl)
+    Call PathMenu(RibbonID(control), Selection)
+End Sub
+
+Private Sub works17_onChecked(ByRef control As IRibbonControl, ByRef pressed As Boolean)
+    SetParam "path", RibbonID(control), pressed
+End Sub
+
+Private Sub works17_getPressed(control As IRibbonControl, ByRef returnedVal)
+    returnedVal = GetParamBool("path", RibbonID(control))
+End Sub
+
+'情報取得
+Private Sub works18_onAction(ByVal control As IRibbonControl)
+    Call AddInfoSheet(RibbonID(control))
+End Sub
+
+Private Sub works18_onChecked(ByRef control As IRibbonControl, ByRef pressed As Boolean)
+    SetParam "info", RibbonID(control), pressed
+End Sub
+
+Private Sub works18_getPressed(control As IRibbonControl, ByRef returnedVal)
+    returnedVal = GetParamBool("info", RibbonID(control))
+End Sub
+
+'エクスポート
+Private Sub works19_onAction(ByVal control As IRibbonControl)
+    If TypeName(Selection) <> "Range" Then Exit Sub
+    Call MenuExport(Selection, RibbonID(control))
+End Sub
+
+Private Sub works19_onChecked(ByRef control As IRibbonControl, ByRef pressed As Boolean)
+    'Call SetExportParam(RibbonID(control), pressed)
+    SetParam "export", RibbonID(control), pressed
+End Sub
+
+Private Sub works19_getPressed(control As IRibbonControl, ByRef returnedVal)
+    returnedVal = GetParamBool("export", RibbonID(control))
 End Sub
 
 '----------------------------------------
@@ -168,12 +177,15 @@ Private Sub works27_onAction(ByVal control As IRibbonControl)
         '囲いクリア
         Call TableWaku(7, Selection)
     Case 2
-        'テーブルクリア
+        'データクリア
         Call TableWaku(8, Selection)
-    Case Else
+    Case 3
         '表クリア
+        Call TableWaku(9, Selection)
+    Case Else
+        '囲い・データクリア
         Call TableWaku(7, Selection)
-        Call TableWaku(8, Selection)
+        Call TableWaku(9, Selection)
     End Select
     Application.ScreenUpdating = True
 End Sub
@@ -194,8 +206,8 @@ End Sub
 '----------------------------------------
 
 Private Sub works3_onAction(ByVal control As IRibbonControl)
-    Call TemplateMenu(RB_ID(control))
-    Select Case RB_ID(control)
+    Call TemplateMenu(RibbonID(control))
+    Select Case RibbonID(control)
     Case 8 '更新
         RBTable_Init
         g_ribbon.InvalidateControl "b4.1"

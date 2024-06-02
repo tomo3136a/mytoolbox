@@ -1,4 +1,4 @@
-Attribute VB_Name = "BaseUI"
+Attribute VB_Name = "CommonUI"
 '==================================
 '共通(UI操作)
 '==================================
@@ -252,7 +252,7 @@ End Function
 Sub OpenWorkbook()
     Dim path As Variant
     path = Application.GetOpenFilename( _
-        FileFilter:="Excelファイル,*.xls*,Csvファイル,*.csv" _
+        fileFilter:="Excelファイル,*.xls*,Csvファイル,*.csv" _
         & ",テキストファイル,*.txt,全てのファイル,*.*" _
     )
     If path = False Then
@@ -286,7 +286,7 @@ Function SaveWorkbook(Optional path As Variant = False) As String
     Application.ScreenUpdating = False
     '
     path = Application.GetSaveAsFilename( _
-        FileFilter:="Excelファイル,*.xlsx" _
+        fileFilter:="Excelファイル,*.xlsx" _
     )
     If path <> False Then
         Application.EnableEvents = False

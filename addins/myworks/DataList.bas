@@ -6,46 +6,11 @@ Attribute VB_Name = "DataList"
 Option Explicit
 Option Private Module
 
-Private g_sheet As Boolean
+'----------------------------------------
+'機能呼び出し
+'----------------------------------------
 
-'----------------------------------
-'共通機能
-'----------------------------------
-
-Sub SetDataListParam(id As Integer, ByVal val As String)
-    Select Case id
-    Case 1
-        g_sheet = val
-    End Select
-End Sub
-
-Function GetDataListParam(id As Integer) As String
-    Dim val As String
-    Select Case id
-    Case 1
-        val = g_sheet
-    End Select
-    GetDataListParam = val
-End Function
-
-'---------------------------------------------
-'共通
-'---------------------------------------------
-
-'プロパティ
-Private Sub SetInfoSheet(Optional ws As Worksheet, Optional v As String = "")
-    If ws Is Nothing Then Set ws = ActiveSheet
-    ws.CustomProperties.Add "info", v
-End Sub
-
-Private Function TestInfoSheet(ws As Worksheet) As Boolean
-    If SheetPropertyIndex(ws, "info") > 0 Then TestInfoSheet = True
-End Function
-
-'---------------------------------------------
 '情報リストアップ
-'---------------------------------------------
-
 Sub AddInfoSheet(mode As Integer)
     Application.ScreenUpdating = False
     '
@@ -56,7 +21,7 @@ Sub AddInfoSheet(mode As Integer)
     Set wb = ActiveWorkbook
     
     Dim ra As Range
-    If g_sheet Then
+    If GetParamBool("info", 1) Then
         Dim ws As Worksheet
         Set ws = wb.Worksheets.Add
         Call SetInfoSheet(ws, Title)
@@ -164,7 +129,7 @@ Private Sub IndexList(ByRef ra As Range, wb As Workbook)
             ra.Offset(0, 1).Value = ws.name
             ra.Worksheet.Hyperlinks.Add _
                 Anchor:=ra.Offset(0, 2), _
-                Address:="", _
+                address:="", _
                 SubAddress:=(ws.name & "!A1"), _
                 TextToDisplay:="シート", _
                 ScreenTip:=ws.name
@@ -186,13 +151,13 @@ Private Sub SheetList(ByRef ra As Range, wb As Workbook)
             ra.Value = no
             ra.Worksheet.Hyperlinks.Add _
                 Anchor:=ra.Offset(0, 1), _
-                Address:=wb.path & "\" & wb.name, _
+                address:=wb.path & "\" & wb.name, _
                 SubAddress:=ws.name & "!A1", _
                 TextToDisplay:=ws.name
                 ', _
                 'ScreenTip:=ws.name
             If Not ws.Visible Then ra.Offset(0, 2).Value = "非表示"
-            ra.Offset(0, 3).Value = ws.UsedRange.Address(False, False)
+            ra.Offset(0, 3).Value = ws.UsedRange.address(False, False)
             ra.Offset(0, 4).Value = ws.Shapes.Count
             ra.Offset(0, 5).Value = ws.ChartObjects.Count
             ra.Offset(0, 6).Value = ws.Shapes.Count
@@ -262,10 +227,10 @@ Private Sub HyperlinkInfo(ra As Range, ws As Worksheet, lnk As Hyperlink)
     Dim src_addr As String
     Dim src_disp As String
     If lnk.Type = 0 Then
-        src_addr = lnk.Range.Address
+        src_addr = lnk.Range.address
         src_disp = lnk.TextToDisplay
     Else
-        src_addr = lnk.Shape.TopLeftCell.Address
+        src_addr = lnk.Shape.TopLeftCell.address
         src_disp = "[" & lnk.Shape.name & "]"
     End If
     Dim src As String
@@ -277,28 +242,28 @@ Private Sub HyperlinkInfo(ra As Range, ws As Worksheet, lnk As Hyperlink)
     On Error Resume Next
     ra.Value = ws.name
     ActiveSheet.Hyperlinks.Add Anchor:=ra.Offset(0, 2), _
-        Address:="", SubAddress:=src, TextToDisplay:=src_addr
+        address:="", SubAddress:=src, TextToDisplay:=src_addr
     If err Then sts = "Error": err.Clear
     ra.Offset(0, 3).Value = src_disp
     '
     If lnk.SubAddress = "" Then
         ActiveSheet.Hyperlinks.Add Anchor:=ra.Offset(0, 4), _
-            Address:=lnk.Address, TextToDisplay:=lnk.Address
-    ElseIf lnk.Address = "" Then
+            address:=lnk.address, TextToDisplay:=lnk.address
+    ElseIf lnk.address = "" Then
         ActiveSheet.Hyperlinks.Add Anchor:=ra.Offset(0, 4), _
-            Address:="", SubAddress:=lnk.SubAddress, TextToDisplay:=lnk.SubAddress
+            address:="", SubAddress:=lnk.SubAddress, TextToDisplay:=lnk.SubAddress
     Else
         ActiveSheet.Hyperlinks.Add Anchor:=ra.Offset(0, 4), _
-            Address:=lnk.Address, SubAddress:=lnk.SubAddress, _
-            TextToDisplay:="'" & lnk.Address & "'!" & lnk.SubAddress
+            address:=lnk.address, SubAddress:=lnk.SubAddress, _
+            TextToDisplay:="'" & lnk.address & "'!" & lnk.SubAddress
     End If
     If err Then sts = "Error": err.Clear
     ra.Offset(0, 5).Value = lnk.ScreenTip
     '
-    If lnk.Address <> "" Then
+    If lnk.address <> "" Then
         Dim wb As Workbook: Set wb = ws.Parent
-        Dim path As String: path = wb.path & "\" & lnk.Address
-        If Dir(path) = "" Then sts = "リンク切れ(" & lnk.Address & ")"
+        Dim path As String: path = wb.path & "\" & lnk.address
+        If Dir(path) = "" Then sts = "リンク切れ(" & lnk.address & ")"
         If err Then sts = "不明": err.Clear
     End If
     '
@@ -387,7 +352,7 @@ Private Sub CommentList(ByRef ra As Range, wb As Workbook)
             ra.Value = no
             ra.Offset(0, 1).Value = ws.name
             If TypeName(cm.Parent) = "Range" Then
-                ra.Offset(0, 3).Value = cm.Parent.Address
+                ra.Offset(0, 3).Value = cm.Parent.address
             End If
             ra.Offset(0, 4).Value = cm.text
             If cm.Visible Then
@@ -439,4 +404,18 @@ Private Sub FileList(ByRef ra As Range, path As String)
     '
     On Error GoTo 0
 End Sub
+
+'----------------------------------
+'共通機能
+'----------------------------------
+
+'プロパティ
+Private Sub SetInfoSheet(Optional ws As Worksheet, Optional v As String = "")
+    If ws Is Nothing Then Set ws = ActiveSheet
+    ws.CustomProperties.Add "info", v
+End Sub
+
+Private Function TestInfoSheet(ws As Worksheet) As Boolean
+    If SheetPropertyIndex(ws, "info") > 0 Then TestInfoSheet = True
+End Function
 

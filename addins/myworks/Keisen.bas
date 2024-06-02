@@ -7,7 +7,7 @@ Option Explicit
 Option Private Module
 
 '----------------------------------------
-'menu
+'機能呼び出し
 '----------------------------------------
 
 'テーブル選択
@@ -16,15 +16,11 @@ Sub SelectTable(mode As Integer, ra As Range)
     Case 1
         TableRow(ra).Select
     Case 2
-        TableColumn(ra).Select
+        Intersect(TableRange(HeaderRange(FarLeftTop(ra))), TableColumn(ra)).Select
     Case 3
-        TableRange(HeaderRange(ra)).Select
-    Case 11
-        HeaderRange(ra).Select
-    Case 12
-        TableRange(ra).Select
+        TableRange(HeaderRange(FarLeftTop(ra))).Select
     Case Else
-         FarLeftTop ra
+         FarLeftTop(ra).Select
     End Select
 End Sub
 
@@ -44,15 +40,13 @@ Sub TableWaku(mode As Integer, ra As Range)
     Case 6
         HeaderColor ra
     Case 7
-        WakuClear ra
+        WakuClear FarLeftTop(ra)
     Case 8
-        TableRange(HeaderRange(ra)).Clear
+        TableRange(HeaderRange(FarLeftTop(ra)).Offset(1)).Clear
     Case 9
-        FarLeftTop ra
-        TableRange(HeaderRange(ra).Offset(1)).Clear
+        TableRange(HeaderRange(FarLeftTop(ra))).Clear
     Case Else
-        FarLeftTop ra
-        Waku ra, fit:=True
+        Waku FarLeftTop(ra), fit:=True
     End Select
 End Sub
 

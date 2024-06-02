@@ -21,7 +21,7 @@ Private g_info(10) As RBInfo
 '----------------------------------------
 
 'Private Sub RB1_onAction(ByVal control As IRibbonControl)
-'    Call ReportDsp(RB_ID(control), CInt("0" & control.tag))
+'    Call ReportDsp(RibbonID(control), CInt("0" & control.tag))
 'End Sub
 
 
