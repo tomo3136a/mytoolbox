@@ -148,15 +148,15 @@
           <button id="b28" onAction="works28_onAction" getLabel="works28_getLabel" />
         </group>
         <group id="g3" label="テンプレート" imageMso="ComAddInsDialog">
-          <button id="b31" onAction="works3_onAction" getEnabled="works3_getEnabled" label="読み込み" imageMso="SheetInsert" size="large" />
-          <button id="b32" onAction="works3_onAction" getEnabled="works3_getEnabled" label="書き込み" imageMso="GroupMoveData" />
-          <button id="b33" onAction="works3_onAction" getLabel="works3_getLabel" imageMso="ListMacros" />
-          <button id="b34" onAction="works3_onAction" label="テーブル作成" imageMso="ViewsDatasheetView" />
-          <button id="b35" onAction="works3_onAction" label="テーブル読み込み" imageMso="NewTableStyleWord" />
-          <button id="b36" onAction="works3_onAction" label="テーブル更新" imageMso="TableAutoFormat" />
-          <button id="b37" onAction="works3_onAction" label="test7" imageMso="CustomTablesGallery" />
-          <button id="b38" onAction="works3_onAction" label="test8" imageMso="BlackAndWhiteDontShow" />
-          <button id="b39" onAction="works3_onAction" label="開発" imageMso="AddInManager" />
+          <button id="b3.1" onAction="works3_onAction" getEnabled="works3_getEnabled" label="読み込み" imageMso="SheetInsert" size="large" />
+          <button id="b3.2" onAction="works3_onAction" getEnabled="works3_getEnabled" label="書き込み" imageMso="GroupMoveData" />
+          <button id="b3.3" onAction="works3_onAction" getLabel="works3_getLabel" imageMso="ListMacros" />
+          <button id="b3.4" onAction="works3_onAction" label="テーブル作成" imageMso="ViewsDatasheetView" />
+          <button id="b3.5" onAction="works3_onAction" label="テーブル読み込み" imageMso="NewTableStyleWord" />
+          <button id="b3.6" onAction="works3_onAction" label="テーブル更新" imageMso="TableAutoFormat" />
+          <button id="b3.7" onAction="works3_onAction" label="test7" imageMso="CustomTablesGallery" />
+          <button id="b3.8" onAction="works3_onAction" label="test8" imageMso="BlackAndWhiteDontShow" />
+          <button id="b3.9" onAction="works3_onAction" label="開発" imageMso="AddInManager" />
         </group>
         <!-- <group id="g4" label="読み込み" imageMso="ComAddInsDialog">
           <button id="b4.1" onAction="works4_onAction" getLabel="works4_getLabel" getImage="works4_onGetImage" getVisible="works4_getVisible" getSize="works4_getSize" />

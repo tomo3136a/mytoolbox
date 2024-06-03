@@ -208,19 +208,19 @@ End Sub
 Private Sub works3_onAction(ByVal control As IRibbonControl)
     Call TemplateMenu(RibbonID(control))
     Select Case RibbonID(control)
-    Case 8 '更新
-        RBTable_Init
-        g_ribbon.InvalidateControl "b4.1"
-        g_ribbon.InvalidateControl "b4.2"
-        g_ribbon.InvalidateControl "b4.3"
-        g_ribbon.InvalidateControl "b4.4"
-        g_ribbon.InvalidateControl "b4.5"
-        g_ribbon.InvalidateControl "b4.6"
-        g_ribbon.InvalidateControl "b4.7"
-        g_ribbon.InvalidateControl "b4.8"
-        g_ribbon.InvalidateControl "b4.9"
+    'Case 8 '更新
+    '    RBTable_Init
+    '    g_ribbon.InvalidateControl "b4.1"
+    '    g_ribbon.InvalidateControl "b4.2"
+    '    g_ribbon.InvalidateControl "b4.3"
+    '    g_ribbon.InvalidateControl "b4.4"
+    '    g_ribbon.InvalidateControl "b4.5"
+    '    g_ribbon.InvalidateControl "b4.6"
+    '    g_ribbon.InvalidateControl "b4.7"
+    '    g_ribbon.InvalidateControl "b4.8"
+    '    g_ribbon.InvalidateControl "b4.9"
     Case 9 '開発
-        g_ribbon.InvalidateControl "b39"
+        g_ribbon.InvalidateControl "b3.9"
     End Select
 End Sub
 
