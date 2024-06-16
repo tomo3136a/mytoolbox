@@ -158,6 +158,22 @@
           <button id="b3.8" onAction="works3_onAction" label="test8" imageMso="BlackAndWhiteDontShow" />
           <button id="b3.9" onAction="works3_onAction" label="開発" imageMso="AddInManager" />
         </group>
+        <group id="g4" label="マーカ" imageMso="AppointmentColorDialog">
+          <button id="b4.1" onAction="works4_onAction" label="赤" imageMso="AppointmentColor1" size="large" />
+          <button id="b4.2" onAction="works4_onAction" label="青" imageMso="AppointmentColor2" size="large" />
+          <button id="b4.3" onAction="works4_onAction" label="緑" imageMso="AppointmentColor3" size="large" />
+          <button id="b4.10" onAction="works4_onAction" label="黄色" imageMso="AppointmentColor10" size="large" />
+          <button id="b4.4" onAction="works4_onAction" label="灰色" imageMso="AppointmentColor4" size="large" />
+          <button id="b4.5" onAction="works4_onAction" label="橙" imageMso="AppointmentColor5" size="large" />
+          <button id="b4.6" onAction="works4_onAction" label="青緑" imageMso="AppointmentColor6" size="large" />
+          <button id="b4.7" onAction="works4_onAction" label="淡い橙" imageMso="AppointmentColor7" size="large" />
+          <button id="b4.8" onAction="works4_onAction" label="紫" imageMso="AppointmentColor8" size="large" />
+          <button id="b4.9" onAction="works4_onAction" label="緑" imageMso="AppointmentColor9" size="large" />
+        <dialogBoxLauncher>
+            <button id="b4.0" onAction="works4_onAction" label="マーカ削除" imageMso="AppointmentColor0" />
+          </dialogBoxLauncher>
+        </group>
+
         <!-- <group id="g4" label="読み込み" imageMso="ComAddInsDialog">
           <button id="b4.1" onAction="works4_onAction" getLabel="works4_getLabel" getImage="works4_onGetImage" getVisible="works4_getVisible" getSize="works4_getSize" />
           <button id="b4.2" onAction="works4_onAction" getLabel="works4_getLabel" getImage="works4_onGetImage" getVisible="works4_getVisible" getSize="works4_getSize" />

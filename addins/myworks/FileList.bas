@@ -270,7 +270,7 @@ Private Sub GetFileListSubFolder(ByRef ra As Range, path As String, n As Integer
     '
     'フォルダリスト
     For Each obj In fso.GetFolder(path).SubFolders
-        If GetParamBool("path", 4) Or Not re.test(obj.name) Then
+        If GetParamBool("path", 4) Or Not re.Test(obj.name) Then
             Dim p As String
             p = fso.BuildPath(path, obj.name)
             If GetParamBool("path", 2) Then
@@ -304,7 +304,7 @@ Private Sub GetFileListSubFolder(ByRef ra As Range, path As String, n As Integer
     '
     'ファイルリスト
     For Each obj In fso.GetFolder(path).Files
-        If GetParamBool("path", 4) Or Not re.test(obj.name) Then
+        If GetParamBool("path", 4) Or Not re.Test(obj.name) Then
             no = no + 1
             ra.Value = no
             With obj

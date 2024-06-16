@@ -2,9 +2,9 @@ VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} SelectForm 
    Caption         =   "選択"
    ClientHeight    =   4680
-   ClientLeft      =   108
-   ClientTop       =   456
-   ClientWidth     =   3624
+   ClientLeft      =   105
+   ClientTop       =   450
+   ClientWidth     =   3630
    OleObjectBlob   =   "SelectForm.frx":0000
    StartUpPosition =   1  'オーナー フォームの中央
 End
@@ -47,7 +47,7 @@ Public Sub AddItem(s As String)
     If s = "" Then Exit Sub
     If sMatch Is Nothing Then
         ListBox1.AddItem s
-    ElseIf sMatch.test(s) Then
+    ElseIf sMatch.Test(s) Then
         ListBox1.AddItem s
     End If
     If ListBox1.ListCount > 0 Then ListBox1.ListIndex = 0

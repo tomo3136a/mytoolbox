@@ -43,7 +43,7 @@ End Function
 '文字列判定
 Public Function re_test(s As String, ptn As String) As Boolean
     On Error Resume Next
-    re_test = regex(ptn).test(s)
+    re_test = regex(ptn).Test(s)
     On Error GoTo 0
 End Function
 
@@ -77,6 +77,30 @@ Public Function re_replace(s As String, ptn As String, rep As String) As String
     re_replace = regex(ptn).Replace(s, rep)
     On Error GoTo 0
 End Function
+
+'----------------------------------------
+'画面チラつき防止
+'----------------------------------------
+
+Public Sub ScreenUpdateOff()
+    '画面チラつき防止処置
+    Application.Calculation = xlCalculationManual
+    Application.ScreenUpdating = False
+    Application.DisplayAlerts = False
+    Application.EnableEvents = False
+    Application.Interactive = False
+    Application.Cursor = xlWait
+End Sub
+
+Public Sub ScreenUpdateOn()
+    '画面チラつき防止処置解除
+    Application.Cursor = xlDefault
+    Application.Interactive = True
+    Application.EnableEvents = True
+    Application.DisplayAlerts = True
+    Application.ScreenUpdating = True
+    Application.Calculation = xlCalculationAutomatic
+End Sub
 
 '----------------------------------
 'パラメータ機能

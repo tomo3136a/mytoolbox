@@ -57,6 +57,7 @@ Private Sub SheetPagePreview(ws As Worksheet)
     ws.PageSetup.PrintArea = ""
     Application.PrintCommunication = False
     With ws.PageSetup
+        .Orientation = xlPortrait
         .LeftMargin = Application.InchesToPoints(0.25)
         .RightMargin = Application.InchesToPoints(0.25)
         .TopMargin = Application.InchesToPoints(0.75)
@@ -82,6 +83,8 @@ End Sub
 '----------------------------------
 
 Sub MenuTextConv(mode As Integer, ra As Range)
+    ScreenUpdateOff
+    '
     Select Case mode
     Case 1
         'トリム(冗長なスペース削除)
@@ -115,6 +118,8 @@ Sub MenuTextConv(mode As Integer, ra As Range)
         Call Cells_StrConvNarrow(ra)
         Call Cells_RemoveSpace(ra)
     End Select
+    '
+    ScreenUpdateOn
 End Sub
 
 'スペース削除
@@ -122,14 +127,15 @@ Private Sub Cells_RemoveSpace( _
         ra As Range, _
         Optional SingleLine As Boolean = False, _
         Optional sep As String = " ")
-    Dim re1 As Object: Set re1 = regex("\s+")
-    Dim re2 As Object: Set re2 = regex("[ 　\t]+")
-    Dim re3 As Object: Set re3 = regex(" (\r?\n)")
+    Dim re1 As Object, re2 As Object, re3 As Object
+    Set re1 = regex("\s+")
+    Set re2 = regex("[ 　\t]+")
+    Set re3 = regex(" (\r?\n)")
     '
     Dim ce As Range
-    For Each ce In ra.Cells
-        If ce.Value <> "" Then
-            If Not ce.HasFormula Then
+    For Each ce In Intersect(ra, ra.Parent.UsedRange).Cells
+        If Not ce.HasFormula Then
+            If ce.Value <> "" Then
                 Dim s As String
                 If SingleLine Then
                     s = re1.Replace(ce.Value, sep)
@@ -153,9 +159,9 @@ End Sub
 ' vbHiragana    32  カタカナをひらがなに変換
 Private Sub Cells_StrConv(ra As Range, mode As Integer)
     Dim ce As Range
-    For Each ce In ra.Cells
-        If ce.Value <> "" Then
-            If Not ce.HasFormula Then
+    For Each ce In Intersect(ra, ra.Parent.UsedRange).Cells
+        If Not ce.HasFormula Then
+            If ce.Value <> "" Then
                 ce.Value = StrConv(ce.Value, mode)
             End If
         End If
@@ -167,9 +173,9 @@ Private Sub Cells_StrConvNarrow(ra As Range)
     Dim re As Object: Set re = regex("[！-～]+")
     '
     Dim ce As Range
-    For Each ce In ra.Cells
-        If ce.Value <> "" Then
-            If Not ce.HasFormula Then
+    For Each ce In Intersect(ra, ra.Parent.UsedRange).Cells
+        If Not ce.HasFormula Then
+            If ce.Value <> "" Then
                 Dim s As String
                 s = ce.Value
                 Dim m As Object
@@ -187,8 +193,7 @@ End Sub
 '---------------------------------------------
 
 Sub ShowHide(mode As Integer)
-    Application.ScreenUpdating = False
-    Application.DisplayAlerts = False
+    ScreenUpdateOff
     '
     Select Case mode
     Case 1
@@ -213,8 +218,7 @@ Sub ShowHide(mode As Integer)
     Case Else
     End Select
     '
-    Application.DisplayAlerts = True
-    Application.ScreenUpdating = True
+    ScreenUpdateOn
 End Sub
 
 '非表示行削除
@@ -470,20 +474,59 @@ End Sub
 '---------------------------------------------
 
 Sub MenuUserFormula(mode As Integer, ra As Range)
-    Dim v1 As Integer, v2 As Integer
-    Dim r0 As Range, r1 As Range, r2 As Range
+    Dim v1 As Integer, v2 As Integer, v3 As Integer
+    Dim r0 As Range, r1 As Range, r2 As Range, r3 As Range
     Select Case mode
     Case 1
         '文字列分割(英字・数値)
-        ra.Offset(, 1).Formula2R1C1 = _
-            "=LET(v,RC[-1],LEFT(v,MIN(FIND({1,2,3,4,5,6,7,8,9,0},v&""1234567890""))-1))"
-        ra.Offset(, 2).FormulaR1C1 = "=MID(RC[-2],LEN(RC[-1])+1,LEN(RC[-2]))"
+        Set r0 = ra.Cells(1, 1)
+        On Error Resume Next
+        Set r1 = Application.InputBox("記号位置", "文字列分割", r0.Offset(0, 1).address, Type:=8)
+        On Error GoTo 0
+        If r1 Is Nothing Then Exit Sub
+        v1 = ra.Column - r1.Column
+        r1.Formula2R1C1 = "=LET(v,RC[" & v1 & "],LEFT(v,MIN(FIND({1,2,3,4,5,6,7,8,9,0},v&""1234567890""))-1))"
+        
+        On Error Resume Next
+        Set r2 = Application.InputBox("数値位置", "文字列分割", r1.Offset(0, 1).address, Type:=8)
+        On Error GoTo 0
+        If r2 Is Nothing Then Exit Sub
+        If r2.address = r1.address Then Exit Sub
+        v2 = ra.Column - r2.Column
+        r2.FormulaR1C1 = "=MID(RC[" & v2 & "],LEN(RC[" & (v2 - v1) & "])+1,LEN(RC[" & v2 & "]))"
     Case 2
         '文字列分割(数値・英字・数値)
-        ra.Offset(, 1).FormulaR1C1 = "=IFERROR(VALUE(LEFT(RC[-1],2)),IFERROR(VALUE(LEFT(RC[-1],1)),""""))"
-        ra.Offset(, 2).Formula2R1C1 = _
-            "=LET(v,MID(RC[-2],LEN(RC[-1])+1,LEN(RC[-2])),LEFT(v,MIN(FIND({1,2,3,4,5,6,7,8,9,0},v&""1234567890""))-1))"
-        ra.Offset(, 3).FormulaR1C1 = "=MID(RC[-3],LEN(RC[-2]&RC[-1])+1,LEN(RC[-3]))"
+        If True Then
+            Set r0 = ra.Cells(1, 1)
+            On Error Resume Next
+            Set r1 = Application.InputBox("先頭数値位置", "文字列分割", r0.Offset(0, 1).address, Type:=8)
+            On Error GoTo 0
+            If r1 Is Nothing Then Exit Sub
+            v1 = ra.Column - r1.Column
+            ra.Offset(, -v1).FormulaR1C1 = "=IFERROR(VALUE(LEFT(RC[" & v1 & "],2)),IFERROR(VALUE(LEFT(RC[" & v1 & "],1)),""""))"
+            
+            On Error Resume Next
+            Set r2 = Application.InputBox("記号位置", "文字列分割", r1.Offset(0, 1).address, Type:=8)
+            On Error GoTo 0
+            If r2 Is Nothing Then Exit Sub
+            If r2.address = r1.address Then Exit Sub
+            v2 = ra.Column - r2.Column
+            ra.Offset(, -v2).Formula2R1C1 = "=LET(v,MID(RC[" & v2 & "],LEN(RC[" & (v2 - v1) & "])+1,LEN(RC[" & v2 & "])),LEFT(v,MIN(FIND({1,2,3,4,5,6,7,8,9,0},v&""1234567890""))-1))"
+            
+            On Error Resume Next
+            Set r3 = Application.InputBox("数値位置", "文字列分割", r2.Offset(0, 1).address, Type:=8)
+            On Error GoTo 0
+            If r3 Is Nothing Then Exit Sub
+            If r3.address = r1.address Then Exit Sub
+            If r3.address = r2.address Then Exit Sub
+            v3 = ra.Column - r3.Column
+            ra.Offset(, -v3).FormulaR1C1 = "=MID(RC[" & v3 & "],LEN(RC[" & (v3 - v1) & "]&RC[" & (v3 - v2) & "])+1,LEN(RC[" & v3 & "]))"
+        Else
+            ra.Offset(, 1).FormulaR1C1 = "=IFERROR(VALUE(LEFT(RC[" & -1 & "],2)),IFERROR(VALUE(LEFT(RC[" & -1 & "],1)),""""))"
+            ra.Offset(, 2).Formula2R1C1 = _
+                "=LET(v,MID(RC[-2],LEN(RC[-1])+1,LEN(RC[-2])),LEFT(v,MIN(FIND({1,2,3,4,5,6,7,8,9,0},v&""1234567890""))-1))"
+            ra.Offset(, 3).FormulaR1C1 = "=MID(RC[-3],LEN(RC[-2]&RC[-1])+1,LEN(RC[-3]))"
+        End If
     Case 3
         '差分マーカー
         Set r0 = ra.Cells(1, 1)

@@ -58,6 +58,12 @@ Private Sub works_onLoad(ByVal Ribbon As IRibbonUI)
     Application.OnKey "{F1}"
     Application.OnKey "{F1}", "works_ShortcutKey"
     '
+    Application.OnKey "+{F1}"
+    Application.OnKey "+{F1}", "works_ShortcutKey2"
+    '
+    'Application.OnKey "{F10}"
+    'Application.OnKey "{F10}", "works_ShortcutKey3"
+    '
     RBTable_Init
     SetParam "path", 1, True
     SetParam "path", 2, True
@@ -66,7 +72,15 @@ Private Sub works_onLoad(ByVal Ribbon As IRibbonUI)
 End Sub
 
 Private Sub works_ShortcutKey()
-    g_ribbon.ActivateTab "TabWorks"
+    If Not g_ribbon Is Nothing Then g_ribbon.ActivateTab "TabWorks"
+End Sub
+
+Private Sub works_ShortcutKey2()
+    'SendKeys "% h"
+End Sub
+
+Private Sub works_ShortcutKey3()
+    'SendKeys "% h"
 End Sub
 
 '----------------------------------------
@@ -235,26 +249,35 @@ Private Sub works3_getEnabled(control As IRibbonControl, ByRef enable As Variant
 End Sub
 
 '----------------------------------------
-'common
+'marker
 '----------------------------------------
 
 Private Sub works4_onAction(control As IRibbonControl)
+    If TypeName(Selection) <> "Range" Then Exit Sub
+    Call Marker(RibbonID(control), Selection)
+End Sub
+
+'----------------------------------------
+'common
+'----------------------------------------
+
+Private Sub works5_onAction(control As IRibbonControl)
     Call RBTable_onAction(RibbonID(control))
 End Sub
 
-Private Sub works4_getVisible(control As IRibbonControl, ByRef Visible As Variant)
+Private Sub works5_getVisible(control As IRibbonControl, ByRef Visible As Variant)
     Call RBTable_getVisible(RibbonID(control), Visible)
 End Sub
 
-Private Sub works4_getLabel(control As IRibbonControl, ByRef label As Variant)
+Private Sub works5_getLabel(control As IRibbonControl, ByRef label As Variant)
     Call RBTable_getLabel(RibbonID(control), label)
 End Sub
 
-Private Sub works4_onGetImage(control As IRibbonControl, ByRef bitmap As Variant)
+Private Sub works5_onGetImage(control As IRibbonControl, ByRef bitmap As Variant)
     Call RBTable_onGetImage(RibbonID(control), bitmap)
 End Sub
 
-Private Sub works4_getSize(control As IRibbonControl, ByRef Size As Variant)
+Private Sub works5_getSize(control As IRibbonControl, ByRef Size As Variant)
     Call RBTable_getSize(RibbonID(control), Size)
 End Sub
 
