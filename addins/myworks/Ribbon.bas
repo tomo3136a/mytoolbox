@@ -14,12 +14,12 @@ Private g_ribbon As IRibbonUI
 
 'ID番号取得
 Private Function RB_ID(control As IRibbonControl) As Integer
-    RB_ID = val(Right(control.id, 1))
+    RB_ID = Val(Right(control.id, 1))
 End Function
 
 'TAG番号取得
 Private Function RB_TAG(control As IRibbonControl) As Integer
-    RB_TAG = val(control.Tag)
+    RB_TAG = Val(control.Tag)
 End Function
 
 'リボンID番号取得
@@ -30,15 +30,15 @@ Private Function RibbonID(control As IRibbonControl) As Integer
     Dim vs As Variant
     vs = Split(s, ".")
     If UBound(vs) >= 0 Then
-        RibbonID = val(vs(UBound(vs)))
+        RibbonID = Val(vs(UBound(vs)))
         Exit Function
     End If
     vs = Split(s, "_")
     If UBound(vs) >= 0 Then
-        RibbonID = val(vs(UBound(vs)))
+        RibbonID = Val(vs(UBound(vs)))
         Exit Function
     End If
-    RibbonID = val(s)
+    RibbonID = Val(s)
 End Function
 
 'リボンを更新
@@ -56,31 +56,29 @@ Private Sub works_onLoad(ByVal Ribbon As IRibbonUI)
     '
     'ショートカットキー設定
     Application.OnKey "{F1}"
-    Application.OnKey "{F1}", "works_ShortcutKey"
+    Application.OnKey "{F1}", "works_ShortcutKey1"
     '
     Application.OnKey "+{F1}"
     Application.OnKey "+{F1}", "works_ShortcutKey2"
     '
-    'Application.OnKey "{F10}"
-    'Application.OnKey "{F10}", "works_ShortcutKey3"
-    '
-    RBTable_Init
-    SetParam "path", 1, True
-    SetParam "path", 2, True
-    SetParam "path", 3, True
-    SetParam "info", 1, True
+    '初期化
+    SetParam "path", 1, True        'リンクあり
+    SetParam "path", 2, True        'フォルダあり
+    SetParam "path", 3, True        '再帰あり
+    SetParam "info", 1, True        'シート追加
+    SetParam "mark", "color", 10    'マーカカラーは黄色
 End Sub
 
-Private Sub works_ShortcutKey()
+Private Sub works_ShortcutKey1()
+    'worksタブに移動
     If Not g_ribbon Is Nothing Then g_ribbon.ActivateTab "TabWorks"
 End Sub
 
 Private Sub works_ShortcutKey2()
-    'SendKeys "% h"
-End Sub
-
-Private Sub works_ShortcutKey3()
-    'SendKeys "% h"
+    'homeタブに移動
+    SendKeys "%"
+    SendKeys "H"
+    SendKeys "%"
 End Sub
 
 '----------------------------------------
@@ -154,7 +152,6 @@ Private Sub works19_onAction(ByVal control As IRibbonControl)
 End Sub
 
 Private Sub works19_onChecked(ByRef control As IRibbonControl, ByRef pressed As Boolean)
-    'Call SetExportParam(RibbonID(control), pressed)
     SetParam "export", RibbonID(control), pressed
 End Sub
 
@@ -249,35 +246,67 @@ Private Sub works3_getEnabled(control As IRibbonControl, ByRef enable As Variant
 End Sub
 
 '----------------------------------------
-'marker
+'4:marker
 '----------------------------------------
+
+Private Sub works4_getLabel(control As IRibbonControl, ByRef label As Variant)
+    Dim name() As Variant
+    name = Array("-", "赤", "青", "緑", "灰色", "橙", "青緑", "淡い橙", "紫", "緑", "黄色")
+    label = name(Val(GetParam("mark", "color")))
+End Sub
+
+Private Sub works4_onGetImage(control As IRibbonControl, ByRef bitmap As Variant)
+    bitmap = "AppointmentColor" & Val(GetParam("mark", "color"))
+End Sub
 
 Private Sub works4_onAction(control As IRibbonControl)
     If TypeName(Selection) <> "Range" Then Exit Sub
-    Call Marker(RibbonID(control), Selection)
+    Call Marker(Val(GetParam("mark", "color")), Selection)
 End Sub
+
+Private Sub works41_onAction(control As IRibbonControl, selectedId As String, selectedIndex As Integer)
+    Call SetParam("mark", "color", Mid(selectedId, InStr(1, selectedId, ".") + 1))
+    If Not g_ribbon Is Nothing Then g_ribbon.Invalidate
+    DoEvents
+End Sub
+
+Private Sub works42_onAction(control As IRibbonControl)
+    Call Marker(0, Selection)
+End Sub
+
+Private Sub works43_getLabel(control As IRibbonControl, ByRef label As Variant)
+    label = ""
+End Sub
+
+Private Sub works43_onAction(control As IRibbonControl)
+End Sub
+
 
 '----------------------------------------
-'common
+'5:revision mark
 '----------------------------------------
-
-Private Sub works5_onAction(control As IRibbonControl)
-    Call RBTable_onAction(RibbonID(control))
-End Sub
-
-Private Sub works5_getVisible(control As IRibbonControl, ByRef Visible As Variant)
-    Call RBTable_getVisible(RibbonID(control), Visible)
-End Sub
 
 Private Sub works5_getLabel(control As IRibbonControl, ByRef label As Variant)
-    Call RBTable_getLabel(RibbonID(control), label)
+    Call GetRevMark(label)
 End Sub
 
-Private Sub works5_onGetImage(control As IRibbonControl, ByRef bitmap As Variant)
-    Call RBTable_onGetImage(RibbonID(control), bitmap)
-End Sub
-
-Private Sub works5_getSize(control As IRibbonControl, ByRef Size As Variant)
-    Call RBTable_getSize(RibbonID(control), Size)
+Private Sub works5_onAction(control As IRibbonControl)
+    If TypeName(Selection) <> "Range" Then Exit Sub
+    Dim rev As String
+    Select Case RibbonID(control)
+    Case 1
+        Call AddRevMark(Selection)
+    Case 2
+        Call GetRevMark(rev)
+        rev = InputBox("版数を入力してください。", "版数マーク設定", rev)
+        Call SetRevMark(rev)
+        If Not g_ribbon Is Nothing Then g_ribbon.Invalidate
+        DoEvents
+        Call AddRevMark(Selection)
+    Case 3
+        Call GetRevMark(rev)
+        rev = InputBox("版数を入力してください。", "版数マークリスト", rev)
+        Call ListRevMark(Selection, rev)
+    End Select
 End Sub
 

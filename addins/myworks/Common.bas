@@ -55,6 +55,7 @@ Function FarLeftTop(ra As Range) As Range
     Set rs = FarTop(rs)
     Set rs = FarLeft(rs)
     Set ce = rs.Cells(1, 1)
+    Set FarLeftTop = ce
     '
     Dim i As Integer
     For i = 1 To 5

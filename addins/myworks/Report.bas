@@ -38,8 +38,6 @@ End Sub
 '----------------------------------------
 
 Sub PagePreview()
-    Dim fsu As Boolean
-    fsu = Application.ScreenUpdating
     Application.ScreenUpdating = False
     '
     Dim ws As Worksheet
@@ -47,7 +45,7 @@ Sub PagePreview()
         Call SheetPagePreview(ws)
     Next ws
     '
-    Application.ScreenUpdating = fsu
+    Application.ScreenUpdating = True
 End Sub
 
 Private Sub SheetPagePreview(ws As Worksheet)
@@ -83,40 +81,45 @@ End Sub
 '----------------------------------
 
 Sub MenuTextConv(mode As Integer, ra As Range)
+    Dim rb As Range
+    Set rb = ra.Parent.UsedRange
+    Set rb = Intersect(ra, rb)
+    If rb Is Nothing Then Exit Sub
+    '
     ScreenUpdateOff
     '
     Select Case mode
     Case 1
         'トリム(冗長なスペース削除)
-        Call Cells_RemoveSpace(ra)
+        Call Cells_RemoveSpace(rb)
     Case 2
         'シングルライン(冗長なスペース削除かつ1行化)
-        Call Cells_RemoveSpace(ra, SingleLine:=True)
+        Call Cells_RemoveSpace(rb, SingleLine:=True)
     Case 3
         'スペース削除
-        Call Cells_RemoveSpace(ra, sep:="")
+        Call Cells_RemoveSpace(rb, sep:="")
     Case 4
         '文字列変更(大文字に変換)
-        Call Cells_StrConv(ra, vbUpperCase)
+        Call Cells_StrConv(rb, vbUpperCase)
     Case 5
         '文字列変更(小文字に変換)
-        Call Cells_StrConv(ra, vbLowerCase)
+        Call Cells_StrConv(rb, vbLowerCase)
     Case 6
         '文字列変更(各単語の先頭の文字を大文字に変換)
-        Call Cells_StrConv(ra, vbProperCase)
+        Call Cells_StrConv(rb, vbProperCase)
     Case 7
         '文字列変更(半角文字を全角文字に変換)
-        Call Cells_StrConv(ra, vbWide)
+        Call Cells_StrConv(rb, vbWide)
     Case 8
         '文字列変更(全角文字を半角文字に変換)
-        Call Cells_StrConv(ra, vbNarrow)
+        Call Cells_StrConv(rb, vbNarrow)
     Case 9
         '文字列変更(ASCII文字のみ半角化)
-        Call Cells_StrConvNarrow(ra)
+        Call Cells_StrConvNarrow(rb)
     Case Else
         '文字列変更(ASCII文字のみ半角化、冗長なスペース削除)
-        Call Cells_StrConvNarrow(ra)
-        Call Cells_RemoveSpace(ra)
+        Call Cells_StrConvNarrow(rb)
+        Call Cells_RemoveSpace(rb)
     End Select
     '
     ScreenUpdateOn
@@ -133,7 +136,7 @@ Private Sub Cells_RemoveSpace( _
     Set re3 = regex(" (\r?\n)")
     '
     Dim ce As Range
-    For Each ce In Intersect(ra, ra.Parent.UsedRange).Cells
+    For Each ce In ra.Cells
         If Not ce.HasFormula Then
             If ce.Value <> "" Then
                 Dim s As String
@@ -159,7 +162,7 @@ End Sub
 ' vbHiragana    32  カタカナをひらがなに変換
 Private Sub Cells_StrConv(ra As Range, mode As Integer)
     Dim ce As Range
-    For Each ce In Intersect(ra, ra.Parent.UsedRange).Cells
+    For Each ce In ra.Cells
         If Not ce.HasFormula Then
             If ce.Value <> "" Then
                 ce.Value = StrConv(ce.Value, mode)
@@ -173,7 +176,7 @@ Private Sub Cells_StrConvNarrow(ra As Range)
     Dim re As Object: Set re = regex("[！-～]+")
     '
     Dim ce As Range
-    For Each ce In Intersect(ra, ra.Parent.UsedRange).Cells
+    For Each ce In ra.Cells
         If Not ce.HasFormula Then
             If ce.Value <> "" Then
                 Dim s As String
@@ -325,19 +328,24 @@ End Sub
 '---------------------------------------------
 
 Sub MenuUserFormat(mode As Integer, ra As Range)
+    Dim rb As Range
+    Set rb = ra.Parent.UsedRange
+    Set rb = Intersect(ra, rb)
+    If rb Is Nothing Then Set rb = ra
+    '
     Select Case mode
     Case 1
         '数式に条件付き書式を追加
-        Call AddFormulaConditionColor(ra)
+        Call AddFormulaConditionColor(rb)
     Case 2
         '0に条件付き書式を追加
-        Call AddZeroConditionColor(ra)
+        Call AddZeroConditionColor(rb)
     Case 3
         '空白に条件付き書式を追加
-        Call AddBlankConditionColor(ra)
+        Call AddBlankConditionColor(rb)
     Case 4
         '参照に色を付ける
-        Call MarkRef(ra)
+        Call MarkRef(rb)
     Case 8
         '参照スタイル削除
         Call ClearMarkRef
@@ -346,7 +354,7 @@ End Sub
 
 Private Sub AddFormulaConditionColor(ra As Range)
     Dim s As String
-    s = ra.Cells(1, 1).address(False, False)
+    s = ra.Cells(1, 1).Address(False, False)
     ra.FormatConditions.Add Type:=xlExpression, Formula1:="=ISFORMULA(" & s & ")"
     ra.FormatConditions(ra.FormatConditions.Count).SetFirstPriority
     
@@ -364,7 +372,7 @@ End Sub
 
 Private Sub AddZeroConditionColor(ra As Range)
     Dim s As String
-    s = ra.Cells(1, 1).address(False, False)
+    s = ra.Cells(1, 1).Address(False, False)
     ra.FormatConditions.Add Type:=xlExpression, Formula1:="=AND(" & s & "<>""""," & s & "=0)"
     ra.FormatConditions(ra.FormatConditions.Count).SetFirstPriority
     
@@ -382,13 +390,11 @@ End Sub
 
 Private Sub AddBlankConditionColor(ra As Range)
     Dim s As String
-    s = ra.Cells(1, 1).address(False, False)
+    s = ra.Cells(1, 1).Address(False, False)
     ra.FormatConditions.Add Type:=xlExpression, Formula1:="=TRIM(" & s & ")="""""
     ra.FormatConditions(ra.FormatConditions.Count).SetFirstPriority
     
     Dim i As Long
-    'Call Application.Dialogs(xlDialogEditColor).Show(1)
-    'i = ActiveWorkbook.Colors(1)
     i = RGB(240, 240, 240)
 
     With ra.FormatConditions(1).Interior
@@ -426,7 +432,7 @@ Private Sub MarkRef(ra As Range)
                 .Pattern = xlSolid
                 .PatternColorIndex = 0
                 .ThemeColor = xlThemeColorAccent3
-                .TintAndShade = 0.799981688894314
+                .TintAndShade = 0.8
                 .PatternTintAndShade = 0
             End With
         End With
@@ -481,44 +487,44 @@ Sub MenuUserFormula(mode As Integer, ra As Range)
         '文字列分割(英字・数値)
         Set r0 = ra.Cells(1, 1)
         On Error Resume Next
-        Set r1 = Application.InputBox("記号位置", "文字列分割", r0.Offset(0, 1).address, Type:=8)
+        Set r1 = Application.InputBox("記号位置", "文字列分割", r0.Offset(0, 1).Address, Type:=8)
         On Error GoTo 0
         If r1 Is Nothing Then Exit Sub
         v1 = ra.Column - r1.Column
-        r1.Formula2R1C1 = "=LET(v,RC[" & v1 & "],LEFT(v,MIN(FIND({1,2,3,4,5,6,7,8,9,0},v&""1234567890""))-1))"
+        ra.Offset(, -v1).Formula2R1C1 = "=LET(v,RC[" & v1 & "],LEFT(v,MIN(FIND({1,2,3,4,5,6,7,8,9,0},v&""1234567890""))-1))"
         
         On Error Resume Next
-        Set r2 = Application.InputBox("数値位置", "文字列分割", r1.Offset(0, 1).address, Type:=8)
+        Set r2 = Application.InputBox("数値位置", "文字列分割", r1.Offset(0, 1).Address, Type:=8)
         On Error GoTo 0
         If r2 Is Nothing Then Exit Sub
-        If r2.address = r1.address Then Exit Sub
+        If r2.Address = r1.Address Then Exit Sub
         v2 = ra.Column - r2.Column
-        r2.FormulaR1C1 = "=MID(RC[" & v2 & "],LEN(RC[" & (v2 - v1) & "])+1,LEN(RC[" & v2 & "]))"
+        ra.Offset(, -v2).FormulaR1C1 = "=MID(RC[" & v2 & "],LEN(RC[" & (v2 - v1) & "])+1,LEN(RC[" & v2 & "]))"
     Case 2
         '文字列分割(数値・英字・数値)
         If True Then
             Set r0 = ra.Cells(1, 1)
             On Error Resume Next
-            Set r1 = Application.InputBox("先頭数値位置", "文字列分割", r0.Offset(0, 1).address, Type:=8)
+            Set r1 = Application.InputBox("先頭数値位置", "文字列分割", r0.Offset(0, 1).Address, Type:=8)
             On Error GoTo 0
             If r1 Is Nothing Then Exit Sub
             v1 = ra.Column - r1.Column
             ra.Offset(, -v1).FormulaR1C1 = "=IFERROR(VALUE(LEFT(RC[" & v1 & "],2)),IFERROR(VALUE(LEFT(RC[" & v1 & "],1)),""""))"
             
             On Error Resume Next
-            Set r2 = Application.InputBox("記号位置", "文字列分割", r1.Offset(0, 1).address, Type:=8)
+            Set r2 = Application.InputBox("記号位置", "文字列分割", r1.Offset(0, 1).Address, Type:=8)
             On Error GoTo 0
             If r2 Is Nothing Then Exit Sub
-            If r2.address = r1.address Then Exit Sub
+            If r2.Address = r1.Address Then Exit Sub
             v2 = ra.Column - r2.Column
             ra.Offset(, -v2).Formula2R1C1 = "=LET(v,MID(RC[" & v2 & "],LEN(RC[" & (v2 - v1) & "])+1,LEN(RC[" & v2 & "])),LEFT(v,MIN(FIND({1,2,3,4,5,6,7,8,9,0},v&""1234567890""))-1))"
             
             On Error Resume Next
-            Set r3 = Application.InputBox("数値位置", "文字列分割", r2.Offset(0, 1).address, Type:=8)
+            Set r3 = Application.InputBox("数値位置", "文字列分割", r2.Offset(0, 1).Address, Type:=8)
             On Error GoTo 0
             If r3 Is Nothing Then Exit Sub
-            If r3.address = r1.address Then Exit Sub
-            If r3.address = r2.address Then Exit Sub
+            If r3.Address = r1.Address Then Exit Sub
+            If r3.Address = r2.Address Then Exit Sub
             v3 = ra.Column - r3.Column
             ra.Offset(, -v3).FormulaR1C1 = "=MID(RC[" & v3 & "],LEN(RC[" & (v3 - v1) & "]&RC[" & (v3 - v2) & "])+1,LEN(RC[" & v3 & "]))"
         Else
@@ -531,14 +537,14 @@ Sub MenuUserFormula(mode As Integer, ra As Range)
         '差分マーカー
         Set r0 = ra.Cells(1, 1)
         On Error Resume Next
-        Set r1 = Application.InputBox("比較元位置1", "差分マーカ―", r0.Offset(0, 1).address, Type:=8)
+        Set r1 = Application.InputBox("比較元位置1", "差分マーカ―", r0.Offset(0, 1).Address, Type:=8)
         On Error GoTo 0
         If r1 Is Nothing Then Exit Sub
         On Error Resume Next
-        Set r2 = Application.InputBox("比較元位置2", "差分マーカ―", r1.Offset(0, 1).address, Type:=8)
+        Set r2 = Application.InputBox("比較元位置2", "差分マーカ―", r1.Offset(0, 1).Address, Type:=8)
         On Error GoTo 0
         If r2 Is Nothing Then Exit Sub
-        If r2.address = r1.address Then Exit Sub
+        If r2.Address = r1.Address Then Exit Sub
         v1 = r1.Column - ra.Column
         v2 = r2.Column - ra.Column
         '

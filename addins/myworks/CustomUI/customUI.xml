@@ -12,24 +12,16 @@
             <button id="b13.0" onAction="works13_onAction" label="テキスト整形" imageMso="ContentControlRichText"
               screentip="テキストを整形" supertip="ASCII文字のみ半角化&#10;冗長なスペース削除" />
             <menu id="m13">
-              <button id="b13.1" onAction="works13_onAction" label="トリム" imageMso="ClearFormatting"
-                supertip="冗長なスペース削除" />
-              <button id="b13.2" onAction="works13_onAction" label="シングルライン" imageMso="Clear"
-                supertip="冗長なスペース削除かつ1行化" />
-              <button id="b13.3" onAction="works13_onAction" label="スペース削除" imageMso="Clear" />
+              <button id="b13.1" onAction="works13_onAction" label="トリム" supertip="冗長なスペース削除" />
+              <button id="b13.2" onAction="works13_onAction" label="シングルライン" supertip="冗長なスペース削除かつ1行化" />
+              <button id="b13.3" onAction="works13_onAction" label="スペース削除" />
               <menuSeparator id="z13b" />
-              <button id="b13.4" onAction="works13_onAction" label="大文字" imageMso="ChangeStylesMenu"
-                supertip="文字列変更(大文字に変換)" />
-              <button id="b13.5" onAction="works13_onAction" label="小文字"
-                supertip="文字列変更(小文字に変換)" />
-              <button id="b13.6" onAction="works13_onAction" label="小文字(先頭大文字)"
-                supertip="文字列変更(各単語の先頭の文字を大文字に変換)" />
-              <button id="b13.7" onAction="works13_onAction" label="全角"
-                supertip="文字列変更(半角文字を全角文字に変換)" />
-              <button id="b13.8" onAction="works13_onAction" label="半角"
-                supertip="文字列変更(全角文字を半角文字に変換)" />
-              <button id="b13.9" onAction="works13_onAction" label="半角(ASCII)"
-                supertip="文字列変更(ASCII文字のみ半角化)" />
+              <button id="b13.4" onAction="works13_onAction" label="大文字" supertip="文字列変更(大文字に変換)" />
+              <button id="b13.5" onAction="works13_onAction" label="小文字" supertip="文字列変更(小文字に変換)" />
+              <button id="b13.6" onAction="works13_onAction" label="小文字(先頭大文字)" supertip="文字列変更(各単語の先頭の文字を大文字に変換)" />
+              <button id="b13.7" onAction="works13_onAction" label="全角" supertip="文字列変更(半角文字を全角文字に変換)" />
+              <button id="b13.8" onAction="works13_onAction" label="半角" supertip="文字列変更(全角文字を半角文字に変換)" />
+              <button id="b13.9" onAction="works13_onAction" label="半角(ASCII)" supertip="文字列変更(ASCII文字のみ半角化)" />
             </menu>
           </splitButton>
           <menu id="m14" label="書式" imageMso="ConditionalFormattingMenu" screentip="書式の拡張" >
@@ -112,7 +104,33 @@
             <toggleButton id="c19.1" onAction="works19_onChecked" getPressed="works19_getPressed" label="UTF-8"
               screentip="出力エンコーディングは UTF-8 を使用" />
           </menu>
-      </group>
+        </group>
+        <group id="g4" label="マーカ" imageMso="AppointmentColorDialog">
+          <button id="b4.1" onAction="works4_onAction" getLabel="works4_getLabel" getImage="works4_onGetImage" size="large" />
+          <gallery id="g41"  onAction="works41_onAction" label="色選択" imageMso="AppointmentColorDialog" itemWidth="32" itemHeight="32" columns="4" >
+            <item id="b41.10" imageMso="AppointmentColor10" />
+            <item id="b41.1" imageMso="AppointmentColor1" />
+            <item id="b41.2" imageMso="AppointmentColor2" />
+            <item id="b41.3" imageMso="AppointmentColor3" />
+            <item id="b41.4" imageMso="AppointmentColor4" />
+            <item id="b41.5" imageMso="AppointmentColor5" />
+            <item id="b41.6" imageMso="AppointmentColor6" />
+            <item id="b41.7" imageMso="AppointmentColor7" />
+            <item id="b41.8" imageMso="AppointmentColor8" />
+            <item id="b41.9" imageMso="AppointmentColor9" />
+          </gallery>
+          <button id="b42" onAction="works42_onAction" label="全削除" imageMso="Clear" />
+          <button id="b43" onAction="works43_onAction" getLabel="works43_getLabel" />
+        </group>
+        <group id="g5" label="版数マーク" imageMso="AppointmentColorDialog">
+          <splitButton id="s5" size="large" >
+            <button id="b5.1" onAction="works5_onAction" getLabel="works5_getLabel" imageMso="ShapeIsoscelesTriangle" />
+            <menu id="m5" >
+              <button id="b5.2" onAction="works5_onAction" label="マーク配置" />
+              <button id="b5.3" onAction="works5_onAction" label="リスト" />
+            </menu>
+          </splitButton>
+        </group>
         <group id="g2" label="罫線枠" imageMso="ReviewAllowUsersToEditRanges">
           <splitButton id="s21" size="large">
             <button id="b22" onAction="works22_onAction" label="囲い" imageMso="DataFormSource"
@@ -158,33 +176,6 @@
           <button id="b3.8" onAction="works3_onAction" label="test8" imageMso="BlackAndWhiteDontShow" />
           <button id="b3.9" onAction="works3_onAction" label="開発" imageMso="AddInManager" />
         </group>
-        <group id="g4" label="マーカ" imageMso="AppointmentColorDialog">
-          <button id="b4.1" onAction="works4_onAction" label="赤" imageMso="AppointmentColor1" size="large" />
-          <button id="b4.2" onAction="works4_onAction" label="青" imageMso="AppointmentColor2" size="large" />
-          <button id="b4.3" onAction="works4_onAction" label="緑" imageMso="AppointmentColor3" size="large" />
-          <button id="b4.10" onAction="works4_onAction" label="黄色" imageMso="AppointmentColor10" size="large" />
-          <button id="b4.4" onAction="works4_onAction" label="灰色" imageMso="AppointmentColor4" size="large" />
-          <button id="b4.5" onAction="works4_onAction" label="橙" imageMso="AppointmentColor5" size="large" />
-          <button id="b4.6" onAction="works4_onAction" label="青緑" imageMso="AppointmentColor6" size="large" />
-          <button id="b4.7" onAction="works4_onAction" label="淡い橙" imageMso="AppointmentColor7" size="large" />
-          <button id="b4.8" onAction="works4_onAction" label="紫" imageMso="AppointmentColor8" size="large" />
-          <button id="b4.9" onAction="works4_onAction" label="緑" imageMso="AppointmentColor9" size="large" />
-        <dialogBoxLauncher>
-            <button id="b4.0" onAction="works4_onAction" label="マーカ削除" imageMso="AppointmentColor0" />
-          </dialogBoxLauncher>
-        </group>
-
-        <!-- <group id="g4" label="読み込み" imageMso="ComAddInsDialog">
-          <button id="b4.1" onAction="works4_onAction" getLabel="works4_getLabel" getImage="works4_onGetImage" getVisible="works4_getVisible" getSize="works4_getSize" />
-          <button id="b4.2" onAction="works4_onAction" getLabel="works4_getLabel" getImage="works4_onGetImage" getVisible="works4_getVisible" getSize="works4_getSize" />
-          <button id="b4.3" onAction="works4_onAction" getLabel="works4_getLabel" getImage="works4_onGetImage" getVisible="works4_getVisible" getSize="works4_getSize" />
-          <button id="b4.4" onAction="works4_onAction" getLabel="works4_getLabel" getImage="works4_onGetImage" getVisible="works4_getVisible" getSize="works4_getSize" />
-          <button id="b4.5" onAction="works4_onAction" getLabel="works4_getLabel" getImage="works4_onGetImage" getVisible="works4_getVisible" getSize="works4_getSize" />
-          <button id="b4.6" onAction="works4_onAction" getLabel="works4_getLabel" getImage="works4_onGetImage" getVisible="works4_getVisible" getSize="works4_getSize" />
-          <button id="b4.7" onAction="works4_onAction" getLabel="works4_getLabel" getImage="works4_onGetImage" getVisible="works4_getVisible" getSize="works4_getSize" />
-          <button id="b4.8" onAction="works4_onAction" getLabel="works4_getLabel" getImage="works4_onGetImage" getVisible="works4_getVisible" getSize="works4_getSize" />
-          <button id="b4.9" onAction="works4_onAction" getLabel="works4_getLabel" getImage="works4_onGetImage" getVisible="works4_getVisible" getSize="works4_getSize" />
-        </group> -->
       </tab>
     </tabs>
   </ribbon>

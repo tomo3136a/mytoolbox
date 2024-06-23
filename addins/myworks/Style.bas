@@ -3,18 +3,21 @@ Option Explicit
 Option Private Module
 
 '---------------------------------------------
-'マーカ
+'カラーマーカ
 '---------------------------------------------
+
+'セルにカラーマーカを設定
 Public Sub Marker(id As Integer, ra As Range, Optional name As String)
     If id = 0 Then
         DeleteUserColorStyle
         Exit Sub
     End If
     
-    Dim name As String
     If name = "" Then name = Replace(Mid(Date, 5), "/", "")
-    If Find(name, "_") > 0 Then name = name & "_" & id
+    If InStr(1, name, "_") = 0 Then name = name & "_" & id
     
+    Dim wb As Workbook
+    Set wb = ra.Parent.Parent
     On Error Resume Next
     If wb.Styles(name) Is Nothing Then
         With wb.Styles.Add(name)
@@ -85,4 +88,3 @@ Sub PickupFillColor()
     On Error GoTo 0
     ra.Value = ce.Interior.color
 End Sub
-

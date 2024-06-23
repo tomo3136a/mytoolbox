@@ -195,7 +195,7 @@ Private Sub GetFolderPath(ra As Range, link As Boolean)
     ce.Value = GetShortPath(path)
     If Not link Then Exit Sub
     Application.CutCopyMode = False
-    ce.Worksheet.Hyperlinks.Add Anchor:=ce, address:=path
+    ce.Worksheet.Hyperlinks.Add Anchor:=ce, Address:=path
 End Sub
 
 Private Function GetFolder(ra As Range) As String
@@ -228,7 +228,7 @@ Private Sub GetFilePath(ra As Range, link As Boolean)
         If link Then
             Application.CutCopyMode = False
             ce.Worksheet.Hyperlinks.Add _
-                Anchor:=ce, address:=fi
+                Anchor:=ce, Address:=fi
         End If
         Set ce = ce.Offset(1)
         clrf = True

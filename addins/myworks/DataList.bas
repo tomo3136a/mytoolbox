@@ -129,7 +129,7 @@ Private Sub IndexList(ByRef ra As Range, wb As Workbook)
             ra.Offset(0, 1).Value = ws.name
             ra.Worksheet.Hyperlinks.Add _
                 Anchor:=ra.Offset(0, 2), _
-                address:="", _
+                Address:="", _
                 SubAddress:=(ws.name & "!A1"), _
                 TextToDisplay:="シート", _
                 ScreenTip:=ws.name
@@ -151,13 +151,13 @@ Private Sub SheetList(ByRef ra As Range, wb As Workbook)
             ra.Value = no
             ra.Worksheet.Hyperlinks.Add _
                 Anchor:=ra.Offset(0, 1), _
-                address:=wb.path & "\" & wb.name, _
+                Address:=wb.path & "\" & wb.name, _
                 SubAddress:=ws.name & "!A1", _
                 TextToDisplay:=ws.name
                 ', _
                 'ScreenTip:=ws.name
             If Not ws.Visible Then ra.Offset(0, 2).Value = "非表示"
-            ra.Offset(0, 3).Value = ws.UsedRange.address(False, False)
+            ra.Offset(0, 3).Value = ws.UsedRange.Address(False, False)
             ra.Offset(0, 4).Value = ws.Shapes.Count
             ra.Offset(0, 5).Value = ws.ChartObjects.Count
             ra.Offset(0, 6).Value = ws.Shapes.Count
@@ -227,10 +227,10 @@ Private Sub HyperlinkInfo(ra As Range, ws As Worksheet, lnk As Hyperlink)
     Dim src_addr As String
     Dim src_disp As String
     If lnk.Type = 0 Then
-        src_addr = lnk.Range.address
+        src_addr = lnk.Range.Address
         src_disp = lnk.TextToDisplay
     Else
-        src_addr = lnk.Shape.TopLeftCell.address
+        src_addr = lnk.Shape.TopLeftCell.Address
         src_disp = "[" & lnk.Shape.name & "]"
     End If
     Dim src As String
@@ -242,28 +242,28 @@ Private Sub HyperlinkInfo(ra As Range, ws As Worksheet, lnk As Hyperlink)
     On Error Resume Next
     ra.Value = ws.name
     ActiveSheet.Hyperlinks.Add Anchor:=ra.Offset(0, 2), _
-        address:="", SubAddress:=src, TextToDisplay:=src_addr
+        Address:="", SubAddress:=src, TextToDisplay:=src_addr
     If err Then sts = "Error": err.Clear
     ra.Offset(0, 3).Value = src_disp
     '
     If lnk.SubAddress = "" Then
         ActiveSheet.Hyperlinks.Add Anchor:=ra.Offset(0, 4), _
-            address:=lnk.address, TextToDisplay:=lnk.address
-    ElseIf lnk.address = "" Then
+            Address:=lnk.Address, TextToDisplay:=lnk.Address
+    ElseIf lnk.Address = "" Then
         ActiveSheet.Hyperlinks.Add Anchor:=ra.Offset(0, 4), _
-            address:="", SubAddress:=lnk.SubAddress, TextToDisplay:=lnk.SubAddress
+            Address:="", SubAddress:=lnk.SubAddress, TextToDisplay:=lnk.SubAddress
     Else
         ActiveSheet.Hyperlinks.Add Anchor:=ra.Offset(0, 4), _
-            address:=lnk.address, SubAddress:=lnk.SubAddress, _
-            TextToDisplay:="'" & lnk.address & "'!" & lnk.SubAddress
+            Address:=lnk.Address, SubAddress:=lnk.SubAddress, _
+            TextToDisplay:="'" & lnk.Address & "'!" & lnk.SubAddress
     End If
     If err Then sts = "Error": err.Clear
     ra.Offset(0, 5).Value = lnk.ScreenTip
     '
-    If lnk.address <> "" Then
+    If lnk.Address <> "" Then
         Dim wb As Workbook: Set wb = ws.Parent
-        Dim path As String: path = wb.path & "\" & lnk.address
-        If Dir(path) = "" Then sts = "リンク切れ(" & lnk.address & ")"
+        Dim path As String: path = wb.path & "\" & lnk.Address
+        If Dir(path) = "" Then sts = "リンク切れ(" & lnk.Address & ")"
         If err Then sts = "不明": err.Clear
     End If
     '
@@ -352,7 +352,7 @@ Private Sub CommentList(ByRef ra As Range, wb As Workbook)
             ra.Value = no
             ra.Offset(0, 1).Value = ws.name
             If TypeName(cm.Parent) = "Range" Then
-                ra.Offset(0, 3).Value = cm.Parent.address
+                ra.Offset(0, 3).Value = cm.Parent.Address
             End If
             ra.Offset(0, 4).Value = cm.text
             If cm.Visible Then

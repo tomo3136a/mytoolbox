@@ -107,7 +107,8 @@ End Sub
 '----------------------------------
 
 Sub SetParam(grp As String, k As String, ByVal v As String)
-    Static dic As Dictionary
+    'Static dic As Dictionary
+    Dim dic As Dictionary
     Set dic = param_dict
     Dim kw As String
     kw = grp & "_" & k
@@ -118,7 +119,8 @@ Sub SetParam(grp As String, k As String, ByVal v As String)
 End Sub
 
 Function GetParam(grp As String, k As String) As String
-    Static dic As Dictionary
+    'Static dic As Dictionary
+    Dim dic As Dictionary
     Set dic = param_dict
     Dim kw As String
     kw = grp & "_" & k
