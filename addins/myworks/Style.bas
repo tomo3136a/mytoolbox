@@ -7,17 +7,13 @@ Option Private Module
 '---------------------------------------------
 
 'セルにカラーマーカを設定
-Public Sub Marker(id As Integer, ra As Range, Optional name As String)
-    If id = 0 Then
-        DeleteUserColorStyle
-        Exit Sub
-    End If
-    
+Public Sub AddMarker(ra As Range, id As Integer, Optional name As String)
     If name = "" Then name = Replace(Mid(Date, 5), "/", "")
     If InStr(1, name, "_") = 0 Then name = name & "_" & id
-    
+    '
     Dim wb As Workbook
     Set wb = ra.Parent.Parent
+    '
     On Error Resume Next
     If wb.Styles(name) Is Nothing Then
         With wb.Styles.Add(name)
@@ -58,13 +54,36 @@ Public Sub Marker(id As Integer, ra As Range, Optional name As String)
         End With
     End If
     On Error GoTo 0
-    
+    '
     ra.Style = name
 End Sub
 
-Sub DeleteUserColorStyle()
+'カラーマーカ削除
+Sub DelMarker(s As String)
+    Dim wb As Workbook
+    Set wb = ActiveWorkbook
+    '
+    On Error Resume Next
+    Dim v As Variant
+    For Each v In wb.Styles
+        
+        Dim name As String
+        name = v
+        
+        If name = s Then
+            wb.Styles(name).Delete
+        End If
+    Next v
+    On Error GoTo 0
+End Sub
+
+'カラーマーカ全削除
+Sub DelMarkerAll()
     Dim re As Object
     Set re = regex("^\d{4}_\d{1,2}$")
+    '
+    Dim res As Integer
+    res = MsgBox("全て削除しますか？(" & ActiveWorkbook.Styles.Count & ")", vbYesNo, "マーカ削除")
     Dim wb As Workbook
     Set wb = ActiveWorkbook
     On Error Resume Next
@@ -79,6 +98,30 @@ Sub DeleteUserColorStyle()
     On Error GoTo 0
 End Sub
 
+'カラーマーカリスト取得
+Sub ListMarker(ra As Range)
+    Dim re As Object
+    Set re = regex("^\d{4}_\d{1,2}$")
+    '
+    Dim ce As Range
+    Set ce = ra.Cells(1, 1)
+    '
+    ScreenUpdateOff
+    On Error Resume Next
+    Dim v As Variant
+    For Each v In ActiveWorkbook.Styles
+        Dim name As String
+        name = v
+        If re.Test(name) Then
+            ce.Value = name
+            ce.Style = v
+            Set ce = ce.Offset(1)
+        End If
+    Next v
+    On Error GoTo 0
+    ScreenUpdateOn
+End Sub
+
 Sub PickupFillColor()
     Dim ra As Range
     Set ra = Selection
@@ -88,3 +131,4 @@ Sub PickupFillColor()
     On Error GoTo 0
     ra.Value = ce.Interior.color
 End Sub
+

@@ -260,27 +260,32 @@ Private Sub works4_onGetImage(control As IRibbonControl, ByRef bitmap As Variant
 End Sub
 
 Private Sub works4_onAction(control As IRibbonControl)
-    If TypeName(Selection) <> "Range" Then Exit Sub
-    Call Marker(Val(GetParam("mark", "color")), Selection)
+    Select Case RibbonID(control)
+    Case 1
+        If TypeName(Selection) <> "Range" Then Exit Sub
+        Call AddMarker(Selection, Val(GetParam("mark", "color")))
+    Case 2
+        If TypeName(Selection) <> "Range" Then Exit Sub
+        Call ListMarker(Selection)
+    Case 3
+        If TypeName(Selection) <> "Range" Then Exit Sub
+        Dim ce As Range
+        For Each ce In Selection.Cells
+            Call DelMarker(ce.Value)
+            ce.Clear
+        Next ce
+    Case 4
+        Call DelMarkerAll
+    End Select
 End Sub
 
 Private Sub works41_onAction(control As IRibbonControl, selectedId As String, selectedIndex As Integer)
     Call SetParam("mark", "color", Mid(selectedId, InStr(1, selectedId, ".") + 1))
     If Not g_ribbon Is Nothing Then g_ribbon.Invalidate
     DoEvents
+    If TypeName(Selection) <> "Range" Then Exit Sub
+    Call AddMarker(Selection, Val(GetParam("mark", "color")))
 End Sub
-
-Private Sub works42_onAction(control As IRibbonControl)
-    Call Marker(0, Selection)
-End Sub
-
-Private Sub works43_getLabel(control As IRibbonControl, ByRef label As Variant)
-    label = ""
-End Sub
-
-Private Sub works43_onAction(control As IRibbonControl)
-End Sub
-
 
 '----------------------------------------
 '5:revision mark
@@ -292,20 +297,26 @@ End Sub
 
 Private Sub works5_onAction(control As IRibbonControl)
     If TypeName(Selection) <> "Range" Then Exit Sub
+    '
     Dim rev As String
     Select Case RibbonID(control)
     Case 1
+        '版数マーク追加
         Call AddRevMark(Selection)
     Case 2
+        '版数設定
         Call GetRevMark(rev)
         rev = InputBox("版数を入力してください。", "版数マーク設定", rev)
+        If rev = "" Then Exit Sub
         Call SetRevMark(rev)
         If Not g_ribbon Is Nothing Then g_ribbon.Invalidate
         DoEvents
         Call AddRevMark(Selection)
     Case 3
+        '版数リスト作成
         Call GetRevMark(rev)
         rev = InputBox("版数を入力してください。", "版数マークリスト", rev)
+        If rev = "" Then Exit Sub
         Call ListRevMark(Selection, rev)
     End Select
 End Sub

@@ -107,7 +107,7 @@
         </group>
         <group id="g4" label="マーカ" imageMso="AppointmentColorDialog">
           <button id="b4.1" onAction="works4_onAction" getLabel="works4_getLabel" getImage="works4_onGetImage" size="large" />
-          <gallery id="g41"  onAction="works41_onAction" label="色選択" imageMso="AppointmentColorDialog" itemWidth="32" itemHeight="32" columns="4" >
+          <gallery id="g41"  onAction="works41_onAction" label="選択" imageMso="AppointmentColorDialog" itemWidth="32" itemHeight="32" columns="4" >
             <item id="b41.10" imageMso="AppointmentColor10" />
             <item id="b41.1" imageMso="AppointmentColor1" />
             <item id="b41.2" imageMso="AppointmentColor2" />
@@ -119,8 +119,9 @@
             <item id="b41.8" imageMso="AppointmentColor8" />
             <item id="b41.9" imageMso="AppointmentColor9" />
           </gallery>
-          <button id="b42" onAction="works42_onAction" label="全削除" imageMso="Clear" />
-          <button id="b43" onAction="works43_onAction" getLabel="works43_getLabel" />
+          <button id="b4.2" onAction="works4_onAction" label="リスト" imageMso="MenuView2" />
+          <button id="b4.3" onAction="works4_onAction" label="削除" imageMso="Clear" />
+          <!-- <button id="b4.4" onAction="works4_onAction" label="全削除" /> -->
         </group>
         <group id="g5" label="版数マーク" imageMso="AppointmentColorDialog">
           <splitButton id="s5" size="large" >

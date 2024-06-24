@@ -444,7 +444,9 @@ End Sub
 Private Sub ClearMarkRef()
     Dim s As String
     s = "éQè∆"
+    On Error Resume Next
     ActiveWorkbook.Styles(s).Delete
+    On Error GoTo 0
 End Sub
 
 Private Sub NewStyle(ra As Range, name As String)
