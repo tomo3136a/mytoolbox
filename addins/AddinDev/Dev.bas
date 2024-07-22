@@ -115,7 +115,9 @@ Private Sub SaveImageMso()
     name = "ImageMso"
     '
     Dim ws As Worksheet
+    On Error Resume Next
     Set ws = ThisWorkbook.Worksheets(name)
+    On Error GoTo 0
     If ws Is Nothing Then Exit Sub
     '
     Dim ra As Range
