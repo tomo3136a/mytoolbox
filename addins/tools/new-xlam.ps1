@@ -1,74 +1,87 @@
-param([string]$name)
+Ôªøparam([string]$path = "")
 
-if ($name -eq "") { $name = Read-Host "ÉAÉhÉCÉìñºÅH" }
-if ($name -eq "") { Write-Host "no name"; exit }
-
-$root=Join-Path (get-location).path $name
+$addins_path = "${env:APPDATA}/Microsoft/Addins"
+$name = ""
+$root = ""
+if ($path -ne "") {
+  if ((Test-Path -PathType Container $path) -eq $True) {
+    $name = (Split-Path -Leaf $path)
+    $root = $path
+  }
+}
+if ($name -eq "") { $name = Read-Host "„Ç¢„Éâ„Ç§„É≥ÂêçÔºü" }
+if ($name -eq "") {
+  Write-Host "no addin name." -ForegroundColor Yellow
+  $host.UI.RawUI.ReadKey() | Out-Null
+  exit
+}
+if ($root -eq "") { $root = Join-Path (Get-Location).Path $name }
 if (-not (Test-Path $root)) { [void](mkdir $root) }
-Push-Location $root
-$out="${env:APPDATA}/Microsoft/Addins"
+Write-Host "name: ${name}" -ForegroundColor Yellow
+Write-Host "root: ${root}" -ForegroundColor Yellow
 
-$xlam=Join-Path $out ($name+".xlam")
+$xlam_file = $name + ".xlam"
+$xlam = Join-Path $addins_path $xlam_file
+
 if (-not (Test-Path $xlam)) {
-    "# Create ${xlam}"|Out-Host
-    $app=New-Object -ComObject Excel.Application
-    $wb=$null
-    try {
-        $app.Visible = $false
-        $app.DisplayAlerts = $false
-        $wb=$app.Workbooks.Add()
-        [void]$wb.SaveAs($xlam, 55)
-    } finally {
-        # release workbook
-        if ($null -ne $wb) {
-            [void]$wb.Close($false)
-            [void][System.Runtime.Interopservices.Marshal]::ReleaseComObject($wb)
+  Write-Host "# Create ${xlam}" -ForegroundColor Yellow
+  $app = New-Object -ComObject Excel.Application
+  $wb = $null
+  try {
+    $app.Visible = $false
+    $app.DisplayAlerts = $false
+    $wb = $app.Workbooks.Add()
+
+    $dts = @()
+    for ($i=0; $i -lt 255; $i++) { $dts += 2 }
+    Get-ChildItem $root -Filter *.csv -Recurse | %{
+      $ws = $wb.Worksheets.Item(1)
+      $ws.name = $_.Name
+      $name =$ws.name
+      $csv = $_.FullName
+      Write-Host "load ${csv}"
+      $qt = $ws.QueryTables.Add("TEXT;$csv", $ws.cells(1, 1))
+      $qt.TextFileCommaDelimiter = $True
+      $qt.TextFileTabDelimiter = $True
+      $qt.TextFilePlatform = 932
+      $qt.TextFileStartRow = 1
+      $qt.TextFileColumnDataTypes = $dts[0..255]
+      #Write-Host "old name ${name} "+$qt.name
+      $qt.name = "tmp_tbl"
+      #$cname = $qt.Connection.Name
+      $qt.Refresh($false)
+      $qt.Delete()
+      $qt = $null
+      Write-Host "delete querytable"
+      foreach ($n in $wb.Names) {
+        $sname = $n.Name
+        Write-Host "search name ${sname}"
+        if ($sname -Like ($name + "!" + "tmp_tbl*")) {
+          Write-Host "delete name ${name}"
+          $n.Delete()
         }
-        [void]$app.Quit()
-        # release application
-        [void][System.Runtime.Interopservices.Marshal]::ReleaseComObject($app)
+      }
+      #$cname = $name -replace ".csv",""
+      #Write-Host "delete connection ${cname}"
+      #$wb.Connections($cname).Delete()
+      #Write-Host "delete connection 1"
+      #$wb.Connections.Item(1).Delete()
+      #Write-Host "end"
     }
+    [void]$wb.SaveAs($xlam, 55)
+  } finally {
+    # release workbook
+    if ($null -ne $wb) {
+      [void]$wb.Close($false)
+      [void][System.Runtime.Interopservices.Marshal]::ReleaseComObject($wb)
+    }
+    [void]$app.Quit()
+    # release application
+    [void][System.Runtime.Interopservices.Marshal]::ReleaseComObject($app)
+  }
 }
 
-$path=$root+"\_rels\.rels"
-if (-not (Test-Path $path)) {
-    "# Add _rels/.rels"|Out-Host
-    7za.exe x -y $xlam "_rels/.rels"|Out-Null
-    $xml=[xml](Get-Content $path)
-    $tags=$xml.GetElementsByTagName("Relationship")
-    $id='customUI'
-    $tags.Where({$_.Id -eq $id})|%{$xml.Relationships.RemoveChild($_)}|Out-Null
-    $elm=$xml.Relationships.Relationship[0].Clone()
-    $elm.Id=$id
-    $elm.Type="http://schemas.microsoft.com/office/2006/relationships/ui/extensibility"
-    $elm.Type="http://schemas.microsoft.com/office/2007/relationships/ui/extensibility"
-    $elm.Target="customUI/customUI.xml"
-    $xml.Relationships.AppendChild($elm)|Out-Null
-    $xml.Save($path)
-    7za.exe u -y $xlam "_rels/.rels"|Out-Null
-}
+Write-Host "open ${xlam_file}." -ForegroundColor Yellow
+. $xlam
 
-$path=$root+"\customUI\customUI.xml"
-if (-not (Test-Path $path)) {
-    "# Add customUI/customUI.xml"|Out-Host
-    $xml=[xml]@"
-<?xml version="1.0" encoding="UTF-8"?>
-<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui">
-  <ribbon>
-    <tabs>
-      <tab id="Tab${name}" label="tab">
-        <group id="${name}.G1" label="group" autoScale="true">
-          <button id="${name}.B1" label="button" imageMso="ListMacros"
-            onAction="${name}.M1" size="large" />
-        </group>
-      </tab>
-    </tabs>
-  </ribbon>
-</customUI>
-"@
-    mkdir -Force ($root+"\customUI")|Out-Null
-    $xml.Save($path)
-}
-7za.exe u -y $xlam "customUI/customUI.xml"|Out-Null
-
-Pop-Location
+Start-Sleep 50
