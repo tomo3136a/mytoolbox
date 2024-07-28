@@ -1,4 +1,4 @@
-Attribute VB_Name = "Dev"
+Attribute VB_Name = "AppAddinDev"
 '==================================
 'アドイン開発
 '==================================
@@ -25,8 +25,8 @@ Sub App(id As Integer)
         'アドインフォルダを開く
         OpenAddinsFolder
     Case 13
-        'ImageMsoファイル保存
-        SaveImageMso
+        'ImageMsoファイルフォルダを開く
+        OpenImageMsoFolder
     '
     Case 31
         'CustomUI 編集
@@ -109,32 +109,39 @@ Private Sub OpenAddinsFolder()
     End With
 End Sub
 
-'ImageMsoフォルダを開く
-Private Sub SaveImageMso()
+'ImageMsoファイルフォルダを開く、無ければ作成
+Private Sub OpenImageMsoFolder()
     Dim name As String
     name = "ImageMso"
     '
-    Dim ws As Worksheet
-    On Error Resume Next
-    Set ws = ThisWorkbook.Worksheets(name)
-    On Error GoTo 0
-    If ws Is Nothing Then Exit Sub
-    '
-    Dim ra As Range
-    Set ra = ws.UsedRange
-    If ra Is Nothing Then Exit Sub
-    If ra.Cells(1, 1).Value = "" Then Exit Sub
-    '
-    Dim cnt As Long
-    cnt = ra.Find("*", , xlFormulas, , xlByRows, xlPrevious).Row
-    Dim arr
-    arr = ws.Range("A2:A" & cnt).Value
-    '
     Dim parent As String
-    parent = Environ("USERPROFILE") & "\Documents"
-    If parent = "" Then Exit Sub
+    parent = fso.BuildPath(Environ("USERPROFILE"), "Documents")
     parent = fso.BuildPath(parent, name)
     If Not fso.FolderExists(parent) Then
+        Dim ws As Worksheet
+        On Error Resume Next
+        Set ws = ThisWorkbook.Worksheets(name)
+        On Error GoTo 0
+        If ws Is Nothing Then
+            MsgBox name & "シートが必要です。"
+            Exit Sub
+        End If
+        '
+        Dim ra As Range
+        Set ra = ws.UsedRange
+        If ra Is Nothing Then
+            MsgBox "データが見つかりませんでした。"
+            Exit Sub
+        End If
+        If ra.Cells(1, 1).Value = "" Then
+            MsgBox "データが見つかりませんでした。"
+            Exit Sub
+        End If
+        Dim cnt As Long
+        cnt = ra.Find("*", , xlFormulas, , xlByRows, xlPrevious).Row
+        Dim arr As Variant
+        arr = ws.Range("A2:A" & cnt).Value
+        '
         fso.CreateFolder parent
         If Not fso.FolderExists(parent) Then
             MsgBox parent & " フォルダを作成できませんでした。"

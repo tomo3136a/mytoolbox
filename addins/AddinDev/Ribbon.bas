@@ -38,43 +38,43 @@ End Sub
 'ribbon initialize
 '----------------------------------------
 
-Private Sub onLoad(ByVal ribbon As IRibbonUI)
-    Set g_ribbon = ribbon
+Private Sub AddinDev_onLoad(ByVal Ribbon As IRibbonUI)
+    Set g_ribbon = Ribbon
 End Sub
 
 '----------------------------------------
 'select addin
 '----------------------------------------
 
-Private Sub getItemCount(control As IRibbonControl, ByRef returnedVal)
+Private Sub AddinDev_getItemCount(control As IRibbonControl, ByRef returnedVal)
     returnedVal = UserAddinCount
 End Sub
 
-Private Sub getItemID(control As IRibbonControl, index As Integer, ByRef returnedVal)
+Private Sub AddinDev_getItemID(control As IRibbonControl, index As Integer, ByRef returnedVal)
     returnedVal = index
 End Sub
 
-Private Sub getItemLabel(control As IRibbonControl, index As Integer, ByRef returnedVal)
+Private Sub AddinDev_getItemLabel(control As IRibbonControl, index As Integer, ByRef returnedVal)
     returnedVal = UserAddinName(index)
 End Sub
 
-Private Sub getSelectedItemID(control As IRibbonControl, ByRef returnedVal)
+Private Sub AddinDev_getSelectedItemID(control As IRibbonControl, ByRef returnedVal)
     Dim i As Integer
     i = CurrentAddinID
     SetAddinName UserAddinName(i)
     returnedVal = i
 End Sub
 
-Private Sub onActionDropDown(control As IRibbonControl, id As String, index As Integer)
+Private Sub AddinDev_onActionDropDown(control As IRibbonControl, id As String, index As Integer)
     SetAddinName UserAddinName(index)
 End Sub
 
 '----------------------------------
-'ÉAÉhÉCÉìëÄçÏ
+'invoke application
 '----------------------------------
 
-Private Sub onAction(ByVal control As IRibbonControl)
-    App RibbonID(control)
+Private Sub AddinDev_onAction(ByVal control As IRibbonControl)
+    AppAddinDev.App RibbonID(control)
     If g_ribbon Is Nothing Then Exit Sub
     Select Case RibbonID(control)
     Case 52
@@ -87,7 +87,7 @@ Private Sub onAction(ByVal control As IRibbonControl)
     End Select
 End Sub
 
-Private Sub getEnabled(ByVal control As IRibbonControl, ByRef enable As Variant)
+Private Sub AddinDev_getEnabled(ByVal control As IRibbonControl, ByRef enable As Variant)
     Select Case RibbonID(control)
     Case 39
         enable = (LCase(Right(ActiveWorkbook.name, 5)) = ".xlam")
@@ -96,7 +96,7 @@ Private Sub getEnabled(ByVal control As IRibbonControl, ByRef enable As Variant)
     End Select
 End Sub
 
-Private Sub getImage(ByVal control As IRibbonControl, ByRef image As Variant)
+Private Sub AddinDev_getImage(ByVal control As IRibbonControl, ByRef image As Variant)
     On Error Resume Next
     Select Case RibbonID(control)
     Case 53
@@ -123,4 +123,3 @@ Private Sub getImage(ByVal control As IRibbonControl, ByRef image As Variant)
     End Select
     On Error GoTo 0
 End Sub
-
