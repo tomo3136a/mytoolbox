@@ -77,3 +77,6 @@ doxygen/
 *.xlsm
 *.xlam
 *.docx
+
+# archives
+*.zip
