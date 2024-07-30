@@ -74,7 +74,7 @@ End Sub
 '----------------------------------
 
 Private Sub AddinDev_onAction(ByVal control As IRibbonControl)
-    AppAddinDev.App RibbonID(control)
+    Invoke RibbonID(control)
     If g_ribbon Is Nothing Then Exit Sub
     Select Case RibbonID(control)
     Case 52

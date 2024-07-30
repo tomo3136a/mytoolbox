@@ -1,4 +1,4 @@
-Attribute VB_Name = "AppAddinDev"
+Attribute VB_Name = "App"
 '==================================
 'アドイン開発
 '==================================
@@ -16,7 +16,7 @@ Private g_image As String
 'アプリケーションI/F
 '----------------------------------
 
-Sub App(id As Integer)
+Sub Invoke(id As Integer)
     Select Case id
     Case 11
         'カレントフォルダを開く
