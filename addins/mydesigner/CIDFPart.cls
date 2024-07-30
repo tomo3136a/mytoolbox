@@ -50,7 +50,8 @@ Public Function Draw(ws As Worksheet, x As Double, y As Double, a As Double, Opt
     ElseIf pside = "BOTTOM" Then
         Set sh = sym.Draw(ws, x + g * px, y - g * py, a - pa, g, True)
     End If
-    s = prefs & " " & sh.id
+    If sh Is Nothibg Then Exit Function
+    s = prefs & " " & sh.IDs
     sh.name = s
     Set Draw = sh
 End Function
