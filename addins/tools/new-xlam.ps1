@@ -34,25 +34,22 @@ if (-not (Test-Path $xlam)) {
 
     $dts = @()
     for ($i=0; $i -lt 255; $i++) { $dts += 2 }
-    Get-ChildItem $root -Filter *.csv -Recurse | %{
+    Get-ChildItem $root -Filter *.csv | %{
       $ws = $wb.Worksheets.Item(1)
-      $ws.name = $_.Name
+      $ws.name = $_.Name -replace ".csv",""
       $name =$ws.name
       $csv = $_.FullName
-      Write-Host "load ${csv}"
+      Write-Host "load ${name}.csv"
       $qt = $ws.QueryTables.Add("TEXT;$csv", $ws.cells(1, 1))
       $qt.TextFileCommaDelimiter = $True
       $qt.TextFileTabDelimiter = $True
       $qt.TextFilePlatform = 932
       $qt.TextFileStartRow = 1
       $qt.TextFileColumnDataTypes = $dts[0..255]
-      #Write-Host "old name ${name} "+$qt.name
       $qt.name = "tmp_tbl"
-      #$cname = $qt.Connection.Name
-      $qt.Refresh($false)
-      $qt.Delete()
+      $qt.Refresh($false) | Out-Null
+      $qt.Delete() | Out-Null
       $qt = $null
-      Write-Host "delete querytable"
       foreach ($n in $wb.Names) {
         $sname = $n.Name
         Write-Host "search name ${sname}"
@@ -61,13 +58,25 @@ if (-not (Test-Path $xlam)) {
           $n.Delete()
         }
       }
-      #$cname = $name -replace ".csv",""
-      #Write-Host "delete connection ${cname}"
-      #$wb.Connections($cname).Delete()
-      #Write-Host "delete connection 1"
-      #$wb.Connections.Item(1).Delete()
-      #Write-Host "end"
     }
+    try {
+      $col = $wb.VBProject.VBComponents
+      Get-ChildItem $root -Filter *.bas | %{
+        $s = $_.Name
+        $col.Import($_.FullName) | Out-Null
+        Write-Host "load ${s}"
+      }
+      Get-ChildItem $root -Filter *.frm | %{
+        $s = $_.Name
+        $col.Import($_.FullName) | Out-Null
+        Write-Host "load ${s}"
+      }
+      Get-ChildItem $root -Filter *.cls | %{
+        $s = $_.Name -replace ".cls",""
+        $col.Import($_.FullName) | Out-Null
+        Write-Host "load ${s}"
+      }
+    } catch {}
     [void]$wb.SaveAs($xlam, 55)
   } finally {
     # release workbook
@@ -84,4 +93,4 @@ if (-not (Test-Path $xlam)) {
 Write-Host "open ${xlam_file}." -ForegroundColor Yellow
 . $xlam
 
-Start-Sleep 50
+Start-Sleep 10
