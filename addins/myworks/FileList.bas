@@ -152,30 +152,30 @@ End Sub
 
 '絶対パスに変更
 Private Sub ToAbustoractPath(ra As Range)
-    Dim base As String
-    base = GetBasePath(ra, 1)
-    base = GetAbstructPath(base, ra.Parent.Parent.path & "\")
+    Dim Base As String
+    Base = GetBasePath(ra, 1)
+    Base = GetAbstructPath(Base, ra.Parent.Parent.path & "\")
     '
     Dim s1 As String, s2 As String
     Dim ce As Range
     For Each ce In ra
         s1 = ce.Value
-        s2 = GetAbstructPath(s1, base)
+        s2 = GetAbstructPath(s1, Base)
         If s1 <> s2 Then ce.Value = s2
     Next ce
 End Sub
 
 '相対パスに変更
 Private Sub ToRelatedPath(ra As Range)
-    Dim base As String
-    base = GetBasePath(ra, 1)
-    base = GetAbstructPath(base, ra.Parent.Parent.path & "\")
+    Dim Base As String
+    Base = GetBasePath(ra, 1)
+    Base = GetAbstructPath(Base, ra.Parent.Parent.path & "\")
     '
     Dim s1 As String, s2 As String
     Dim ce As Range
     For Each ce In ra
         s1 = ce.Value
-        s2 = GetRelatedPath(s1, base)
+        s2 = GetRelatedPath(s1, Base)
         If s1 <> s2 Then ce.Value = s2
     Next ce
 End Sub
@@ -213,18 +213,18 @@ End Function
 Private Sub GetFilePath(ra As Range, link As Boolean)
     Dim ce As Range
     Set ce = ra.Cells(1, 1)
-    Dim base As String
-    base = GetBasePath(ra)
-    base = GetAbstructPath(base, ra.Parent.Parent.path & "\")
+    Dim Base As String
+    Base = GetBasePath(ra)
+    Base = GetAbstructPath(Base, ra.Parent.Parent.path & "\")
     '
     Dim col As Variant
-    Set col = SelectFiles(base)
+    Set col = SelectFiles(Base)
     If col.Count = 0 Then Exit Sub
     '
     Dim clrf As Boolean
     Dim fi As Variant
     For Each fi In col
-        ce.Value = GetRelatedPath(CStr(fi), base)
+        ce.Value = GetRelatedPath(CStr(fi), Base)
         If link Then
             Application.CutCopyMode = False
             ce.Worksheet.Hyperlinks.Add _

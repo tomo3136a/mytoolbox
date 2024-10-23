@@ -1,18 +1,21 @@
 VERSION 5.00
-Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} SelectFormX 
+Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} SelectForm 
    Caption         =   "選択"
    ClientHeight    =   4680
-   ClientLeft      =   108
-   ClientTop       =   456
-   ClientWidth     =   3624
-   OleObjectBlob   =   "SelectFormX.frx":0000
+   ClientLeft      =   105
+   ClientTop       =   465
+   ClientWidth     =   3630
+   OleObjectBlob   =   "SelectForm.frx":0000
    StartUpPosition =   1  'オーナー フォームの中央
 End
-Attribute VB_Name = "SelectFormX"
+Attribute VB_Name = "SelectForm"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
+
+
 
 
 Option Explicit
@@ -20,7 +23,7 @@ Option Explicit
 Private sValue As String
 Private sMatch As Object
 
-Public Sub Reset(Optional s As String, Optional ptn As String)
+Public Sub reset(Optional s As String, Optional ptn As String)
     Title.Caption = s & "一覧："
     ListBox1.Clear
     sValue = ""
@@ -48,7 +51,7 @@ Public Sub AddItem(s As String)
     If s = "" Then Exit Sub
     If sMatch Is Nothing Then
         ListBox1.AddItem s
-    ElseIf sMatch.test(s) Then
+    ElseIf sMatch.Test(s) Then
         ListBox1.AddItem s
     End If
     If ListBox1.ListCount > 0 Then ListBox1.ListIndex = 0

@@ -61,6 +61,7 @@ End Function
 '設定
 '----------------------------------------
 
+'起動時実行
 Private Sub Designer_onLoad(ByVal Ribbon As IRibbonUI)
     Set g_ribbon = Ribbon
     Call ResetDrawParam
@@ -87,46 +88,30 @@ End Sub
 '----------------------------------------
 
 Private Sub Designer1_onAction(ByVal control As IRibbonControl)
-    Dim obj As Object
-    Set obj = Selection
-    '
-    Select Case RibbonID(control)
-    Case 1
-        '図形のリストアップ
-        Call ListShape(ActiveCell, ActiveSheet, "")
-    Case 2
-        '図形の更新
-        Call UpdateShape(ActiveCell)
-    Case 3
-        '図形を削除
-        Dim s As String
-        s = TypeName(Selection)
-        If TypeName(Selection) = "Range" Then
-            If Selection.Count = 1 Then
-                If MsgBox("全図形を削除しますか？", vbYesNo) = vbYes Then
-                    'Call RemoveSharp(ActiveSheet)
-                End If
-            End If
-        Else
-            Selection.Delete
-        End If
-    Case 4
-        '図形を絵に変換
-        Call ConvToPic
-    Case 5
-        'テキストボックス基本設定
-        Call SetShapeStyle
-    Case 6
-        '埋め込み表示ON/OFF
-        Call InvertFillVisible
-        'オブジェクトの初期化
-        'Call DefaultShapeSetting
-    Case 8
-        Dim s2 As String
-        s2 = GetShapeProp(Selection.ShapeRange, "zero")
-        
-
-    Case 9
+    Dim id As Integer: id = RibbonID(control)
+    
+    Select Case id \ 10
+    Case 1                                  '図形リスト(1x)
+        ListShapeInfo ActiveSheet, id Mod 10
+    Case 2                                  '図形の更新(2x)
+        Select Case id Mod 10
+        Case 0: UpdateShapeInfo ActiveCell  '図形リスト反映
+        Case 1: UpdateShapeName ActiveSheet '図形名修理
+        End Select
+    Case Else
+        Select Case id
+        Case 3: RemoveSharps                '図形を削除
+        Case 4: ConvToPic                   '図形を絵に変換
+        Case 5: SetShapeStyle               'テキストボックス基本設定
+        Case 6: ToggleVisible 0             '塗りつぶし表示ON/OFF
+        Case 7: ToggleVisible 3             '3D表示ON/OFF
+        Case 8
+            Dim s2 As String
+            s2 = GetShapeProperty(Selection.ShapeRange, "zero")
+        Case 9                              'オブジェクトの初期化
+            'Call DefaultShapeSetting
+            MsgBox TypeName(Selection)
+        End Select
     End Select
 End Sub
 
@@ -145,7 +130,7 @@ End Sub
 '部品選択
 Private Sub Designer2_getItemCount(control As IRibbonControl, ByRef returnedVal)
     Dim ws As Worksheet
-    Set ws = TargetSheet("#shapes")
+    Set ws = GetSheet("#shapes")
     If ws Is Nothing Then Exit Sub
     returnedVal = ws.Shapes.Count
 End Sub
@@ -156,7 +141,7 @@ End Sub
 
 Private Sub Designer2_getItemLabel(control As IRibbonControl, index As Integer, ByRef returnedVal)
     Dim ws As Worksheet
-    Set ws = TargetSheet("#shapes")
+    Set ws = GetSheet("#shapes")
     If ws Is Nothing Then Exit Sub
     returnedVal = ws.Shapes(1 + index).name
 End Sub
@@ -167,46 +152,67 @@ End Sub
 
 Private Sub Designer2_onActionDropDown(control As IRibbonControl, id As String, index As Integer)
     Dim ws As Worksheet
-    Set ws = TargetSheet("#shapes")
+    Set ws = GetSheet("#shapes")
     If ws Is Nothing Then Exit Sub
     Call SetDrawParam(10, ws.Shapes(index + 1).name)
     g_select = index
     If Not g_ribbon Is Nothing Then g_ribbon.InvalidateControl control.id
 End Sub
 
-'ターゲットシート取得
-Private Function TargetSheet(s As String) As Worksheet
-    Dim v As Variant
-    Dim ws As Worksheet
-    For Each v In ActiveWorkbook.Worksheets
-        If v.name = s Then Set ws = v
-    Next v
-    If ws Is Nothing Then
-        For Each v In ThisWorkbook.Worksheets
-            If v.name = s Then ws = v
-        Next v
-    End If
-    If ws Is Nothing Then Exit Function
-    Set TargetSheet = ws
-End Function
 
 'ダイナミックメニュー
 Private Sub Designer2_getMenuContent(ByVal control As IRibbonControl, ByRef returnedVal)
     Dim xml As String
 
     xml = "<menu xmlns=""http://schemas.microsoft.com/office/2009/07/customui"">" & _
-          "<button id=""but1"" imageMso=""Help"" label=""Help"" onAction=""HelpMacro""/>" & _
-          "<button id=""but2"" imageMso=""FindDialog"" label=""Find"" onAction=""FindMacro""/>" & _
+          "<button id=""but1"" imageMso=""Help"" label=""Test1"" onAction=""Test1Macro""/>" & _
+          "<button id=""but2"" imageMso=""Help"" label=""Test2"" onAction=""Test2Macro""/>" & _
+          "<button id=""but3"" imageMso=""Help"" label=""Test3"" onAction=""Test3Macro""/>" & _
+          "<button id=""but4"" imageMso=""Help"" label=""Test4"" onAction=""Test4Macro""/>" & _
+          "<button id=""but5"" imageMso=""Help"" label=""Help"" onAction=""HelpMacro""/>" & _
+          "<button id=""but6"" imageMso=""FindDialog"" label=""Find"" onAction=""FindMacro""/>" & _
           "</menu>"
 
     returnedVal = xml
 End Sub
 
+Sub Test1Macro(control As IRibbonControl)
+    Dim shra As ShapeRange
+    Dim obj As Object
+    On Error Resume Next
+    Set obj = Selection
+    On Error GoTo 0
+    If obj Is Nothing Then Exit Sub
+    '
+    Dim sz As Integer
+    Set shra = obj.ShapeRange
+    
+    sz = shra.TextFrame2.TextRange.Characters.Count
+    shra.TextFrame2.TextRange.Characters(sz, 1).Font.Superscript = True
+    'obj.TextFrame.Characters.text = "test"
+    
+    MsgBox "Test1 macro"
+End Sub
+
+Sub Test2Macro(control As IRibbonControl)
+    MsgBox "Test2 macro"
+End Sub
+
+Sub Test3Macro(control As IRibbonControl)
+    MsgBox "Test3 macro"
+End Sub
+
+Sub Test4Macro(control As IRibbonControl)
+    MsgBox "Test4 macro"
+End Sub
+
 Sub HelpMacro(control As IRibbonControl)
+    RefreshRibbon "A"
     MsgBox "Help macro"
 End Sub
 
 Sub FindMacro(control As IRibbonControl)
+    RefreshRibbon
     MsgBox "Find macro"
 End Sub
 
@@ -215,25 +221,13 @@ End Sub
 '----------------------------------------
 
 Private Sub Designer3_onAction(ByVal control As IRibbonControl)
-    Dim ce As Range
-    Set ce = ActiveCell
-    '
+    Dim ce As Range: Set ce = ActiveCell
+    
     Select Case RibbonID(control)
-    Case 1
-        'IDFファイル読み込み
-        Call ImportIDF
-    Case 2
-        'IDFファイル書き出し
-        Call ExportIDF(ActiveSheet)
-    Case 3
-        'IDF作図
-        Call DrawIDF(ce.Worksheet, ce.Left, ce.Top)
-    Case 4
-        'IDF作図
-        Call DrawIDF(ce.Worksheet, ce.Left, ce.Top, sheet_load:=True)
+    Case 1: ImportIDF           'IDFファイル読み込み
+    Case 2: ExportIDF           'IDFファイル書き出し
+    Case 3: DrawIDF ce.Worksheet, ce.Left, ce.Top   'IDF作図
+    Case 4: 'ListKeywordIDF      'IDF作図
     Case 5
-        'IDF作図
-        Call DrawIDF(ce.Worksheet, ce.Left, ce.Top, sheet_load:=True)
     End Select
 End Sub
-

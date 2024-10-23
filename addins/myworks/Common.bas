@@ -7,244 +7,437 @@ Option Explicit
 Option Private Module
 
 '----------------------------------------
-'変数
+'オブジェクト呼び出し
 '----------------------------------------
 
-Public g_columns_margin As Integer
-Public g_rows_margin As Integer
-Public g_header_color As Long
+'worksheet.function
+Function wsf() As WorksheetFunction
+    Set wsf = WorksheetFunction
+End Function
 
 '----------------------------------------
-'表操作マージン
+'正規表現
 '----------------------------------------
 
-Sub SetTableMargin(Optional mode As Integer = xlColumns, Optional v As Integer)
-    If v < 1 Then
-        Dim s As String
-        If mode = xlRows Then v = g_rows_margin: s = "行"
-        If mode = xlColumns Then v = g_columns_margin: s = "列"
-        If v < 1 Then v = 1
-        s = s + "マージンを入力してください(1～9)"
-        v = Application.InputBox(s, Type:=1, Default:=v)
-    End If
-    If v < 1 Or v > 9 Then
+'regex(VBScript.RegExp)
+Function regex( _
+        ptn As String, _
+        Optional g As Boolean = True, _
+        Optional ic As Boolean = True) As Object
+    Set regex = CreateObject("VBScript.RegExp")
+    With regex
+        .Global = g
+        .IgnoreCase = ic
+        .Pattern = ptn
+    End With
+End Function
+
+'文字列有無
+Public Function re_test(s As String, ptn As String) As Boolean
+    On Error Resume Next
+    re_test = regex(ptn).Test(s)
+    On Error GoTo 0
+End Function
+
+'文字列抽出
+Public Function re_match(s As String, ptn As String, _
+        Optional idx As Integer = 0, _
+        Optional idx2 As Integer = -1) As Variant
+    On Error Resume Next
+    Dim re As Object
+    Set re = regex(ptn)
+    Dim mc As Object
+    Set mc = re.Execute(s)
+    
+    If idx >= mc.Count Then
+        re_match = ""
+    ElseIf idx < 0 Then
+        re_match = mc.Count
+    ElseIf idx2 < 0 Then
+        re_match = mc(idx).Value
+    ElseIf idx2 < mc(idx).SubMatches.Count Then
+        re_match = mc(idx).SubMatches(idx2)
     Else
-        If mode = xlRows Then g_rows_margin = v
-        If mode = xlColumns Then g_columns_margin = v
+        re_match = ""
     End If
+    On Error GoTo 0
+End Function
+
+'文字列置き換え
+Public Function re_replace(s As String, ptn As String, rep As String) As String
+    On Error Resume Next
+    re_replace = regex(ptn).Replace(s, rep)
+    On Error GoTo 0
+End Function
+
+'----------------------------------------
+'データ変換
+'----------------------------------------
+
+'コレクションを配列に変換
+Function ToArray(col As Collection) As Variant()
+    Dim arr() As Variant
+    ReDim arr(0 To col.Count - 1)
+    Dim i As Integer
+    For i = 1 To col.Count
+        arr(i - 1) = col.Item(i)
+    Next i
+    ToArray = arr
+End Function
+
+'----------------------------------------
+'領域の値文字列取得
+'----------------------------------------
+
+Function StrRange(s As String) As String
+    If Range(s).Count = 1 Then
+        StrRange = s
+        Exit Function
+    End If
+    Dim n As Integer
+    n = Range(s).Column + Range(s).Columns.Count - 1
+    Dim ra As Range
+    Dim ss As String
+    For Each ra In Range(s)
+        ss = ss & Chr(34) & ra.Value & Chr(34)
+        If n = ra.Column Then
+            ss = ss & vbLf
+        Else
+            ss = ss & ","
+        End If
+    Next ra
+    StrRange = Left(ss, Len(ss) - 1)
+End Function
+
+'----------------------------------------
+'パス操作
+'----------------------------------------
+
+'filesystemobject
+Function fso() As Object
+    Static obj As Object
+    If obj Is Nothing Then
+        Set obj = CreateObject("Scripting.FileSystemObject")
+    End If
+    Set fso = obj
+End Function
+
+'基本名取得
+'  パス削除、拡張子削除、複製情報削除
+Function BaseName(s As String) As String
+    Dim re As Object
+    Set re = regex("[\(（]\d+[\)）]|\s*-\s*コピー")
+    BaseName = re.Replace(fso.GetBaseName(s), "")
+End Function
+
+'短縮パス取得
+Function GetShortPath(path As String, Optional pc As Boolean) As String
+    Dim col As Collection
+    Set col = GetEnvPathName()
+    '
+    Dim p As String
+    p = Replace(path, "/", "\")
+    If Right(p, 1) <> "\" Then p = p & "\"
+    '
+    Dim s As String
+    Dim name As Variant
+    For Each name In col
+        s = Environ(name)
+        s = Replace(s, "/", "\")
+        If Right(s, 1) <> "\" Then s = s & "\"
+        '
+        If UCase(Mid(p, 1, Len(s))) = UCase(s) Then
+            If pc Then
+                p = "%" & name & "%" & Mid(path, Len(s))
+            Else
+                p = "(" & name & ")" & Mid(path, Len(s))
+            End If
+            GetShortPath = p
+            Exit Function
+        End If
+    Next name
+    '
+    GetShortPath = path
+End Function
+
+Private Function GetEnvPathName(Optional reset As Boolean) As Collection
+    Static col As Collection
+    If reset Then
+        Set col = Nothing
+        Exit Function
+    ElseIf Not col Is Nothing Then
+        Set GetEnvPathName = col
+        Exit Function
+    End If
+    '
+    Dim arr As Variant
+    arr = Array("Box", "OneDrive", _
+        "TMP", "TEMP", "LOCALAPPDATA", "APPDATA", "PUBLIC", _
+        "USERPROFILE", "HOME", _
+        "ProgramData", "SystemRoot", _
+        "CommonProgramFiles", "CommonProgramFiles(x86)", _
+        "ProgramFiles", "ProgramFiles(x86)")
+    '
+    Dim dic As Dictionary
+    Set dic = New Dictionary
+    '
+    Dim ss As Variant
+    Dim s As String
+    Dim i As Integer
+    Do
+        i = i + 1
+        s = Environ(i)
+        If s = "" Then Exit Do
+        ss = Split(s, "=", 2)
+        If InStr(1, ss(1), "\") Then
+            If Not dic.Exists(ss(0)) Then dic.Add ss(0), ss(1)
+        End If
+    Loop
+    '
+    Set col = New Collection
+    Dim v As Variant
+    For Each v In arr
+        s = CStr(v)
+        If dic.Exists(s) Then
+            col.Add s
+            dic.Remove s
+        End If
+    Next v
+    '
+    For Each v In dic.Keys
+        col.Add CStr(v)
+    Next v
+    Set dic = Nothing
+    '
+    Set GetEnvPathName = col
+End Function
+
+'絶対パス取得
+Function GetAbstructPath(path As String, Base As String) As String
+    Dim p As String
+    Dim s As String, s2 As String
+    p = path
+    s = re_match(p, "^[\(%](\w+)[\)%]", 0, 0)
+    If s <> "" Then
+        s2 = Environ(s)
+        If s2 <> "" Then p = s2 & Mid(p, Len(s) + 3)
+    End If
+    p = Replace(p, "/", "\")
+    p = Replace(p, "\\", "\")
+    If InStr(1, p, ":\") = 0 Then p = Base & p
+    Do
+        s = p
+        p = re_replace(p, "\\[^\\]+\\[.][.]\\", "\")
+        If s = p Then Exit Do
+    Loop
+    Do
+        s = p
+        p = re_replace(p, "\\[.]\\", "\")
+        If s = p Then Exit Do
+    Loop
+    GetAbstructPath = p
+End Function
+
+'相対パス取得
+Function GetRelatedPath(path As String, Base As String) As String
+    Dim sep As String, s As String
+    If Right(path, 1) = "\" Then sep = "\"
+    Dim ss1 As Variant, ss2 As Variant
+    ss1 = Split(GetAbstructPath(path, Base), "\")
+    ss2 = Split(Base, "\")
+    '
+    Dim i As Integer, j As Integer
+    Dim v As Variant
+    For Each v In ss2
+        If UBound(ss1) <= i Then Exit For
+        If v <> ss1(i) Then Exit For
+        i = i + 1
+    Next v
+    For j = i To UBound(ss2)
+        If ss2(j) <> "" Then s = fso.BuildPath(s, "..")
+    Next j
+    For j = i To UBound(ss1)
+        s = fso.BuildPath(s, ss1(j))
+    Next j
+    s = s & sep
+    GetRelatedPath = s
+End Function
+
+'----------------------------------------
+'パラメータ機能
+'----------------------------------------
+
+'パラメータ設定
+Sub SetParam(grp As String, k As String, ByVal v As String)
+    Dim dic As Dictionary
+    Set dic = param_dict
+    Dim kw As String
+    kw = grp & "_" & k
+    On Error Resume Next
+    dic.Remove kw
+    dic.Add kw, v
+    On Error GoTo 0
 End Sub
 
-Function GetTableMargin(Optional mode As Integer = xlColumns) As Integer
-    Dim v As Integer
-    If g_rows_margin < 1 Then g_rows_margin = 1
-    If g_columns_margin < 1 Then g_columns_margin = 1
-    If mode = xlRows Then v = g_rows_margin
-    If mode = xlColumns Then v = g_columns_margin
-    If v < 1 Or v > 9 Then v = 1
-    GetTableMargin = v
+'パラメータ取得
+Function GetParam(grp As String, k As String) As String
+    Dim dic As Dictionary
+    Set dic = param_dict
+    Dim kw As String
+    kw = grp & "_" & k
+    On Error Resume Next
+    GetParam = dic.Item(kw)
+    On Error GoTo 0
+End Function
+
+'パラメータ取得(boolean)
+Function GetParamBool(grp As String, k As String) As Boolean
+    Dim s As String
+    s = GetParam(grp, k)
+    If s = "" Then s = "False"
+    GetParamBool = s
+End Function
+
+'パラメータディクショナリ
+Private Function param_dict() As Dictionary
+    Static dic As Dictionary
+    If dic Is Nothing Then Set dic = New Dictionary
+    Set param_dict = dic
 End Function
 
 '----------------------------------------
-'表の範囲取得
+'シート名操作
 '----------------------------------------
 
-'テーブル先頭取得
-Function FarLeftTop(ra As Range) As Range
-    Dim rs As Range, ce As Range
-    Set rs = FarLeft(ra)
-    Set rs = FarTop(rs)
-    Set rs = FarLeft(rs)
-    Set ce = rs.Cells(1, 1)
-    Set FarLeftTop = ce
-    '
+'シート名有無のチェック
+Function HasSheetName(wb As Workbook, name As String) As Boolean
     Dim i As Integer
-    For i = 1 To 5
-        If ce = "" Then
-            Set ce = ce.Offset(1)
-        ElseIf ce.Offset(0, 1) = "" Then
-            Set ce = ce.Offset(1)
+    For i = 1 To wb.Worksheets.Count
+        If wb.Worksheets(i).name = name Then
+            HasSheetName = True
+            Exit Function
         End If
     Next i
-    'If ce <> "" Then ce.Select
-    If ce <> "" Then Set FarLeftTop = ce
 End Function
 
-'上端取得
-Function FarTop(ra As Range) As Range
-    Dim ce As Range
-    Set ce = ra.Cells(1, 1)
-    Dim p As Long
-    p = ra.Worksheet.UsedRange.Row
-    Dim cnt As Integer
-    Dim rs As Range
-    Set rs = ce
-    If g_rows_margin < 1 Then g_rows_margin = 1
-    Do While ce.Row > p And cnt < g_rows_margin
-        If ce.Offset(-1).Value = "" Then
-            Set ce = ce.Offset(-1)
-            cnt = cnt + 1
-        Else
-            Set ce = ce.End(xlUp)
-            Set rs = ce
-            cnt = 0
-        End If
+'重複しないシート名取得
+Function UniqueSheetName(wb As Workbook, name As String) As String
+    Dim i As Integer: i = 1
+    Dim s As String: s = name
+    Do While HasSheetName(wb, s)
+        s = name & " (" & i & ")"
+        i = i + 1
     Loop
-    Set FarTop = rs
+    UniqueSheetName = s
 End Function
 
-'左端取得
-Function FarLeft(ra As Range) As Range
-    Dim ce As Range
-    Set ce = ra.Cells(1, 1)
-    Dim p As Integer
-    p = ra.Worksheet.UsedRange.Column
-    Dim cnt As Integer
-    Dim rs As Range
-    Set rs = ce
-    Do While ce.Column > p And cnt < g_columns_margin
-        If ce.Offset(0, -1).Value = "" Then
-            Set ce = ce.Offset(0, -1)
-            cnt = cnt + 1
-        Else
-            Set ce = ce.End(xlToLeft)
-            Set rs = ce
-            cnt = 0
+'----------------------------------------
+'シートプロパティ操作
+'----------------------------------------
+
+'シートプロパティ名リストを取得
+Function GetSheetPropertyNames(ws As Worksheet) As String()
+    Dim lst() As String
+    ReDim Preserve lst(ws.CustomProperties.Count)
+    Dim i As Integer
+    For i = 1 To ws.CustomProperties.Count
+        lst(i) = ws.CustomProperties(i).name
+    Next i
+    GetSheetPropertyNames = lst
+End Function
+
+'シートプロパティ数を取得
+Function SheetPropertyCount(ws As Worksheet) As Integer
+    SheetPropertyCount = ws.CustomProperties.Count
+End Function
+
+'シートプロパティ名から番号取得
+Function SheetPropertyIndex(ws As Worksheet, name As String) As Integer
+    Dim i As Integer
+    For i = 1 To ws.CustomProperties.Count
+        If ws.CustomProperties(i).name = name Then
+            SheetPropertyIndex = i
+            Exit Function
         End If
-    Loop
-    Set FarLeft = rs
+    Next i
 End Function
 
-'右端取得
-Function FarRight(ra As Range) As Range
-    Dim ce As Range
-    Set ce = ra.Cells(1, 1)
-    Dim p As Integer
-    p = ra.Worksheet.UsedRange.Column
-    p = p + ra.Worksheet.UsedRange.Columns.Count
-    Dim cnt As Integer
-    Dim re As Range
-    Set re = ce
-     If g_columns_margin < 1 Then g_columns_margin = 1
-   Do While ce.Column < p And cnt < g_columns_margin
-        If ce.Offset(0, 1).Value = "" Then
-            Set ce = ce.Offset(0, 1)
-            cnt = cnt + 1
-        Else
-            Set ce = ce.End(xlToRight)
-            Set re = ce
-            cnt = 0
-        End If
-    Loop
-    Set FarRight = re
+'シートプロパティ名からプロパティ値取得
+Function GetSheetProperty(ws As Worksheet, name As String) As CustomProperty
+    Dim idx As Integer
+    idx = SheetPropertyIndex(ws, name)
+    If idx > 0 Then
+        Set GetSheetProperty = ws.CustomProperties(idx)
+        Exit Function
+    End If
+    Set GetSheetProperty = ws.CustomProperties.Add(name, "")
 End Function
 
-'下端取得
-Function FarBottom(ra As Range) As Range
-    Dim ce As Range
-    Set ce = ra.Cells(1, 1)
-    Dim p As Long
-    p = ra.Worksheet.UsedRange.Row
-    p = p + ra.Worksheet.UsedRange.Rows.Count
-    Dim cnt As Integer
-    Dim re As Range
-    Set re = ce
-    If g_rows_margin < 1 Then g_rows_margin = 1
-    Do While ce.Row < p And cnt < g_rows_margin
-        'Set ce = ce.Offset(1)
-        If ce.Offset(1).Value = "" Then
-            Set ce = ce.Offset(1)
-            cnt = cnt + 1
-        Else
-            Set ce = ce.End(xlDown)
-            Set re = ce
-            cnt = 0
-        End If
-    Loop
-    Set FarBottom = re
+'シートプロパティ名から値取得
+Function StrSheetProperty(ws As Worksheet, name As String) As String
+    Dim idx As Integer
+    idx = SheetPropertyIndex(ws, name)
+    If idx > 0 Then StrSheetProperty = ws.CustomProperties(idx).Value
 End Function
 
-'テーブル行取得
-Function TableRow(ra As Range) As Range
-    Dim rs As Range
-    Set rs = FarLeft(ra)
-    Dim re As Range
-    Set re = FarRight(ra)
-    Set TableRow = ra.Worksheet.Range(rs, re.Offset(ra.Rows.Count - 1))
-End Function
+'----------------------------------------
+'画面チラつき防止
+'----------------------------------------
 
-'テーブル列取得
-Function TableColumn(ra As Range) As Range
-    Dim rs As Range
-    Set rs = FarTop(ra)
-    Dim re As Range
-    Set re = FarBottom(ra)
-    Set TableColumn = ra.Worksheet.Range(rs, re.Offset(, ra.Columns.Count - 1))
-End Function
+'画面チラつき防止処置
+Public Sub ScreenUpdateOff()
+    Application.Calculation = xlCalculationManual
+    Application.ScreenUpdating = False
+    Application.DisplayAlerts = False
+    Application.EnableEvents = False
+    Application.Interactive = False
+    Application.Cursor = xlWait
+End Sub
 
-'列見出し取得
-Function HeaderRange(ra As Range) As Range
-    If ra.Columns.Count <> 1 Then
-        Set HeaderRange = ra.Rows(1)
-    ElseIf ra.Cells(1, 1).Value = "" Then
-        Set HeaderRange = ra.Cells(1, 1)
+'画面チラつき防止処置解除
+Public Sub ScreenUpdateOn()
+    Application.Cursor = xlDefault
+    Application.Interactive = True
+    Application.EnableEvents = True
+    Application.DisplayAlerts = True
+    Application.ScreenUpdating = True
+    Application.Calculation = xlCalculationAutomatic
+End Sub
+
+'----------------------------------------
+'進行状況表示(status-bar)
+'----------------------------------------
+
+Sub ProgressStatusBar(Optional i As Long = 1, Optional cnt As Long = 1)
+    Static tm_start As Double
+    If i < 1 Then
+        tm_start = Timer
+        Application.StatusBar = "進捗状況(0%)"
+        Exit Sub
+    End If
+    If i >= cnt Then
+        Application.StatusBar = False
+        Exit Sub
+    End If
+    Dim p As Double: p = i / cnt
+    Dim s As String: s = "進捗状況(" & Int(p * 100) & "%)"
+    s = s & " : " & ProgressBar(p)
+    Dim tm As Double: tm = (Timer - tm_start) / p * (1 - p)
+    Application.StatusBar = s & " : 残り" & Int(tm) & "秒"
+End Sub
+
+Private Function ProgressBar(p As Double) As String
+    If p < 0.2 Then
+        ProgressBar = "□□□□□"
+    ElseIf p < 0.4 Then
+        ProgressBar = "■□□□□"
+    ElseIf p < 0.6 Then
+        ProgressBar = "■■□□□"
+    ElseIf p < 0.8 Then
+        ProgressBar = "■■■□□"
+    ElseIf p < 1 Then
+        ProgressBar = "■■■■□"
     Else
-        Set HeaderRange = TableRow(ra)
+        ProgressBar = "■■■■■"
     End If
 End Function
-
-'表取得
-Function TableRange(ra As Range) As Range
-    Dim rh As Range
-    Set rh = ra
-    '
-    Dim rc As Long
-    rc = ra.Rows.Count - 1
-    If rc = 0 Then
-        Dim rs As Range
-        Set rs = FarLeft(ra)
-        rc = FarBottom(rs).Row - rs.Row
-    End If
-    '
-    Set TableRange = ra.Worksheet.Range(rh, rh.Offset(rc))
-End Function
-
-'----------------------------------------
-'テーブル読み込み
-'----------------------------------------
-
-'テキストファイル読み込み
-Function AddTextSheet(path As String) As Worksheet
-    Dim ws_old As Worksheet
-    Set ws_old = ActiveSheet
-    Dim ws As Worksheet
-    Set ws = Worksheets.Add(after:=Worksheets(Worksheets.Count))
-    ws.name = UniqueSheetName(ws.Parent, fso.GetFileName(path))
-
-    Dim arrDataType(255) As Long
-    Dim i As Long
-    For i = 0 To 255
-        arrDataType(i) = xlTextFormat
-    Next i
-    
-    With ws.QueryTables.Add(Connection:="TEXT;" + path, Destination:=Range("A1"))
-        .TextFileParseType = xlDelimited
-        .TextFileSpaceDelimiter = True
-        '.TextFileCommaDelimiter = True
-        .TextFilePlatform = 932         'SJIS
-        '.TextFilePlatform = 65001       'UTF-8
-        .TextFileStartRow = 1
-        .TextFileColumnDataTypes = arrDataType
-        .Refresh BackgroundQuery:=False
-        .name = "tmp_tbl"
-        .Delete
-    End With
-    
-    Dim n As Variant
-    For Each n In ws.Parent.Names
-        If n.name = ws.name & "!" & "tmp_tbl" Then n.Delete
-    Next n
-    
-    ws_old.Activate
-    Set AddTextSheet = ws
-End Function
-

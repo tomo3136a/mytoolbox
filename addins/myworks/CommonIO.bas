@@ -1,4 +1,4 @@
-Attribute VB_Name = "CommonUI"
+Attribute VB_Name = "CommonIO"
 '==================================
 '共通(UI操作)
 '==================================
@@ -29,7 +29,7 @@ Const c_exts As String = _
 '----------------------------------------
 
 ' 拡張子種別名リストアップ
-Sub ListupExtNames(Optional exts As String)
+Public Sub ListupExtNames(Optional exts As String)
     If exts = "" Then exts = c_exts
     Dim ce As Range
     Set ce = Selection.Cells(1, 1)
@@ -84,7 +84,7 @@ End Function
 '----------------------------------------
 
 '単体ファイル選択
-Function SelectFile( _
+Public Function SelectFile( _
         Optional path As String, _
         Optional Title As String, _
         Optional exts As String) As String
@@ -97,7 +97,7 @@ Function SelectFile( _
 End Function
 
 '複数ファイル選択
-Function SelectFiles( _
+Public Function SelectFiles( _
         Optional path As String, _
         Optional Title As String, _
         Optional exts As String, _
@@ -113,6 +113,7 @@ Function SelectFiles( _
         For Each s In dic.Keys
             .Filters.Add s, dic(s)
         Next s
+        .FilterIndex = 0
         If path <> "" Then
             path = re_replace(path, "^\((\w+)\)", "%$1%")
             If Right(path, 1) <> "\" Then path = path & "\"
@@ -215,6 +216,24 @@ Function SelectSheet(Optional wb As Workbook, Optional ptn As String) As Workshe
     If s <> "" Then Set SelectSheet = wb.Worksheets(s)
 End Function
 
+
+Public Function SelectSheetCB(Optional wb As Workbook) As Worksheet
+    Dim fsu As Boolean
+    fsu = Application.ScreenUpdating
+    If fsu Then Application.ScreenUpdating = False
+    
+    Dim ws As Worksheet
+    Set ws = ActiveSheet
+    With CommandBars.Add(temporary:=True)
+        .Controls.Add(id:=957).Execute
+        .Delete
+    End With
+    Set SelectSheetCB = ActiveSheet
+    ws.Select
+    
+    If fsu Then Application.ScreenUpdating = True
+End Function
+
 'セル選択
 Function SelectCell(Optional ra As Range, Optional s As String, Optional ptn As String) As Range
     If ra Is Nothing Then Set ra = Selection
@@ -247,12 +266,15 @@ Function SelectAddin(Optional ptn As String) As addin
     If s <> "" Then Set SelectAddin = AddIns(s)
 End Function
 
+'----------------------------------------
+'読み込み・保存
+'----------------------------------------
 
 'ワークシート取込
 Sub OpenWorkbook()
     Dim path As Variant
     path = Application.GetOpenFilename( _
-        fileFilter:="Excelファイル,*.xls*,Csvファイル,*.csv" _
+        FileFilter:="Excelファイル,*.xls*,Csvファイル,*.csv" _
         & ",テキストファイル,*.txt,全てのファイル,*.*" _
     )
     If path = False Then
@@ -273,7 +295,7 @@ Sub OpenWorkbook()
     Dim ws As Worksheet
     Set ws = SelectSheet(wb)
     ws.name = UniqueSheetName(wb, ws.name)
-    ws.Copy after:=old
+    ws.Copy After:=old
     wb.Close
     Application.EnableEvents = True
     Application.ScreenUpdating = fsu
@@ -286,7 +308,7 @@ Function SaveWorkbook(Optional path As Variant = False) As String
     Application.ScreenUpdating = False
     '
     path = Application.GetSaveAsFilename( _
-        fileFilter:="Excelファイル,*.xlsx" _
+        FileFilter:="Excelファイル,*.xlsx" _
     )
     If path <> False Then
         Application.EnableEvents = False
@@ -322,42 +344,3 @@ Function SelectAddinsSheet() As Worksheet
     ws.Select
     Application.ScreenUpdating = True
 End Function
-
-'----------------------------------------
-'進行状況表示(status-bar)
-'----------------------------------------
-
-Sub ProgressStatusBar(Optional i As Long = 1, Optional cnt As Long = 1)
-    Static tm_start As Double
-    If i < 1 Then
-        tm_start = Timer
-        Application.StatusBar = "進捗状況(0%)"
-        Exit Sub
-    End If
-    If i >= cnt Then
-        Application.StatusBar = False
-        Exit Sub
-    End If
-    Dim p As Double: p = i / cnt
-    Dim s As String: s = "進捗状況(" & Int(p * 100) & "%)"
-    s = s & " : " & ProgressBar(p)
-    Dim tm As Double: tm = (Timer - tm_start) / p * (1 - p)
-    Application.StatusBar = s & " : 残り" & Int(tm) & "秒"
-End Sub
-
-Private Function ProgressBar(p As Double) As String
-    If p < 0.2 Then
-        ProgressBar = "□□□□□"
-    ElseIf p < 0.4 Then
-        ProgressBar = "■□□□□"
-    ElseIf p < 0.6 Then
-        ProgressBar = "■■□□□"
-    ElseIf p < 0.8 Then
-        ProgressBar = "■■■□□"
-    ElseIf p < 1 Then
-        ProgressBar = "■■■■□"
-    Else
-        ProgressBar = "■■■■■"
-    End If
-End Function
-

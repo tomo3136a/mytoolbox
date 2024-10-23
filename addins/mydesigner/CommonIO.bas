@@ -1,10 +1,10 @@
 Attribute VB_Name = "CommonIO"
+'==================================
+'共通(UI操作)
+'==================================
+
 Option Explicit
 Option Private Module
-
-'==================================
-'IO共通
-'==================================
 
 '----------------------------------------
 '定数
@@ -23,7 +23,6 @@ Const c_exts As String = _
     "ログファイル;*.log," & _
     "PDFファイル;*.pdf;*.fdf;*.xfdf," & _
     "すべてのファイル;*.*"
-
 
 '----------------------------------------
 'ファイルフィルタ
@@ -117,7 +116,8 @@ Public Function SelectFiles( _
         .FilterIndex = 0
         If path <> "" Then
             path = re_replace(path, "^\((\w+)\)", "%$1%")
-            If Not fso.FileExists(path) Then path = path & "\"
+            If Right(path, 1) <> "\" Then path = path & "\"
+            'If Not fso.FileExists(path) Then path = path & "\"
             .InitialFileName = path
         End If
         .Show
@@ -130,7 +130,7 @@ End Function
 '----------------------------------------
 
 'CSVファイル選択
-Public Function SelectCsvFile( _
+Function SelectCsvFile( _
         Optional path As String, _
         Optional Title As String) As String
     Dim filter As String
@@ -139,7 +139,7 @@ Public Function SelectCsvFile( _
 End Function
 
 'リストファイル選択
-Public Function SelectListFile( _
+Function SelectListFile( _
         Optional path As String, _
         Optional Title As String) As String
     Dim filter As String
@@ -151,7 +151,7 @@ End Function
 'フォルダ選択
 '----------------------------------------
 
-Public Function SelectFolder( _
+Function SelectFolder( _
         Optional path As String = "", _
         Optional mode As Integer = 1) As String
     If path = "" Then
@@ -185,10 +185,9 @@ Private Function SelectFolder2(path As String) As String
                         "フォルダを選んでください", _
                         &H1 + &H10 + &H200, path)
         If fo Is Nothing Then Exit Function
-        SelectFolder2 = fo.Items.Item.path
+        SelectFolder2 = fo.items.Item.path
     End With
 End Function
-
 
 '----------------------------------------
 '選択ダイアログ
@@ -196,96 +195,113 @@ End Function
 
 'ワークブック選択
 Function SelectBook(Optional ptn As String) As Workbook
-    SelectFormX.Reset "ブック", ptn
-    SelectFormX.AddNames Workbooks
-    SelectFormX.Show
+    SelectForm.reset "ブック", ptn
+    SelectForm.AddNames Workbooks
+    SelectForm.Show
     Dim s As String
-    s = SelectFormX.Result
-    Unload SelectFormX
+    s = SelectForm.Result
+    Unload SelectForm
     If s <> "" Then Set SelectBook = Workbooks(s)
 End Function
 
 'ワークシート選択
 Function SelectSheet(Optional wb As Workbook, Optional ptn As String) As Worksheet
     If wb Is Nothing Then Set wb = ActiveWorkbook
-    SelectFormX.Reset "シート", ptn
-    SelectFormX.AddNames wb.Worksheets
-    If SelectFormX.ItemCount > 0 Then SelectFormX.Show
+    SelectForm.reset "シート", ptn
+    SelectForm.AddNames wb.Worksheets
+    If SelectForm.ItemCount > 0 Then SelectForm.Show
     Dim s As String
-    s = SelectFormX.Result
-    Unload SelectFormX
+    s = SelectForm.Result
+    Unload SelectForm
     If s <> "" Then Set SelectSheet = wb.Worksheets(s)
+End Function
+
+
+Public Function SelectSheetCB(Optional wb As Workbook) As Worksheet
+    Dim fsu As Boolean
+    fsu = Application.ScreenUpdating
+    If fsu Then Application.ScreenUpdating = False
+    
+    Dim ws As Worksheet
+    Set ws = ActiveSheet
+    With CommandBars.Add(temporary:=True)
+        .Controls.Add(id:=957).Execute
+        .Delete
+    End With
+    Set SelectSheetCB = ActiveSheet
+    ws.Select
+    
+    If fsu Then Application.ScreenUpdating = True
+End Function
+
+'シート取得
+Function GetSheet(s As String) As Worksheet
+    Dim v As Variant
+    Dim ws As Worksheet
+    For Each v In ActiveWorkbook.Worksheets
+        If v.name = s Then Set ws = v
+    Next v
+    If ws Is Nothing Then
+        For Each v In ThisWorkbook.Worksheets
+            If v.name = s Then ws = v
+        Next v
+    End If
+    If ws Is Nothing Then Exit Function
+    Set GetSheet = ws
 End Function
 
 'セル選択
 Function SelectCell(Optional ra As Range, Optional s As String, Optional ptn As String) As Range
     If ra Is Nothing Then Set ra = Selection
-    With SelectFormX
-        .Reset s, ptn
-        .AddValues ra
-        .Show
-        Dim i As Integer
-        i = .index
-        Dim v As Variant
-        For Each v In ra
-            If i = 0 Then Exit For
-            i = i - 1
-        Next v
-        If Not v = Empty Then Set SelectCell = v
-    End With
-    Unload SelectFormX
+    SelectForm.reset s, ptn
+    SelectForm.AddValues ra
+    SelectForm.Show
+    Dim i As Integer
+    i = SelectForm.index
+    Dim v As Variant
+    For Each v In ra
+        If i = 0 Then Exit For
+        i = i - 1
+    Next v
+    If Not v = Empty Then Set SelectCell = v
+    Unload SelectForm
+End Function
+
+'セル取得
+Function GetCell(Optional msg As String, Optional Title As String) As Range
+    
+    Dim ce As Range
+    Do
+        On Error Resume Next
+        Set ce = Application.InputBox(msg, Title, Type:=8)
+        On Error GoTo 0
+        If ce Is Nothing Then Exit Function
+    Loop Until ce.Count = 1
+    Set GetCell = ce
+
 End Function
 
 'アドイン選択
 Function SelectAddin(Optional ptn As String) As addin
-    With SelectFormX
-        .Reset "アドイン", ptn
-        Dim v As Variant
-        For Each v In AddIns
-            .AddItem v.Title
-        Next v
-        '.AddNames AddIns
-        .Show
-        Dim s As String
-        s = .Result
-    End With
-    Unload SelectFormX
+    SelectForm.reset "アドイン", ptn
+    Dim v As Variant
+    For Each v In AddIns
+        SelectForm.AddItem v.Title
+    Next v
+    'SelectForm.AddNames AddIns
+    SelectForm.Show
+    Dim s As String
+    s = SelectForm.Result
+    Unload SelectForm
     If s <> "" Then Set SelectAddin = AddIns(s)
 End Function
-
-Public Function SelectAddinsSheet() As Worksheet
-    Dim wb As Workbook
-    Dim ws As Worksheet
-    Application.ScreenUpdating = False
-    Set ws = ActiveSheet
-    Set wb = ActiveWorkbook
-    ThisWorkbook.Activate
-    With CommandBars.Add(temporary:=True)
-        .Controls.Add(id:=957).Execute
-        .Delete
-    End With
-    If Not ThisWorkbook.ActiveSheet Is ws Then
-        Set SelectAddinsSheet = ThisWorkbook.ActiveSheet
-    End If
-    ThisWorkbook.IsAddin = False
-    wb.Activate
-    
-    ws.Select
-    Application.ScreenUpdating = True
-End Function
-
-'名前選択・移動
-Public Function SelectName() As Range
-    Application.Dialogs(63).Show
-End Function
-
 
 '----------------------------------------
 '読み込み・保存
 '----------------------------------------
 
 'ワークシート取込
-Public Sub OpenWorkbook()
+Sub OpenWorkbook()
     Dim path As Variant
     path = Application.GetOpenFilename( _
         FileFilter:="Excelファイル,*.xls*,Csvファイル,*.csv" _
@@ -316,7 +332,7 @@ Public Sub OpenWorkbook()
 End Sub
 
 'ワークブックセーブ選択
-Public Function SaveWorkbook(Optional path As Variant = False) As String
+Function SaveWorkbook(Optional path As Variant = False) As String
     Dim fsu As Boolean
     fsu = Application.ScreenUpdating
     Application.ScreenUpdating = False
@@ -334,3 +350,27 @@ Public Function SaveWorkbook(Optional path As Variant = False) As String
     Application.ScreenUpdating = fsu
 End Function
 
+'----------------------------------------
+'アドインシート選択ダイアログ
+'----------------------------------------
+
+Function SelectAddinsSheet() As Worksheet
+    Dim wb As Workbook
+    Dim ws As Worksheet
+    Application.ScreenUpdating = False
+    Set ws = ActiveSheet
+    Set wb = ActiveWorkbook
+    ThisWorkbook.Activate
+    With CommandBars.Add(temporary:=True)
+        .Controls.Add(id:=957).Execute
+        .Delete
+    End With
+    If Not ThisWorkbook.ActiveSheet Is ws Then
+        Set SelectAddinsSheet = ThisWorkbook.ActiveSheet
+    End If
+    ThisWorkbook.IsAddin = False
+    wb.Activate
+    
+    ws.Select
+    Application.ScreenUpdating = True
+End Function

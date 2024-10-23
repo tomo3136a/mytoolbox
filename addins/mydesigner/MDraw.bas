@@ -1,34 +1,82 @@
 Attribute VB_Name = "MDraw"
+'==================================
+'描画
+'==================================
+
 Option Explicit
 Option Private Module
 
-'パラメータ
-Private g_ignore As String      '無効検索文字
-Private g_scale As Double       'スケール
-Private g_axes As Double        '軸間隔
-Private g_flag As Integer       'モード(0:,1:,2:,3:)
-Private g_part As String        '部品名
+'----------------------------------------
+'データ
 
-Private ptype_col As Variant
-Private ptypename As Variant
-Private pshapetypename As Variant
+'図形リストメンバー
+'[0] 名称
+'[1] 表示名
+'[2] 0:文字列,1:整数,2:0.0##,3:論理値,4:色
+Private Const c_ShapeInfoMember As String = "" _
+        & ";Name,名前,0     ;Title,タイトル,0" _
+        & ";" _
+        & ";ID,ID,0         ;Type,種別,0     ;Style,スタイル,0" _
+        & ";Top,上位置,2    ;Left,左位置,2   ;Back,後位置,2     ;Rotation,回転,2" _
+        & ";Height,高さ,2   ;Width,幅,2      ;Depth,奥行き,2" _
+        & ";" _
+        & ";Visible,表示,3                  ;Transparency,透明度,2" _
+        & ";LineVisible,枠線表示,3          ;LineColor,枠線色,4" _
+        & ";FillVisible,塗りつぶし表示,3    ;FillColor,塗りつぶし色,4" _
+        & ";" _
+        & ";Text,テキスト,0     ;AltText,代替えテキスト,0" _
+        & ";Scale,スケール,2    ;X0,原点X,2     ;Y0,原点Y,2     ;Z0,原点Z,2"
+
+'図形リストヘッダ
+Private Const c_ShapeInfoHeader As String = "" _
+    & ";名称,           Name,Title" _
+    & ";形状,           Name,ID,Type,Style,Title" _
+    & ";位置,           Name,Top,Left,Back,Rotation" _
+    & ";サイズ,         Name,Height,Width,Depth" _
+    & ";表示,           Name,Visible,Transparency" _
+    & ";枠線,           Name,LineVisible,LineColor" _
+    & ";塗り,           Name,FillVisible,FillColor" _
+    & ";テキスト,       Name,Text" _
+    & ";代替えテキスト, Name,AltText" _
+    & ";属性,           Name,Scale,X0,Y0,Z0"
+
+'環境パラメータ項目
+Public Enum E_DrawParam
+    E_IGNORE = 1
+    E_SCALE = 2
+    E_AXES = 3
+    E_FLAG = 4
+    E_PART = 10
+End Enum
+
+'環境パラメータ
+Private g_mask As String            '無効検索文字
+Private g_scale As Double           'スケール
+Private g_axes As Double            '軸間隔
+Private g_flag As Integer           'モード(0:,1:,2:,3:)
+Private g_part As String            '部品名
+
+Private ptype_col As Variant        '図形タイプテーブル
+Private ptypename As Variant        '図形タイプ名称テーブル
+Private pshapetypename As Variant   '図形タイプテーブル
 
 '----------------------------------------
 'パラメータ制御
 '----------------------------------------
 
+'描画パラメータ初期化
 Public Sub ResetDrawParam(Optional id As Integer)
-    If id = 0 Or id = 1 Then g_ignore = ""
-    If id = 0 Or id = 2 Then g_scale = 1
+    If id = 0 Or id = 1 Then g_mask = ""
+    If id = 0 Or id = 2 Then g_scale = 0.1
     If id = 0 Or id = 3 Then g_axes = 10
     If id = 0 Or id = 4 Then g_flag = 0
     If id = 0 Or id = 10 Then g_part = ""
 End Sub
 
+'描画パラメータ設定
 Public Sub SetDrawParam(id As Integer, ByVal val As String)
     Select Case id
-    Case 1
-        g_ignore = val
+    Case 1: g_mask = val
     Case 2
         If val <= 0 Then
             MsgBox "比率の設定が間違っています。(設定値>0)" & Chr(10) _
@@ -43,21 +91,17 @@ Public Sub SetDrawParam(id As Integer, ByVal val As String)
             Exit Sub
         End If
         g_axes = val
-    Case 4
-        g_flag = (g_flag And (65535 - 1)) Or (val * 1)
-    Case 5
-        g_flag = (g_flag And (65535 - 2)) Or (val * 2)
-    Case 6
-        g_flag = (g_flag And (65535 - 4)) Or (val * 4)
-    Case 10
-        g_part = val
+    Case 4: g_flag = (g_flag And (65535 - 1)) Or (val * 1)
+    Case 5: g_flag = (g_flag And (65535 - 2)) Or (val * 2)
+    Case 6: g_flag = (g_flag And (65535 - 4)) Or (val * 4)
+    Case 10: g_part = val
     End Select
 End Sub
 
+'描画パラメータ取得
 Public Function GetDrawParam(id As Integer) As String
     Select Case id
-    Case 1
-        GetDrawParam = g_ignore
+    Case 1: GetDrawParam = g_mask
     Case 2
         If g_scale <= 0 Then
             ResetDrawParam id
@@ -73,6 +117,7 @@ Public Function GetDrawParam(id As Integer) As String
     End Select
 End Function
 
+'描画パラメータフラグチェック
 Public Function IsDrawParam(id As Integer) As Boolean
     IsDrawParam = ((g_flag And (65535 - (2 ^ (id - 4)))) <> 0)
 End Function
@@ -81,125 +126,240 @@ End Function
 '図形属性制御
 '----------------------------------------
 
-Function GetShapeProp(sr As ShapeRange, k As String) As String
-    Dim line As Variant
-    For Each line In Split(sr.AlternativeText, Chr(10), , vbTextCompare)
-        Dim kv As Variant
-        kv = Split(line, ":", 2, vbTextCompare)
-        If UBound(kv) > 0 Then
-            If UCase(k) = UCase(Trim(kv(0))) Then
-                GetShapeProp = Trim(kv(1))
-                Exit For
-            End If
-        End If
-    Next line
+'図形属性取得
+Function GetShapeProperty(sr As ShapeRange, k As String) As String
+    GetShapeProperty = ParamStrVal(sr.AlternativeText, k)
 End Function
 
-Sub SetShapeProp(sr As ShapeRange, k As String, v As String)
-    Dim lines As Variant
-    lines = Split(sr.AlternativeText, Chr(10), , vbTextCompare)
-    Dim line As Variant
-    Dim i As Integer
-    For i = 0 To lines.Count
-        line = lines(i)
-        Dim kv As Variant
-        kv = Split(line, ":", 2, vbTextCompare)
-        If UBound(kv) > 0 Then
-            If k = Trim(kv(0)) Then
-                lines(i) = k & ":" & Trim(v)
-                Exit For
-            End If
-        Else
-            If k = Trim(kv(0)) Then
-                lines(i) = ""
-                Exit For
-            End If
-        End If
-    Next i
-    line = Replace(Join(lines, Chr(10)), Chr(10) & Chr(10), Chr(10))
-    sr.AlternativeText = line
+'図形属性設定
+Sub SetShapeProperty(sr As ShapeRange, k As String, v As String)
+    sr.AlternativeText = UpdateParamStr(sr.AlternativeText, k, v)
 End Sub
-
-
 
 '----------------------------------------
+'図形基本設定
+'----------------------------------------
 
-'図形装飾
+'図形基本設定
+'[3] テキスト, 塗りつぶしと線
 Public Sub SetShapeStyle(Optional sr As ShapeRange)
-    On Error Resume Next
-    If sr Is Nothing Then Set sr = Selection.ShapeRange
-    Dim ws As Worksheet
-    Set ws = sr.Parent
-    '
-    Dim sh As Object
-    Set sh = ws.Shapes(sr.name)
-    '
-    'テキスト設定
-    With sh.TextFrame2
-        .MarginLeft = 0
-        .MarginRight = 0
-        .MarginTop = 0
-        .MarginBottom = 0
-        .WordWrap = msoFalse
-        .VerticalAnchor = msoAnchorBottom
-        .HorizontalAnchor = msoAnchorNone
-    End With
-    With sh.TextFrame
-        .VerticalOverflow = xlOartVerticalOverflowOverflow
-        .HorizontalOverflow = xlOartHorizontalOverflowOverflow
-    End With
-    '
-    sh.LockAspectRatio = msoTrue
-    sh.Placement = xlFreeFloating
-    Dim s As String
-    s = sh.Left & "," & sh.Top & "," & sh.Width & "," & sh.Height
-    sr.AlternativeText = s
-    sr.Title = s
-    '
-    On Error GoTo 0
+    Call SetShapeSetting(sr, 3)
 End Sub
 
-Public Sub InvertFillVisible(Optional sr As ShapeRange)
-    On Error Resume Next
-    If sr Is Nothing Then Set sr = Selection.ShapeRange
-    Dim ws As Worksheet
-    Set ws = sr.Parent
-    '
-    Dim sh As Object
-    Set sh = ws.Shapes(sr.name)
-    With sr.Fill
-        If .Visible = msoTrue Then
-            .Visible = msoFalse
-        Else
-            .Visible = msoTrue
-        End If
-    End With
-    '
-    On Error GoTo 0
+'標準図形設定
+Public Sub DefaultShapeSetting(Optional sr As ShapeRange)
+    Call SetShapeSetting(sr, 511)
 End Sub
 
-'ターゲットシート取得
-Private Function TargetSheet(s As String) As Worksheet
-    Dim v As Variant
-    Dim ws As Worksheet
-    For Each v In ActiveWorkbook.Worksheets
-        If v.name = s Then Set ws = v
-    Next v
-    If ws Is Nothing Then
-        For Each v In ThisWorkbook.Worksheets
-            If v.name = s Then ws = v
-        Next v
+'----------------------------------------
+'図形基本設定
+'[1] テキスト
+'[2] 塗りつぶしと線
+'[4] サイズとプロパティ
+'[8] 代替え文字
+'[256] デフォルト設定
+Private Sub SetShapeSetting(Optional ByVal sr As ShapeRange, Optional mode As Integer = 255)
+    
+    If sr Is Nothing Then
+        If TypeName(Selection) = "Range" Then Exit Sub
+        Set sr = Selection.ShapeRange
     End If
-    If ws Is Nothing Then Exit Function
-    Set TargetSheet = ws
-End Function
+    Dim Sh As Shape
+    
+    '設定(テキスト)
+    If mode And 1 Then
+        With sr.TextFrame2
+            'With .TextRange.Font
+            'End With
+            .MarginLeft = 0.1
+            .MarginRight = 0.1
+            .MarginTop = 0.1
+            .MarginBottom = 0.1
+            .AutoSize = msoAutoSizeNone
+            .WordWrap = msoFalse
+            .VerticalAnchor = msoAnchorBottom
+            .HorizontalAnchor = msoAnchorNone
+        End With
+        With sr.TextFrame
+            .VerticalOverflow = xlOartVerticalOverflowOverflow
+            .HorizontalOverflow = xlOartHorizontalOverflowOverflow
+        End With
+    End If
+    
+    '設定(塗りつぶしと線)
+    If mode And 2 Then
+        With sr.Fill
+            .Visible = msoTrue
+            .ForeColor.RGB = RGB(255, 0, 0)
+            .Transparency = 0
+            .Solid
+            .Visible = msoFalse
+        End With
+        With sr.line
+            .Visible = msoTrue
+            .Weight = 1
+            .Visible = msoTrue
+        End With
+    End If
+    
+    '設定(サイズとプロパティ)
+    If mode And 4 Then
+        sr.LockAspectRatio = msoTrue
+        sr.Placement = xlFreeFloating
+        For Each Sh In sr
+            Sh.Placement = xlFreeFloating
+        Next Sh
+    End If
+    '
+    '設定(代替え文字)
+    If mode And 8 Then
+        For Each Sh In sr
+            Sh.AlternativeText = Sh.name
+        Next Sh
+    End If
+    
+    'デフォルト設定
+    If mode And 256 Then
+        sr.SetShapesDefaultProperties
+    End If
 
+End Sub
 
+'表示/非表示反転
+Public Sub ToggleVisible(mode As Integer, Optional sr As ShapeRange)
+    
+    Dim sr2 As ShapeRange
+    Set sr2 = sr
+    If sr2 Is Nothing Then
+        If TypeName(Selection) = "Range" Then Exit Sub
+        Set sr2 = Selection.ShapeRange
+    End If
+    
+    Select Case mode
+    Case 0
+        '表示/非表示反転
+        With sr2.Fill
+            If .Visible = msoTrue Then
+                .Visible = msoFalse
+            Else
+                .Visible = msoTrue
+            End If
+        End With
+    Case 3
+        '3D表示/非表示反転
+        With sr2.ThreeD
+            If .Visible = msoTrue Then
+                .Visible = msoFalse
+            Else
+                .Visible = msoTrue
+                .SetPresetCamera (msoCameraIsometricTopUp)
+                .RotationX = 45.2809
+                .RotationY = -35.3962666667
+                .RotationZ = -60.1624166667
+            End If
+        End With
+    End Select
+
+End Sub
+
+'図形名更新
+Public Sub UpdateShapeName(ws As Worksheet)
+    
+    Dim re As Object
+    Set re = regex("\s+\d*$")
+    
+    Dim Sh As Shape
+    For Each Sh In ws.Shapes
+        Dim s As String
+        s = re.Replace(Sh.name, " " & Sh.id)
+        If s <> Sh.name Then Sh.name = s
+        If Sh.Type = msoGroup Then
+            Dim sh2 As Shape
+            For Each sh2 In Sh.GroupItems
+                s = re.Replace(sh2.name, " " & sh2.id)
+                If s <> sh2.name Then sh2.name = s
+            Next sh2
+        End If
+    Next Sh
+
+End Sub
+
+'----------------------------------------
+'図形制御
+'----------------------------------------
+
+'図形を削除
+Public Sub RemoveSharps(Optional ByVal ws As Worksheet)
+    
+    '対象選択
+    If ws Is Nothing Then
+        If TypeName(Selection) <> "Range" Then
+            Selection.Delete
+            Exit Sub
+        End If
+        If MsgBox("全図形を削除しますか？", vbYesNo) <> vbYes Then Exit Sub
+        Set ws = ActiveSheet
+    End If
+    
+    '画面更新停止
+    On Error Resume Next
+    Application.ScreenUpdating = False
+    
+    Dim i As Long
+    For i = ws.Shapes.Count To 1 Step -1
+        ws.Shapes(i).Delete
+    Next i
+    
+    '画面更新再開
+    Application.ScreenUpdating = True
+    On Error GoTo 0
+
+End Sub
+
+'図形を絵に変換
+Public Sub ConvToPic()
+    
+    '対象選択
+    If TypeName(Selection) = "Range" Then Exit Sub
+    Dim sr As ShapeRange
+    Set sr = Selection.ShapeRange
+    If sr Is Nothing Then Exit Sub
+    
+    '画面更新停止
+    Dim fsu As Boolean
+    fsu = Application.ScreenUpdating
+    Application.ScreenUpdating = False
+    
+    Dim s As String
+    Dim x As Double
+    Dim y As Double
+    s = sr.name
+    x = sr.Left
+    y = sr.Top
+    Selection.Cut
+    Dim ws As Worksheet
+    Set ws = Selection.Worksheet
+    ws.PasteSpecial 0
+    Selection.name = s
+    Selection.Left = x
+    Selection.Top = y
+    Application.CutCopyMode = 0
+    
+    '画面更新再開
+    Application.ScreenUpdating = fsu
+
+End Sub
+
+'----------------------------------------
+'図形部品描画
+'----------------------------------------
+
+'部品描画
 Public Function DrawParts(ws As Worksheet, x0 As Double, y0 As Double, s As String) As String
     Dim cs As Worksheet
-    Set cs = TargetSheet("#shapes")
+    Set cs = GetSheet("#shapes")
     If cs Is Nothing Then Exit Function
-    Dim sh As Shape
+    Dim Sh As Shape
     If g_part <> "" Then
         cs.Shapes(g_part).Copy
         ws.Paste
@@ -255,23 +415,23 @@ Private Function DrawAxis2( _
     Dim ns As Collection
     Set ns = New Collection
     '
-    Dim sh As Object
-    Set sh = ws.Shapes.AddLine(x0, y0 + 2 * r, x0, y0 - h)
-    sh.line.ForeColor.RGB = RGB(0, 0, 0)
-    ns.Add sh.name
-    Set sh = ws.Shapes.AddLine(x0 - 2 * r, y0, x0 + w, y0)
-    sh.line.ForeColor.RGB = RGB(0, 0, 0)
-    ns.Add sh.name
+    Dim Sh As Object
+    Set Sh = ws.Shapes.AddLine(x0, y0 + 2 * r, x0, y0 - h)
+    Sh.line.ForeColor.RGB = RGB(0, 0, 0)
+    ns.Add Sh.name
+    Set Sh = ws.Shapes.AddLine(x0 - 2 * r, y0, x0 + w, y0)
+    Sh.line.ForeColor.RGB = RGB(0, 0, 0)
+    ns.Add Sh.name
     If r > 0 Then
-        Set sh = ws.Shapes.AddShape(msoShapeOval, x0 - r, y0 - r, 2 * r, 2 * r)
-        sh.line.ForeColor.RGB = RGB(0, 0, 0)
-        sh.Fill.Visible = msoFalse
-        ns.Add sh.name
+        Set Sh = ws.Shapes.AddShape(msoShapeOval, x0 - r, y0 - r, 2 * r, 2 * r)
+        Sh.line.ForeColor.RGB = RGB(0, 0, 0)
+        Sh.Fill.Visible = msoFalse
+        ns.Add Sh.name
     End If
     '
-    Set sh = ws.Shapes.Range(ToArray(ns)).Group
-    sh.name = "軸線 " & sh.id
-    DrawAxis2 = sh.name
+    Set Sh = ws.Shapes.Range(ColToArr(ns)).Group
+    Sh.name = "軸線 " & Sh.id
+    DrawAxis2 = Sh.name
 End Function
 
 '方眼紙作成
@@ -303,189 +463,270 @@ Private Function DrawGraph2( _
     Dim ns As Collection
     Set ns = New Collection
     '
-    Dim sh As Object
+    Dim Sh As Object
     Dim p As Double
     Dim i As Integer
     For i = 1 To Int(w / dp)
         p = x1 + dp * i
-        Set sh = ws.Shapes.AddLine(p, y1, p, y2)
-        If i Mod 10 <> 0 Then sh.line.DashStyle = msoLineRoundDot
-        sh.line.Weight = 0.25
-        sh.line.ForeColor.RGB = RGB(0, 0, 255)
-        ns.Add sh.name
+        Set Sh = ws.Shapes.AddLine(p, y1, p, y2)
+        If i Mod 10 <> 0 Then Sh.line.DashStyle = msoLineRoundDot
+        Sh.line.Weight = 0.25
+        Sh.line.ForeColor.RGB = RGB(0, 0, 255)
+        ns.Add Sh.name
     Next i
     For i = 1 To Int(h / dp)
         p = y2 - dp * i
-        Set sh = ws.Shapes.AddLine(x1, p, x2, p)
-        If i Mod 10 <> 0 Then sh.line.DashStyle = msoLineRoundDot
-        sh.line.Weight = 0.25
-        sh.line.ForeColor.RGB = RGB(0, 0, 255)
-        ns.Add sh.name
+        Set Sh = ws.Shapes.AddLine(x1, p, x2, p)
+        If i Mod 10 <> 0 Then Sh.line.DashStyle = msoLineRoundDot
+        Sh.line.Weight = 0.25
+        Sh.line.ForeColor.RGB = RGB(0, 0, 255)
+        ns.Add Sh.name
     Next i
-    Set sh = ws.Shapes.AddLine(x1, y1, x1, y2)
-    sh.line.ForeColor.RGB = RGB(0, 0, 0)
-    ns.Add sh.name
-    Set sh = ws.Shapes.AddLine(x1, y2, x2, y2)
-    sh.line.ForeColor.RGB = RGB(0, 0, 0)
-    ns.Add sh.name
+    Set Sh = ws.Shapes.AddLine(x1, y1, x1, y2)
+    Sh.line.ForeColor.RGB = RGB(0, 0, 0)
+    ns.Add Sh.name
+    Set Sh = ws.Shapes.AddLine(x1, y2, x2, y2)
+    Sh.line.ForeColor.RGB = RGB(0, 0, 0)
+    ns.Add Sh.name
     '
-    Set sh = ws.Shapes.Range(ToArray(ns)).Group
-    sh.line.Transparency = 0.5
-    sh.name = "方眼紙 " & sh.id
-    DrawGraph2 = sh.name
+    Set Sh = ws.Shapes.Range(ColToArr(ns)).Group
+    Sh.line.Transparency = 0.5
+    Sh.name = "方眼紙 " & Sh.id
+    DrawGraph2 = Sh.name
 End Function
 
-Public Function ConvToPic2(ws As Worksheet, sh As ShapeRange) As String
+'----------------------------------------
+'図形属性制御
+'----------------------------------------
+
+'図形情報リストアップ
+Public Sub ListShapeInfo(ws As Worksheet, Optional mode As Integer)
+    
+    '出力先セル/図形リスト取得
+    Dim ce As Range
+    Dim sr As Variant
+    If TypeName(Selection) = "Range" Then
+        Set ce = FarLeftTop(Selection)
+        Set sr = ws.Shapes
+    Else
+        Set ce = GetCell("リスト出力位置を指定してください", "図形リスト出力")
+        Set sr = Selection.ShapeRange
+    End If
+    If ce Is Nothing Or sr Is Nothing Then Exit Sub
+    
+    'テーブル項目取得
+    Dim dic As Dictionary
+    ArrStrToDict dic, c_ShapeInfoMember, 1
+    
+    'ヘッダ取得
+    Dim hdr() As String
+    StringToRow hdr, c_ShapeInfoHeader, mode
+    If mode < 1 And ce.Value <> "" Then
+        hdr = GetHeaderArray(ce, dic)
+    End If
+    
+    'データ配列作成
+    Dim rcnt As Long
+    rcnt = 1 + sr.Count
+    Dim Sh As Shape
+    For Each Sh In sr
+        If Sh.Type = msoGroup Then rcnt = rcnt + Sh.GroupItems.Count
+    Next Sh
+    Dim arr As Variant
+    ReDim arr(rcnt, UBound(hdr))
+    
+    'ヘッダ行設定
+    Dim r As Long
+    Dim c As Long
     Dim s As String
-    Dim x As Double
-    Dim y As Double
-    s = sh.name
-    x = sh.Left
-    y = sh.Top
-    Dim sp As Shape
-    sp.cu
-    Selection.Cut
-    Call Selection.Worksheet.PasteSpecial(0)
-    Selection.name = s
-    Selection.Left = x
-    Selection.Top = y
-    ConvToPic2 = Selection.name
-    Application.CutCopyMode = 0
-End Function
-
-
-'図形を絵に変換
-Public Function ConvToPic() As String
+    For c = 0 To UBound(hdr)
+        s = UCase(hdr(c))
+        If dic.Exists(s) Then
+            arr(r, c) = dic(s)(1)
+        Else
+            arr(r, c) = hdr(c)
+        End If
+    Next c
+    r = r + 1
+    
+    '図形名マスク設定
+    Dim ptn As String
+    Dim flg As Boolean
+    ptn = g_mask
+    flg = True
+    If Left(ptn, 1) = "!" Then
+        ptn = Mid(ptn, 2)
+        flg = False
+    End If
+    If ptn = "" Then ptn = ".*"
+    
+    'レコード作成
+    For Each Sh In sr
+        AddShapeRecord arr, r, Sh, hdr, ptn, flg
+    Next Sh
+    rcnt = r
+    
+    '画面更新停止
     Dim fsu As Boolean
     fsu = Application.ScreenUpdating
     Application.ScreenUpdating = False
-    '
-    Dim sh As Object
-    On Error Resume Next
-    Set sh = Selection.ShapeRange
-    On Error GoTo 0
-    If Not sh Is Nothing Then
-        Dim s As String
-        Dim x As Double
-        Dim y As Double
-        s = sh.name
-        x = sh.Left
-        y = sh.Top
-        Selection.Cut
-        Dim ws As Worksheet
-        Set ws = Selection.Worksheet
-        Call ws.PasteSpecial(0)
-        Selection.name = s
-        Selection.Left = x
-        Selection.Top = y
-        ConvToPic = Selection.name
-        Application.CutCopyMode = 0
-    End If
-    '
+    
+    'テーブルデータクリア
+    TableDataRange(ce).Clear
+    
+    '表示形式設定
+    Dim ra As Range
+    For c = 0 To UBound(hdr)
+        Set ra = ce.Parent.Range(ce.Cells(2, c + 1), ce.Cells(rcnt, c + 1))
+        s = UCase(hdr(c))
+        If dic.Exists(s) Then
+            Select Case CInt(dic(s)(2))
+            Case 1: ra.NumberFormatLocal = "0"
+            Case 2: ra.NumberFormatLocal = "0.0##"
+            Case Else: ra.NumberFormatLocal = "@"
+            End Select
+        End If
+    Next c
+    
+    'レコード書き込み
+    ce.Resize(1 + rcnt, 1 + UBound(hdr)).Value = arr
+    
+    '配色
+    For c = 0 To UBound(hdr)
+        Set ra = ce.Parent.Range(ce.Cells(2, c + 1), ce.Cells(rcnt, c + 1))
+        s = UCase(hdr(c))
+        If dic.Exists(s) Then
+            Select Case CInt(dic(s)(2))
+            Case 4  '色
+                For r = 2 To rcnt
+                    s = ce.Cells(r, c + 1)
+                    If s <> "" Then
+                        ce.Cells(r, c + 1).Interior.color = val("&H" & s)
+                    Else
+                        ce.Cells(r, c + 1).ClearFormats
+                    End If
+                Next r
+            End Select
+        End If
+    Next c
+    
+    'テーブルサイズ調整
+    HeaderAutoFit ce
+    
+    '画面更新再開
     Application.ScreenUpdating = fsu
-End Function
 
-'図形を全て削除
-Public Sub RemoveSharp(ws As Worksheet)
-    On Error Resume Next
-    Application.ScreenUpdating = False
-    '
-    Dim i As Long
-    For i = ws.Shapes.Count To 1 Step -1
-        Dim sh As Shape
-        Set sh = ws.Shapes(i)
-        ws.Shapes(i).Delete
-    Next i
-    '
-    Application.ScreenUpdating = True
-    On Error GoTo 0
 End Sub
 
+'文字列から行配列を取得
+Sub StringToRow(arr() As String, info As String, Optional mode As Integer = 0)
+    
+    Dim dic As Dictionary
+    ArrStrToDict dic, info
+    
+    Dim kw As String
+    kw = dic.Keys(mode)
+    arr = dic(kw)
+    arr = TakeArray(arr, 1)
+
+End Sub
+
+'図形レコードを配列に追加
+
+Private Sub AddShapeRecord(arr As Variant, r As Long, Sh As Shape, hdr As Variant, ptn As String, flg As Boolean)
+        
+    Dim c As Long
+    Dim s As String
+    If Sh.Type = msoGroup Then
+        For c = 0 To UBound(hdr)
+            s = hdr(c)
+            arr(r, c) = ShapeValue(Sh, s, "")
+        Next c
+        r = r + 1
+        Dim cnt As Long
+        cnt = 0
+        Dim v As Variant
+        For Each v In Sh.GroupItems
+            Dim sh2 As Shape
+            Set sh2 = v
+            If re_test(sh2.name, ptn) = flg Then
+                For c = 0 To UBound(hdr)
+                    s = hdr(c)
+                    arr(r, c) = ShapeValue(sh2, s, "  ")
+                Next c
+                r = r + 1
+                cnt = cnt + 1
+            End If
+        Next v
+        If cnt = 0 Then r = r - 1
+    ElseIf re_test(Sh.name, ptn) = flg Then
+        For c = 0 To UBound(hdr)
+            s = hdr(c)
+            arr(r, c) = ShapeValue(Sh, s, "")
+        Next c
+        r = r + 1
+    End If
+
+End Sub
+
+'図形情報取得
+Private Function ShapeValue(Sh As Shape, k As String, ts As String) As Variant
+    Dim v As Variant
+    v = "-"
+    On Error Resume Next
+    Select Case UCase(k)
+    
+    Case "NAME": v = ts & Sh.name
+    Case "TITLE": v = Sh.Title
+    Case "ID": v = Sh.id
+    Case "TYPE": v = shape_typename(Sh.Type)
+        If Sh.Type = 1 Then v = shape_shapetypename(Sh.AutoShapeType)
+    Case "STYLE": v = Sh.ShapeStyle
+    
+    Case "TOP": v = Sh.Top
+    Case "LEFT": v = Sh.Left
+    Case "BACK": v = Sh.ThreeD.Z
+    Case "ROTATION": v = Sh.Rotation
+    
+    Case "HEIGHT": v = Sh.Height
+    Case "WIDTH": v = Sh.Width
+    Case "DEPTH": v = Sh.ThreeD.Depth
+    
+    Case "VISIBLE": v = CBool(Sh.Visible)
+    
+    Case "LINEVISIBLE": v = CBool(Sh.line.Visible)
+    Case "LINECOLOR": v = Right("000000" & Hex(Sh.line.ForeColor), 6)
+    
+    Case "FILLVISIBLE": v = CBool(Sh.Fill.Visible)
+    Case "FILLCOLOR": v = Right("000000" & Hex(Sh.Fill.ForeColor), 6)
+    Case "TRANSPARENCY": v = Sh.Fill.Transparency
+    
+    Case "TEXT": v = Sh.TextFrame2.TextRange.text
+    Case "ALTTEXT": v = Sh.AlternativeText
+    
+    Case "SCALE": v = Replace(re_match(Sh.AlternativeText, "g:[+-]?[\d.]+"), "g:", "")
+    Case "X0": v = Replace(re_match(Sh.AlternativeText, "p:[+-]?[\d.]+,[+-]?[\d.]+"), "p:", "")
+    Case "Y0": v = Replace(re_match(Sh.AlternativeText, "d:[+-]?[\d.]+,[+-]?[\d.]+"), "d:", "")
+    
+    End Select
+    On Error GoTo 0
+    ShapeValue = v
+End Function
 
 '----------------------------------------
 
-'オブジェクトの書き出し
-Public Sub ListShape(ra As Range, ws As Worksheet, igptn As String)
+'図形情報リストの反映
+Public Sub UpdateShapeInfo(ra As Range, Optional ws As Worksheet)
     If Not TypeName(Selection) = "Range" Then Exit Sub
-    If igptn = "" Then igptn = g_ignore
-    If igptn = "" Then igptn = "^#"
-    Dim fsu As Boolean
-    fsu = Application.ScreenUpdating
-    Application.ScreenUpdating = False
-    '
-    Dim ce As Range
-    Set ce = ra.Cells(1, 1)
-    
-    ce.Value = "Name"
-    ce.Offset(, 1) = "Top"
-    ce.Offset(, 2) = "Left"
-    ce.Offset(, 3) = "Height"
-    ce.Offset(, 4) = "Width"
-    ce.Offset(, 5) = "Rotation"
-    ce.Offset(, 6) = "Hide"
-    ce.Offset(, 7) = "Type"
-    ce.Offset(, 8) = "AlternativeText"
-    Set ce = ce.Offset(1)
-    
-    Dim sp As Shape
-    For Each sp In ws.Shapes
-        If igptn <> "" Then
-            If Not re_test(sp.name, igptn) Then
-                Call ListShape2(ce, sp, "", igptn)
-                Set ce = ce.Offset(1)
-            End If
-        End If
-    Next sp
-    '
-    Application.ScreenUpdating = fsu
-End Sub
-
-Private Sub ListShape2(ce As Range, sp As Shape, ts As String, igptn As String)
-    Dim s As String
-    ce.Value = ts & sp.name
-    ce.Offset(, 1).NumberFormatLocal = "0.0"
-    ce.Offset(, 1) = sp.Top
-    ce.Offset(, 2).NumberFormatLocal = "0.0"
-    ce.Offset(, 2) = sp.Left
-    ce.Offset(, 3).NumberFormatLocal = "0.0"
-    ce.Offset(, 3) = sp.Height
-    ce.Offset(, 4).NumberFormatLocal = "0.0"
-    ce.Offset(, 4) = sp.Width
-    ce.Offset(, 5).NumberFormatLocal = "0.0"
-    ce.Offset(, 5) = sp.Rotation
-    s = ""
-    If Not sp.Visible Then s = "TRUE"
-    ce.Offset(, 6) = s
-    If sp.Type <> 1 Then
-    ce.Offset(, 7) = shape_typename(sp.Type)
-    Else
-    ce.Offset(, 7) = shape_shapetypename(sp.AutoShapeType)
-    End If
-    ce.Offset(, 8) = sp.AlternativeText
-    '
-    If sp.Type = msoGroup Then
-        Dim sp2 As Shape
-        For Each sp2 In sp.GroupItems
-            If igptn <> "" Then
-                If Not re_test(sp2.name, igptn) Then
-                    Call ListShape2(ce, sp2, ts & "    ", igptn)
-                    Set ce = ce.Offset(1)
-                End If
-            End If
-        Next sp2
-    End If
-End Sub
-
-'オブジェクトの反映
-Public Sub UpdateShape(ra As Range, Optional ws As Worksheet)
-    If Not TypeName(Selection) = "Range" Then Exit Sub
-    Dim fsu As Boolean
-    fsu = Application.ScreenUpdating
-    Application.ScreenUpdating = False
-    '
     If ws Is Nothing Then Set ws = ActiveSheet
     If ra Is Nothing Then Set ra = ActiveCell
     
+    '画面更新停止
+    Dim fsu As Boolean
+    fsu = Application.ScreenUpdating
+    Application.ScreenUpdating = False
+    
+    '図形リスト作成
     Dim dic As Dictionary
     Set dic = New Dictionary
     Dim sp As Shape
@@ -499,9 +740,16 @@ Public Sub UpdateShape(ra As Range, Optional ws As Worksheet)
         End If
     Next sp
     
+    'テーブル開始位置を取得
     Dim ce As Range
+    Set ce = ra.Cells(1, 1)
+    
+    
+    
+    
     Set ce = ra.Cells(2, 1)
-    Set ce = FarLeft(FarTop(ce))
+    Set ce = FarLeftTop(ce)
+    
     Dim s As String
     s = Trim(ce.Value)
     Do Until s = ""
@@ -519,57 +767,8 @@ Public Sub UpdateShape(ra As Range, Optional ws As Worksheet)
         s = Trim(ce.Value)
     Loop
     '
+    '画面更新再開
     Application.ScreenUpdating = fsu
-End Sub
-
-Public Sub SetShapeSetting(Optional sr As ShapeRange)
-    On Error Resume Next
-    If sr Is Nothing Then Set sr = Selection.ShapeRange
-    '
-    With sr.TextFrame2
-        With .TextRange.Font
-        End With
-        .MarginLeft = 0
-        .MarginRight = 0
-        .MarginTop = 0
-        .MarginBottom = 0
-        .WordWrap = msoFalse
-        .VerticalAnchor = msoAnchorBottom
-        .HorizontalAnchor = msoAnchorNone
-    End With
-    With sr.TextFrame
-        .VerticalOverflow = xlOartVerticalOverflowOverflow
-        .HorizontalOverflow = xlOartHorizontalOverflowOverflow
-    End With
-    With sr.Fill
-        .Visible = msoTrue
-        .ForeColor.RGB = RGB(255, 0, 0)
-        .Transparency = 0
-        .Solid
-        .Visible = msoFalse
-    End With
-    With sr.line
-        .Visible = msoTrue
-        .Weight = 1
-        .Visible = msoTrue
-    End With
-    sr.LockAspectRatio = msoTrue
-    '
-    Dim sp As Shape
-    For Each sp In sr.Nodes
-        sp.AlternativeText = sp.name
-        sp.Placement = xlFreeFloating
-    Next sp
-End Sub
-
-Public Sub DefaultShapeSetting(Optional sr As ShapeRange)
-    Call SetShapeSetting(sr)
-    Dim a As Variant
-    On Error Resume Next
-    Set sr = a.ShapeRange
-    On Error GoTo 0
-    If sr Is Nothing Then Exit Sub
-    sr.SetShapesDefaultProperties
 End Sub
 
 '----------------------------------------
