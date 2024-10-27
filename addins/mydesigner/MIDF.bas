@@ -705,7 +705,7 @@ Public Sub DrawIDF(ws As Worksheet, x As Double, y As Double)
     Dim ns2 As Collection
     Set ns2 = New Collection
     
-    Dim Sh As Shape
+    Dim sh As Shape
     Dim k As String
     Dim i As Long
     Dim r As Long
@@ -722,56 +722,56 @@ Public Sub DrawIDF(ws As Worksheet, x As Double, y As Double)
     'Set sh = DrawGroupOutline(ws, env, k, arr, pos)
     'If Not sh Is Nothing Then ns.Add sh.name
     k = Join(Array(name, "DRILLED_HOLES", "", ""), "-")
-    Set Sh = DrawGroupHole(ws, env, k, arr, pos)
+    Set sh = DrawGroupHole(ws, env, k, arr, pos)
     'If Not sh Is Nothing Then ns.Add sh.name
     'If ns.Count > 0 Then Set sh = GroupShape(ws, ns, "OUTLINE")
-    If Not Sh Is Nothing Then ns2.Add Sh.name
+    If Not sh Is Nothing Then ns2.Add sh.name
     
     'OUTLINE, KEEPOUT
     'OUTLINE, KEEPOUT
     k = Join(Array(name, "VIA_KEEPOUT", "", ""), "-")
-    Set Sh = DrawGroupOutline(ws, env, k, arr, pos)
-    If Not Sh Is Nothing Then ns2.Add Sh.name
+    Set sh = DrawGroupOutline(ws, env, k, arr, pos)
+    If Not sh Is Nothing Then ns2.Add sh.name
 
     Dim side As Variant
     side = Array("ALL", "BOTH", "BOTTOM", "INNER", "TOP")
     For i = 0 To UBound(side)
         Set ns = New Collection
         k = Join(Array(name, "OTHER_OUTLINE", side(i), ""), "-")
-        Set Sh = DrawGroupOutline(ws, env, k, arr, pos)
-        If Not Sh Is Nothing Then ns.Add Sh.name
+        Set sh = DrawGroupOutline(ws, env, k, arr, pos)
+        If Not sh Is Nothing Then ns.Add sh.name
         k = Join(Array(name, "ROUTE_OUTLINE", side(i), ""), "-")
-        Set Sh = DrawGroupOutline(ws, env, k, arr, pos)
-        If Not Sh Is Nothing Then ns.Add Sh.name
+        Set sh = DrawGroupOutline(ws, env, k, arr, pos)
+        If Not sh Is Nothing Then ns.Add sh.name
         k = Join(Array(name, "ROUTE_KEEPOUT", side(i), ""), "-")
-        Set Sh = DrawGroupOutline(ws, env, k, arr, pos)
-        If Not Sh Is Nothing Then ns.Add Sh.name
+        Set sh = DrawGroupOutline(ws, env, k, arr, pos)
+        If Not sh Is Nothing Then ns.Add sh.name
         k = Join(Array(name, "PLACE_OUTLINE", side(i), ""), "-")
-        Set Sh = DrawGroupOutline(ws, env, k, arr, pos)
-        If Not Sh Is Nothing Then ns.Add Sh.name
+        Set sh = DrawGroupOutline(ws, env, k, arr, pos)
+        If Not sh Is Nothing Then ns.Add sh.name
         k = Join(Array(name, "PLACE_KEEPOUT", side(i), ""), "-")
-        Set Sh = DrawGroupOutline(ws, env, k, arr, pos)
-        If Not Sh Is Nothing Then ns.Add Sh.name
+        Set sh = DrawGroupOutline(ws, env, k, arr, pos)
+        If Not sh Is Nothing Then ns.Add sh.name
         k = Join(Array(name, "PLACE_REGION", side(i), ""), "-")
-        Set Sh = DrawGroupOutline(ws, env, k, arr, pos)
-        If Not Sh Is Nothing Then ns.Add Sh.name
+        Set sh = DrawGroupOutline(ws, env, k, arr, pos)
+        If Not sh Is Nothing Then ns.Add sh.name
         k = Join(Array(name, "PLACEMENT", side(i), ""), "-")
-        Set Sh = DrawGroupPlace(ws, env, k, arr, pos, lib)
-        If Not Sh Is Nothing Then ns.Add Sh.name
-        Set Sh = Nothing
-        If ns.Count > 0 Then Set Sh = GroupShape(ws, ns, k)
-        If Not Sh Is Nothing Then ns2.Add Sh.name
+        Set sh = DrawGroupPlace(ws, env, k, arr, pos, lib)
+        If Not sh Is Nothing Then ns.Add sh.name
+        Set sh = Nothing
+        If ns.Count > 0 Then Set sh = GroupShape(ws, ns, k)
+        If Not sh Is Nothing Then ns2.Add sh.name
     Next i
     
     k = Join(Array(name, "NOTES", "", ""), "-")
-    Set Sh = DrawGroupNote(ws, env, k, arr, pos)
-    If Not Sh Is Nothing Then ns2.Add Sh.name
+    Set sh = DrawGroupNote(ws, env, k, arr, pos)
+    If Not sh Is Nothing Then ns2.Add sh.name
     
     'ORIGIN
-    Set Sh = DrawOrigin(ws, env, arr, pos)
-    If Not Sh Is Nothing Then ns2.Add Sh.name
+    Set sh = DrawOrigin(ws, env, arr, pos)
+    If Not sh Is Nothing Then ns2.Add sh.name
     
-    If ns2.Count > 0 Then Set Sh = GroupShape(ws, ns2, name)
+    If ns2.Count > 0 Then Set sh = GroupShape(ws, ns2, name)
 
 End Sub
 
@@ -966,16 +966,16 @@ Private Function DrawOrigin( _
     tx = x0 - g * w
     ty = y0 - g * w
     
-    Dim Sh As Shape
-    Set Sh = ws.Shapes.AddShape(msoShapeFlowchartOr, tx, ty, tw, tw)
-    With Sh
+    Dim sh As Shape
+    Set sh = ws.Shapes.AddShape(msoShapeFlowchartOr, tx, ty, tw, tw)
+    With sh
         .LockAspectRatio = msoTrue
         .Placement = xlMove
         .name = "ORIGIN " & .id
     End With
     
-    Set DrawOrigin = Sh
-    Set Sh = Nothing
+    Set DrawOrigin = sh
+    Set sh = Nothing
     
     'Set sh = AddShapeRect(ws, env, x0, y0, dx, dy)
     'Set sh = Nothing
@@ -999,21 +999,21 @@ Private Function DrawGroupOutline( _
     Dim col As Collection
     Dim v As Variant
     Set col = dic(grp)
-    Dim Sh As Shape
+    Dim sh As Shape
     
     Dim i As Long
     Dim r As Long
     For i = 1 To col.Count
         r = col(i)
-        Set Sh = DrawOutline(ws, env, arr, r)
-        ns.Add Sh.name
+        Set sh = DrawOutline(ws, env, arr, r)
+        ns.Add sh.name
     Next i
-    If ns.Count > 1 Then Set Sh = GroupShape(ws, ns, grp)
-    If Sh Is Nothing Then Exit Function
+    If ns.Count > 1 Then Set sh = GroupShape(ws, ns, grp)
+    If sh Is Nothing Then Exit Function
     
-    SetStyleIDF Sh, grp
+    SetStyleIDF sh, grp
     
-    Set DrawGroupOutline = Sh
+    Set DrawGroupOutline = sh
 
 End Function
 
@@ -1026,7 +1026,7 @@ Private Function DrawGroupHole( _
     Set ns = New Collection
     
     Dim col As Collection
-    Dim Sh As Shape
+    Dim sh As Shape
     Dim i As Long
     Dim r As Long
     
@@ -1037,10 +1037,10 @@ Private Function DrawGroupHole( _
     If dic.Exists(k) Then
         Set col = dic(k)
         For i = 1 To col.Count
-            Set Sh = DrawOutline(ws, env, arr, CLng(col(i)))
-            If Not Sh Is Nothing Then
-                SetStyleIDF Sh, k
-                ns.Add Sh.name
+            Set sh = DrawOutline(ws, env, arr, CLng(col(i)))
+            If Not sh Is Nothing Then
+                SetStyleIDF sh, k
+                ns.Add sh.name
             End If
         Next i
     End If
@@ -1050,10 +1050,10 @@ Private Function DrawGroupHole( _
     If dic.Exists(k) Then
         Set col = dic(k)
         For i = 1 To col.Count
-            Set Sh = DrawOutline(ws, env, arr, CLng(col(i)))
-            If Not Sh Is Nothing Then
-                SetStyleIDF Sh, k
-                ns.Add Sh.name
+            Set sh = DrawOutline(ws, env, arr, CLng(col(i)))
+            If Not sh Is Nothing Then
+                SetStyleIDF sh, k
+                ns.Add sh.name
             End If
         Next i
     End If
@@ -1066,18 +1066,18 @@ Private Function DrawGroupHole( _
             Set col = dic(k)
             For i = 1 To col.Count
                 env.z0 = env.z0 + 1
-                Set Sh = DrawHole(ws, env, arr, CLng(col(i)))
-                If Not Sh Is Nothing Then
-                    SetStyleIDF Sh, k
-                    ns.Add Sh.name
+                Set sh = DrawHole(ws, env, arr, CLng(col(i)))
+                If Not sh Is Nothing Then
+                    SetStyleIDF sh, k
+                    ns.Add sh.name
                 End If
             Next i
         End If
     Next kw
     
-    If ns.Count > 1 Then Set Sh = GroupShape(ws, ns, grp)
+    If ns.Count > 1 Then Set sh = GroupShape(ws, ns, grp)
     Set ns = Nothing
-    Set DrawGroupHole = Sh
+    Set DrawGroupHole = sh
 
 End Function
 
@@ -1090,7 +1090,7 @@ Private Function DrawGroupNote( _
     Set ns = New Collection
     
     Dim col As Collection
-    Dim Sh As Shape
+    Dim sh As Shape
     
     Dim kw As Variant
     For Each kw In dic.Keys
@@ -1104,17 +1104,17 @@ Private Function DrawGroupNote( _
             For i = 1 To col.Count
                 Dim r As Long
                 r = col(i)
-                Set Sh = DrawNote(ws, env, arr, r)
-                If Not Sh Is Nothing Then ns2.Add Sh.name
+                Set sh = DrawNote(ws, env, arr, r)
+                If Not sh Is Nothing Then ns2.Add sh.name
             Next i
-            If ns2.Count > 1 Then Set Sh = GroupShape(ws, ns2, k)
+            If ns2.Count > 1 Then Set sh = GroupShape(ws, ns2, k)
             Set ns2 = Nothing
-            If Not Sh Is Nothing Then ns.Add Sh.name
+            If Not sh Is Nothing Then ns.Add sh.name
         End If
     Next kw
-    If ns.Count > 1 Then Set Sh = GroupShape(ws, ns, grp)
+    If ns.Count > 1 Then Set sh = GroupShape(ws, ns, grp)
     Set ns = Nothing
-    Set DrawGroupNote = Sh
+    Set DrawGroupNote = sh
 
 End Function
 
@@ -1127,7 +1127,7 @@ Private Function DrawGroupPlace( _
     Set ns = New Collection
     
     Dim col As Collection
-    Dim Sh As Shape
+    Dim sh As Shape
     
     Dim kw As Variant
     For Each kw In dic.Keys
@@ -1141,35 +1141,35 @@ Private Function DrawGroupPlace( _
             For i = 1 To col.Count
                 Dim r As Long
                 r = col(i)
-                Set Sh = DrawPlace(ws, env, k, arr, r, lib)
-                If Not Sh Is Nothing Then ns2.Add Sh.name
+                Set sh = DrawPlace(ws, env, k, arr, r, lib)
+                If Not sh Is Nothing Then ns2.Add sh.name
             Next i
-            If ns2.Count > 1 Then Set Sh = GroupShape(ws, ns2, k)
+            If ns2.Count > 1 Then Set sh = GroupShape(ws, ns2, k)
             Set ns2 = Nothing
-            If Not Sh Is Nothing Then ns.Add Sh.name
+            If Not sh Is Nothing Then ns.Add sh.name
         End If
     Next kw
-    If ns.Count > 1 Then Set Sh = GroupShape(ws, ns, grp)
+    If ns.Count > 1 Then Set sh = GroupShape(ws, ns, grp)
     Set ns = Nothing
-    Set DrawGroupPlace = Sh
+    Set DrawGroupPlace = sh
 
 End Function
 
 '図形名のコレクションから図形グループ化
 Private Function GroupShape(ws As Worksheet, ns As Collection, sect As String) As Shape
-    Dim Sh As Shape
+    Dim sh As Shape
     If ns.Count > 1 Then
-        Set Sh = ws.Shapes.Range(ColToArr(ns)).Group
-        Sh.LockAspectRatio = msoTrue
-        Sh.Placement = xlMove
+        Set sh = ws.Shapes.Range(ColToArr(ns)).Group
+        sh.LockAspectRatio = msoTrue
+        sh.Placement = xlMove
         Dim s As String
-        s = sect & " " & Sh.id
-        Sh.name = s
+        s = sect & " " & sh.id
+        sh.name = s
     Else
-        Set Sh = ws.Shapes(ns(1))
+        Set sh = ws.Shapes(ns(1))
     End If
-    Set GroupShape = Sh
-    Set Sh = Nothing
+    Set GroupShape = sh
+    Set sh = Nothing
     Set ns = Nothing
 End Function
 
@@ -1204,14 +1204,14 @@ Private Function DrawOutline( _
         env.dir = True
     End Select
     
-    Dim Sh As Shape
-    Set Sh = DrawShape(ws, env, arr, r, 0, 0)
-    If Sh Is Nothing Then Exit Function
-    Sh.name = kw & " " & Sh.id
+    Dim sh As Shape
+    Set sh = DrawShape(ws, env, arr, r, 0, 0)
+    If sh Is Nothing Then Exit Function
+    sh.name = kw & " " & sh.id
     
-    SetStyleIDF Sh, kw, CStr(arr(r, FID.N_LABEL))
-    Set DrawOutline = Sh
-    Set Sh = Nothing
+    SetStyleIDF sh, kw, CStr(arr(r, FID.N_LABEL))
+    Set DrawOutline = sh
+    Set sh = Nothing
     
 End Function
 
@@ -1239,9 +1239,9 @@ Private Function DrawHole( _
     py = y0 - sc * (arr(r, FID.N_YPOS) + ty)
     kw = arr(r, FID.N_GEOMETORY) & "-" & arr(r, FID.N_NUMBER)
     
-    Dim Sh As Shape
-    Set Sh = ws.Shapes.AddShape(msoShapeOval, px, py, pw, pw)
-    With Sh
+    Dim sh As Shape
+    Set sh = ws.Shapes.AddShape(msoShapeOval, px, py, pw, pw)
+    With sh
         .LockAspectRatio = msoTrue
         .Placement = xlMove
         .Title = kw
@@ -1253,9 +1253,9 @@ Private Function DrawHole( _
     s = Join(Array(s, "p:" & tx & "," & ty), Chr(10))
     s = Join(Array(s, "d:" & tw & "," & tw), Chr(10))
     s = Join(Array(s, "g:" & sc), Chr(10))
-    Sh.AlternativeText = s
+    sh.AlternativeText = s
     
-    With Sh.ThreeD
+    With sh.ThreeD
         .BevelTopType = msoBevelAngle
         .BevelTopInset = 0
         .BevelTopDepth = 0
@@ -1267,10 +1267,10 @@ Private Function DrawHole( _
     End With
     
     kw = arr(r, FID.N_SECTION)
-    SetStyleIDF Sh, kw
+    SetStyleIDF sh, kw
     
-    Set DrawHole = Sh
-    Set Sh = Nothing
+    Set DrawHole = sh
+    Set sh = Nothing
 
 End Function
 
@@ -1298,9 +1298,9 @@ Public Function DrawNote( _
     px = x0 + sc * (arr(r, FID.N_XPOS) - tx)
     py = y0 - sc * (arr(r, FID.N_YPOS) + ty)
     
-    Dim Sh As Shape
-    Set Sh = ws.Shapes.AddTextbox(msoTextOrientationHorizontal, px, py, pw, ph)
-    With Sh
+    Dim sh As Shape
+    Set sh = ws.Shapes.AddTextbox(msoTextOrientationHorizontal, px, py, pw, ph)
+    With sh
         .LockAspectRatio = msoTrue
         .Placement = xlMove
         .TextFrame.Characters.Font.Size = ph
@@ -1321,16 +1321,16 @@ Public Function DrawNote( _
     End With
     
     kw = arr(r, FID.N_SECTION)
-    SetStyleIDF Sh, kw
+    SetStyleIDF sh, kw
     
     Dim s As String
     s = "IDF " & kw
     s = Join(Array(s, "p:" & tx & "," & ty), Chr(10))
     s = Join(Array(s, "d:" & tw & "," & th), Chr(10))
     s = Join(Array(s, "g:" & sc), Chr(10))
-    Sh.AlternativeText = s
+    sh.AlternativeText = s
     
-    With Sh.ThreeD
+    With sh.ThreeD
         .BevelTopType = msoBevelAngle
         .BevelTopInset = 0
         .BevelTopDepth = 0
@@ -1342,8 +1342,8 @@ Public Function DrawNote( _
         .Z = 20
     End With
     
-    Set DrawNote = Sh
-    Set Sh = Nothing
+    Set DrawNote = sh
+    Set sh = Nothing
 End Function
 
 '部品配置描画
@@ -1401,14 +1401,14 @@ Private Function DrawPlace( _
     
     Dim ns As Collection
     Set ns = New Collection
-    Dim Sh As Shape
-    Set Sh = DrawPart(ws, tenv, tx, ty, arr, r, lib)
-    If Sh Is Nothing Then Exit Function
-    Sh.name = arr(r, FID.N_REFERENCE) & " " & Sh.id
-    ns.Add Sh.name
+    Dim sh As Shape
+    Set sh = DrawPart(ws, tenv, tx, ty, arr, r, lib)
+    If sh Is Nothing Then Exit Function
+    sh.name = arr(r, FID.N_REFERENCE) & " " & sh.id
+    ns.Add sh.name
     
-    Set DrawPlace = Sh
-    Set Sh = Nothing
+    Set DrawPlace = sh
+    Set sh = Nothing
 
 End Function
 
@@ -1448,17 +1448,17 @@ Private Function DrawPart( _
         env.z0 = env.z0 - arr2(r2, FID.N_HEIGHT)
     End If
     
-    Dim Sh As Shape
-    Set Sh = DrawShape(ws, env, arr2, r2, 0, 0)
-    If Sh Is Nothing Then Exit Function
-    Sh.Title = kw
-    Sh.name = kw & " " & Sh.id
+    Dim sh As Shape
+    Set sh = DrawShape(ws, env, arr2, r2, 0, 0)
+    If sh Is Nothing Then Exit Function
+    sh.Title = kw
+    sh.name = kw & " " & sh.id
     
     kw = arr(r, FID.N_SECTION)
-    SetStyleIDF Sh, kw
+    SetStyleIDF sh, kw
     
-    Set DrawPart = Sh
-    Set Sh = Nothing
+    Set DrawPart = sh
+    Set sh = Nothing
     
 End Function
 
@@ -1484,7 +1484,7 @@ Private Function DrawShape( _
     y0 = env.y0 - scy * y
     z0 = env.z0
 
-    Dim Sh As Shape
+    Dim sh As Shape
     Dim fb As FreeformBuilder
     
     '開始点
@@ -1529,7 +1529,7 @@ Private Function DrawShape( _
             dx = x2 - x1
             dy = y2 - y1
             d = sc * Sqr(dx * dx + dy * dy)
-            Set Sh = ws.Shapes.AddShape(msoShapeOval, px - d, py - d, 2 * d, 2 * d)
+            Set sh = ws.Shapes.AddShape(msoShapeOval, px - d, py - d, 2 * d, 2 * d)
             Set fb = Nothing
             r = r + 1
             Exit Do
@@ -1579,15 +1579,15 @@ Private Function DrawShape( _
     r = r - 1
     
     If Not fb Is Nothing Then
-        Set Sh = fb.ConvertToShape
+        Set sh = fb.ConvertToShape
         Set fb = Nothing
     End If
-    If Sh Is Nothing Then Exit Function
+    If sh Is Nothing Then Exit Function
     
-    Sh.LockAspectRatio = msoTrue
-    Sh.Placement = xlMove
+    sh.LockAspectRatio = msoTrue
+    sh.Placement = xlMove
     '
-    With Sh.ThreeD
+    With sh.ThreeD
         .BevelTopType = msoBevelAngle
         .BevelTopInset = 0
         .BevelTopDepth = 0
@@ -1598,20 +1598,20 @@ Private Function DrawShape( _
         .Z = sc * (z0 + h1)
     End With
     
-    px = (Sh.Left - x0) / sc
-    py = (Sh.Top - y0) / sc
-    dx = Sh.Width / sc
-    dy = Sh.Height / sc
+    px = (sh.Left - x0) / sc
+    py = (sh.Top - y0) / sc
+    dx = sh.Width / sc
+    dy = sh.Height / sc
     
     Dim s As String
     s = "IDF " & sect
     s = Join(Array(s, "p:" & px & "," & py), Chr(10))
     s = Join(Array(s, "d:" & dx & "," & dy), Chr(10))
     s = Join(Array(s, "g:" & sc), Chr(10))
-    Sh.AlternativeText = s
+    sh.AlternativeText = s
     
-    Set DrawShape = Sh
-    Set Sh = Nothing
+    Set DrawShape = sh
+    Set sh = Nothing
 
 End Function
 
@@ -1686,8 +1686,8 @@ Private Sub SetStyleIDF(obj As Object, k1 As String, Optional k2 As String)
     End Select
 End Sub
 
-Public Sub SetDefaultShapeStyle(Sh As Shape)
-    With Sh
+Public Sub SetDefaultShapeStyle(sh As Shape)
+    With sh
         With .TextFrame2
             .MarginLeft = 0
             .MarginRight = 0

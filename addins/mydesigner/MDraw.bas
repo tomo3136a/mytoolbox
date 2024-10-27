@@ -164,7 +164,7 @@ Private Sub SetShapeSetting(Optional ByVal sr As ShapeRange, Optional mode As In
         If TypeName(Selection) = "Range" Then Exit Sub
         Set sr = Selection.ShapeRange
     End If
-    Dim Sh As Shape
+    Dim sh As Shape
     
     '設定(テキスト)
     If mode And 1 Then
@@ -206,16 +206,16 @@ Private Sub SetShapeSetting(Optional ByVal sr As ShapeRange, Optional mode As In
     If mode And 4 Then
         sr.LockAspectRatio = msoTrue
         sr.Placement = xlFreeFloating
-        For Each Sh In sr
-            Sh.Placement = xlFreeFloating
-        Next Sh
+        For Each sh In sr
+            sh.Placement = xlFreeFloating
+        Next sh
     End If
     '
     '設定(代替え文字)
     If mode And 8 Then
-        For Each Sh In sr
-            Sh.AlternativeText = Sh.name
-        Next Sh
+        For Each sh In sr
+            sh.AlternativeText = sh.name
+        Next sh
     End If
     
     'デフォルト設定
@@ -268,19 +268,19 @@ Public Sub UpdateShapeName(ws As Worksheet)
     Dim re As Object
     Set re = regex("\s+\d*$")
     
-    Dim Sh As Shape
-    For Each Sh In ws.Shapes
+    Dim sh As Shape
+    For Each sh In ws.Shapes
         Dim s As String
-        s = re.Replace(Sh.name, " " & Sh.id)
-        If s <> Sh.name Then Sh.name = s
-        If Sh.Type = msoGroup Then
+        s = re.Replace(sh.name, " " & sh.id)
+        If s <> sh.name Then sh.name = s
+        If sh.Type = msoGroup Then
             Dim sh2 As Shape
-            For Each sh2 In Sh.GroupItems
+            For Each sh2 In sh.GroupItems
                 s = re.Replace(sh2.name, " " & sh2.id)
                 If s <> sh2.name Then sh2.name = s
             Next sh2
         End If
-    Next Sh
+    Next sh
 
 End Sub
 
@@ -359,7 +359,7 @@ Public Function DrawParts(ws As Worksheet, x0 As Double, y0 As Double, s As Stri
     Dim cs As Worksheet
     Set cs = GetSheet("#shapes")
     If cs Is Nothing Then Exit Function
-    Dim Sh As Shape
+    Dim sh As Shape
     If g_part <> "" Then
         cs.Shapes(g_part).Copy
         ws.Paste
@@ -415,23 +415,23 @@ Private Function DrawAxis2( _
     Dim ns As Collection
     Set ns = New Collection
     '
-    Dim Sh As Object
-    Set Sh = ws.Shapes.AddLine(x0, y0 + 2 * r, x0, y0 - h)
-    Sh.line.ForeColor.RGB = RGB(0, 0, 0)
-    ns.Add Sh.name
-    Set Sh = ws.Shapes.AddLine(x0 - 2 * r, y0, x0 + w, y0)
-    Sh.line.ForeColor.RGB = RGB(0, 0, 0)
-    ns.Add Sh.name
+    Dim sh As Object
+    Set sh = ws.Shapes.AddLine(x0, y0 + 2 * r, x0, y0 - h)
+    sh.line.ForeColor.RGB = RGB(0, 0, 0)
+    ns.Add sh.name
+    Set sh = ws.Shapes.AddLine(x0 - 2 * r, y0, x0 + w, y0)
+    sh.line.ForeColor.RGB = RGB(0, 0, 0)
+    ns.Add sh.name
     If r > 0 Then
-        Set Sh = ws.Shapes.AddShape(msoShapeOval, x0 - r, y0 - r, 2 * r, 2 * r)
-        Sh.line.ForeColor.RGB = RGB(0, 0, 0)
-        Sh.Fill.Visible = msoFalse
-        ns.Add Sh.name
+        Set sh = ws.Shapes.AddShape(msoShapeOval, x0 - r, y0 - r, 2 * r, 2 * r)
+        sh.line.ForeColor.RGB = RGB(0, 0, 0)
+        sh.Fill.Visible = msoFalse
+        ns.Add sh.name
     End If
     '
-    Set Sh = ws.Shapes.Range(ColToArr(ns)).Group
-    Sh.name = "軸線 " & Sh.id
-    DrawAxis2 = Sh.name
+    Set sh = ws.Shapes.Range(ColToArr(ns)).Group
+    sh.name = "軸線 " & sh.id
+    DrawAxis2 = sh.name
 End Function
 
 '方眼紙作成
@@ -463,36 +463,36 @@ Private Function DrawGraph2( _
     Dim ns As Collection
     Set ns = New Collection
     '
-    Dim Sh As Object
+    Dim sh As Object
     Dim p As Double
     Dim i As Integer
     For i = 1 To Int(w / dp)
         p = x1 + dp * i
-        Set Sh = ws.Shapes.AddLine(p, y1, p, y2)
-        If i Mod 10 <> 0 Then Sh.line.DashStyle = msoLineRoundDot
-        Sh.line.Weight = 0.25
-        Sh.line.ForeColor.RGB = RGB(0, 0, 255)
-        ns.Add Sh.name
+        Set sh = ws.Shapes.AddLine(p, y1, p, y2)
+        If i Mod 10 <> 0 Then sh.line.DashStyle = msoLineRoundDot
+        sh.line.Weight = 0.25
+        sh.line.ForeColor.RGB = RGB(0, 0, 255)
+        ns.Add sh.name
     Next i
     For i = 1 To Int(h / dp)
         p = y2 - dp * i
-        Set Sh = ws.Shapes.AddLine(x1, p, x2, p)
-        If i Mod 10 <> 0 Then Sh.line.DashStyle = msoLineRoundDot
-        Sh.line.Weight = 0.25
-        Sh.line.ForeColor.RGB = RGB(0, 0, 255)
-        ns.Add Sh.name
+        Set sh = ws.Shapes.AddLine(x1, p, x2, p)
+        If i Mod 10 <> 0 Then sh.line.DashStyle = msoLineRoundDot
+        sh.line.Weight = 0.25
+        sh.line.ForeColor.RGB = RGB(0, 0, 255)
+        ns.Add sh.name
     Next i
-    Set Sh = ws.Shapes.AddLine(x1, y1, x1, y2)
-    Sh.line.ForeColor.RGB = RGB(0, 0, 0)
-    ns.Add Sh.name
-    Set Sh = ws.Shapes.AddLine(x1, y2, x2, y2)
-    Sh.line.ForeColor.RGB = RGB(0, 0, 0)
-    ns.Add Sh.name
+    Set sh = ws.Shapes.AddLine(x1, y1, x1, y2)
+    sh.line.ForeColor.RGB = RGB(0, 0, 0)
+    ns.Add sh.name
+    Set sh = ws.Shapes.AddLine(x1, y2, x2, y2)
+    sh.line.ForeColor.RGB = RGB(0, 0, 0)
+    ns.Add sh.name
     '
-    Set Sh = ws.Shapes.Range(ColToArr(ns)).Group
-    Sh.line.Transparency = 0.5
-    Sh.name = "方眼紙 " & Sh.id
-    DrawGraph2 = Sh.name
+    Set sh = ws.Shapes.Range(ColToArr(ns)).Group
+    sh.line.Transparency = 0.5
+    sh.name = "方眼紙 " & sh.id
+    DrawGraph2 = sh.name
 End Function
 
 '----------------------------------------
@@ -528,10 +528,10 @@ Public Sub ListShapeInfo(ws As Worksheet, Optional mode As Integer)
     'データ配列作成
     Dim rcnt As Long
     rcnt = 1 + sr.Count
-    Dim Sh As Shape
-    For Each Sh In sr
-        If Sh.Type = msoGroup Then rcnt = rcnt + Sh.GroupItems.Count
-    Next Sh
+    Dim sh As Shape
+    For Each sh In sr
+        If sh.Type = msoGroup Then rcnt = rcnt + sh.GroupItems.Count
+    Next sh
     Dim arr As Variant
     ReDim arr(rcnt, UBound(hdr))
     
@@ -561,9 +561,9 @@ Public Sub ListShapeInfo(ws As Worksheet, Optional mode As Integer)
     If ptn = "" Then ptn = ".*"
     
     'レコード作成
-    For Each Sh In sr
-        AddShapeRecord arr, r, Sh, hdr, ptn, flg
-    Next Sh
+    For Each sh In sr
+        AddShapeRecord arr, r, sh, hdr, ptn, flg
+    Next sh
     rcnt = r
     
     '画面更新停止
@@ -633,20 +633,20 @@ End Sub
 
 '図形レコードを配列に追加
 
-Private Sub AddShapeRecord(arr As Variant, r As Long, Sh As Shape, hdr As Variant, ptn As String, flg As Boolean)
+Private Sub AddShapeRecord(arr As Variant, r As Long, sh As Shape, hdr As Variant, ptn As String, flg As Boolean)
         
     Dim c As Long
     Dim s As String
-    If Sh.Type = msoGroup Then
+    If sh.Type = msoGroup Then
         For c = 0 To UBound(hdr)
             s = hdr(c)
-            arr(r, c) = ShapeValue(Sh, s, "")
+            arr(r, c) = ShapeValue(sh, s, "")
         Next c
         r = r + 1
         Dim cnt As Long
         cnt = 0
         Dim v As Variant
-        For Each v In Sh.GroupItems
+        For Each v In sh.GroupItems
             Dim sh2 As Shape
             Set sh2 = v
             If re_test(sh2.name, ptn) = flg Then
@@ -659,10 +659,10 @@ Private Sub AddShapeRecord(arr As Variant, r As Long, Sh As Shape, hdr As Varian
             End If
         Next v
         If cnt = 0 Then r = r - 1
-    ElseIf re_test(Sh.name, ptn) = flg Then
+    ElseIf re_test(sh.name, ptn) = flg Then
         For c = 0 To UBound(hdr)
             s = hdr(c)
-            arr(r, c) = ShapeValue(Sh, s, "")
+            arr(r, c) = ShapeValue(sh, s, "")
         Next c
         r = r + 1
     End If
@@ -670,105 +670,162 @@ Private Sub AddShapeRecord(arr As Variant, r As Long, Sh As Shape, hdr As Varian
 End Sub
 
 '図形情報取得
-Private Function ShapeValue(Sh As Shape, k As String, ts As String) As Variant
+Private Function ShapeValue(sh As Shape, k As String, Optional ts As String) As Variant
+    
     Dim v As Variant
     v = "-"
     On Error Resume Next
     Select Case UCase(k)
     
-    Case "NAME": v = ts & Sh.name
-    Case "TITLE": v = Sh.Title
-    Case "ID": v = Sh.id
-    Case "TYPE": v = shape_typename(Sh.Type)
-        If Sh.Type = 1 Then v = shape_shapetypename(Sh.AutoShapeType)
-    Case "STYLE": v = Sh.ShapeStyle
+    Case "NAME": v = ts & sh.name
+    Case "TITLE": v = sh.Title
+    Case "ID": v = sh.id
+    Case "TYPE": v = shape_typename(sh.Type)
+        If sh.Type = 1 Then v = shape_shapetypename(sh.AutoShapeType)
+    Case "STYLE": v = sh.ShapeStyle
     
-    Case "TOP": v = Sh.Top
-    Case "LEFT": v = Sh.Left
-    Case "BACK": v = Sh.ThreeD.Z
-    Case "ROTATION": v = Sh.Rotation
+    Case "TOP": v = sh.Top
+    Case "LEFT": v = sh.Left
+    Case "BACK": v = sh.ThreeD.Z
+    Case "ROTATION": v = sh.Rotation
     
-    Case "HEIGHT": v = Sh.Height
-    Case "WIDTH": v = Sh.Width
-    Case "DEPTH": v = Sh.ThreeD.Depth
+    Case "HEIGHT": v = sh.Height
+    Case "WIDTH": v = sh.Width
+    Case "DEPTH": v = sh.ThreeD.Depth
     
-    Case "VISIBLE": v = CBool(Sh.Visible)
+    Case "VISIBLE": v = CBool(sh.Visible)
     
-    Case "LINEVISIBLE": v = CBool(Sh.line.Visible)
-    Case "LINECOLOR": v = Right("000000" & Hex(Sh.line.ForeColor), 6)
+    Case "LINEVISIBLE": v = CBool(sh.line.Visible)
+    Case "LINECOLOR": v = Right("000000" & Hex(sh.line.ForeColor), 6)
     
-    Case "FILLVISIBLE": v = CBool(Sh.Fill.Visible)
-    Case "FILLCOLOR": v = Right("000000" & Hex(Sh.Fill.ForeColor), 6)
-    Case "TRANSPARENCY": v = Sh.Fill.Transparency
+    Case "FILLVISIBLE": v = CBool(sh.Fill.Visible)
+    Case "FILLCOLOR": v = Right("000000" & Hex(sh.Fill.ForeColor), 6)
+    Case "TRANSPARENCY": v = sh.Fill.Transparency
     
-    Case "TEXT": v = Sh.TextFrame2.TextRange.text
-    Case "ALTTEXT": v = Sh.AlternativeText
+    Case "TEXT": v = sh.TextFrame2.TextRange.text
+    Case "ALTTEXT": v = sh.AlternativeText
     
-    Case "SCALE": v = Replace(re_match(Sh.AlternativeText, "g:[+-]?[\d.]+"), "g:", "")
-    Case "X0": v = Replace(re_match(Sh.AlternativeText, "p:[+-]?[\d.]+,[+-]?[\d.]+"), "p:", "")
-    Case "Y0": v = Replace(re_match(Sh.AlternativeText, "d:[+-]?[\d.]+,[+-]?[\d.]+"), "d:", "")
+    Case "SCALE": v = Replace(re_match(sh.AlternativeText, "g:[+-]?[\d.]+"), "g:", "")
+    Case "X0": v = Replace(re_match(sh.AlternativeText, "p:[+-]?[\d.]+,[+-]?[\d.]+"), "p:", "")
+    Case "Y0": v = Replace(re_match(sh.AlternativeText, "d:[+-]?[\d.]+,[+-]?[\d.]+"), "d:", "")
     
     End Select
     On Error GoTo 0
     ShapeValue = v
+
 End Function
+
+'図形情報設定
+Private Sub UpdateShapeValue(sh As Shape, k As String, ByVal v As Variant)
+    
+    'On Error Resume Next
+    Select Case UCase(k)
+    
+    Case "NAME": If sh.name <> v Then sh.name = CStr(v)
+    Case "TITLE": If sh.Title <> v Then sh.Title = CStr(v)
+    Case "ID": 'If sh.id <> v Then sh.id = v
+    Case "TYPE":
+    Case "STYLE":
+    
+    Case "TOP": If sh.Top <> v Then sh.Top = CDbl(v)
+    Case "LEFT": If sh.Left <> v Then sh.Left = CDbl(v)
+    Case "BACK": If sh.ThreeD.Z <> v Then sh.ThreeD.Z = CDbl(v)
+    Case "ROTATION": If sh.Rotation <> v Then sh.Rotation = CDbl(v)
+    
+    Case "HEIGHT": If sh.Height <> v Then sh.Height = CDbl(v)
+    Case "WIDTH": If sh.Width <> v Then sh.Width = CDbl(v)
+    Case "DEPTH": If sh.ThreeD.Depth <> v Then sh.ThreeD.Depth = CDbl(v)
+    
+    Case "VISIBLE": If sh.Visible <> CBool(v) Then sh.Visible = CBool(v)
+    
+    Case "LINEVISIBLE": If sh.line.Visible <> CBool(v) Then sh.line.Visible = CBool(v)
+    Case "LINECOLOR": If sh.line.ForeColor <> v Then sh.line.ForeColor = v
+    
+    Case "FILLVISIBLE": If sh.Fill.Visible <> CBool(v) Then sh.Fill.Visible = CBool(v)
+    Case "FILLCOLOR": If sh.Fill.ForeColor <> v Then sh.Fill.ForeColor = v
+    Case "TRANSPARENCY": If sh.Fill.Transparency <> v Then sh.Fill.Transparency = v
+    
+    Case "TEXT": If sh.TextFrame2.TextRange.text <> v Then sh.TextFrame2.TextRange.text = v
+    Case "ALTTEXT": If sh.AlternativeText <> v Then sh.AlternativeText = v
+    
+    Case "SCALE": sh.AlternativeText = UpdateParamStr(sh.AlternativeText, "sc", CStr(v))
+    Case "X0": sh.AlternativeText = UpdateParamStr(sh.AlternativeText, "x0", CStr(v))
+    Case "Y0": sh.AlternativeText = UpdateParamStr(sh.AlternativeText, "y0", CStr(v))
+    
+    End Select
+    'On Error GoTo 0
+
+End Sub
 
 '----------------------------------------
 
 '図形情報リストの反映
-Public Sub UpdateShapeInfo(ra As Range, Optional ws As Worksheet)
+Public Sub UpdateShapeInfo(ByVal ra As Range, Optional ByVal ws As Worksheet)
+    
     If Not TypeName(Selection) = "Range" Then Exit Sub
     If ws Is Nothing Then Set ws = ActiveSheet
     If ra Is Nothing Then Set ra = ActiveCell
+    
+    'テーブル開始位置を取得
+    Dim ce As Range
+    Set ce = FarLeftTop(ra.Cells(2, 1))
+    
+    'テーブル項目取得
+    Dim hdr_dic As Dictionary
+    ArrStrToDict hdr_dic, c_ShapeInfoMember, 1
+    
+    'ヘッダ取得
+    Dim hdr() As String
+    hdr = GetHeaderArray(ce, hdr_dic)
+    
+    '図形リスト作成
+    Dim dic As Dictionary
+    Set dic = New Dictionary
+    Dim sh As Shape, sh2 As Shape
+    For Each sh In ws.Shapes
+        dic.Add sh.name, sh
+        If sh.Type = msoGroup Then
+            For Each sh2 In sh.GroupItems
+                dic.Add sh2.name, sh2
+            Next sh2
+        End If
+    Next sh
     
     '画面更新停止
     Dim fsu As Boolean
     fsu = Application.ScreenUpdating
     Application.ScreenUpdating = False
     
-    '図形リスト作成
-    Dim dic As Dictionary
-    Set dic = New Dictionary
-    Dim sp As Shape
-    For Each sp In ws.Shapes
-        dic.Add sp.name, sp
-        If sp.Type = msoGroup Then
-            Dim sp2 As Shape
-            For Each sp2 In sp.GroupItems
-                dic.Add sp2.name, sp2
-            Next sp2
-        End If
-    Next sp
-    
-    'テーブル開始位置を取得
-    Dim ce As Range
-    Set ce = ra.Cells(1, 1)
-    
-    
-    
-    
-    Set ce = ra.Cells(2, 1)
-    Set ce = FarLeftTop(ce)
-    
     Dim s As String
     s = Trim(ce.Value)
     Do Until s = ""
         If dic.Exists(s) Then
-            Set sp = dic(s)
-            If sp.Top <> ce.Offset(, 1) Then sp.Top = ce.Offset(, 1)
-            If sp.Left <> ce.Offset(, 2) Then sp.Left = ce.Offset(, 2)
-            If sp.Height <> ce.Offset(, 3) Then sp.Height = ce.Offset(, 3)
-            If sp.Width <> ce.Offset(, 4) Then sp.Width = ce.Offset(, 4)
-            If sp.Rotation <> ce.Offset(, 5) Then sp.Rotation = ce.Offset(, 5)
-            If sp.Visible <> (Not ce.Offset(, 6)) Then sp.Visible = Not ce.Offset(, 6)
-            If sp.AlternativeText <> ce.Offset(, 8) Then sp.AlternativeText = ce.Offset(, 8)
+            Set sh = ws.Shapes(s)
+            Dim f As Boolean
+            f = sh.ThreeD.Visible
+            If f Then sh.ThreeD.Visible = msoFalse
+            Dim c As Integer
+            For c = 1 To UBound(hdr)
+                If ShapeValue(sh, hdr(c)) <> ce.Offset(, c) Then
+                    UpdateShapeValue sh, hdr(c), ce.Offset(, c)
+                End If
+            Next c
+            'If sp.Top <> ce.Offset(, 1) Then sp.Top = ce.Offset(, 1)
+            'If sp.Left <> ce.Offset(, 2) Then sp.Left = ce.Offset(, 2)
+            'If sp.Height <> ce.Offset(, 3) Then sp.Height = ce.Offset(, 3)
+            'If sp.Width <> ce.Offset(, 4) Then sp.Width = ce.Offset(, 4)
+            'If sp.Rotation <> ce.Offset(, 5) Then sp.Rotation = ce.Offset(, 5)
+            'If sp.Visible <> (Not ce.Offset(, 6)) Then sp.Visible = Not ce.Offset(, 6)
+            'If sp.AlternativeText <> ce.Offset(, 8) Then sp.AlternativeText = ce.Offset(, 8)
         End If
+        If f Then sh.ThreeD.Visible = msoTrue
         Set ce = ce.Offset(1)
         s = Trim(ce.Value)
     Loop
     '
     '画面更新再開
     Application.ScreenUpdating = fsu
+
 End Sub
 
 '----------------------------------------
