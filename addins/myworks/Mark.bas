@@ -12,10 +12,10 @@ Private Const mark_dy As Integer = 20
 '版数設定値取得
 Sub GetRevMark(ByRef text As Variant)
     Dim s As String
-    s = GetParam("rev", "text")
+    s = GetRtParam("rev", "text")
     If s = "" Then
         s = "1"
-        Call SetParam("rev", "text", s)
+        Call SetRtParam("rev", "text", s)
     End If
     text = s
 End Sub
@@ -25,14 +25,14 @@ Sub SetRevMark(ByRef text As String, Optional id As Integer)
     Dim s As String
     s = Trim(text)
     If s = "" Then Exit Sub
-    Call SetParam("rev", "text", s)
-    Call SetParam("rev", "id", id)
+    Call SetRtParam("rev", "text", s)
+    Call SetRtParam("rev", "id", CStr(id))
 End Sub
 
 '版数マーク追加
 Sub AddRevMark(ra As Range)
     Dim s As String
-    s = GetParam("rev", "text")
+    s = GetRtParam("rev", "text")
     Dim i As Integer
     i = 1 + LastRevIndex(s)
     Call DrawRevMark(Selection, s, i)

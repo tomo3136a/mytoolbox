@@ -33,14 +33,14 @@ Function regex( _
 End Function
 
 '文字列有無
-Public Function re_test(s As String, ptn As String) As Boolean
+Function re_test(s As String, ptn As String) As Boolean
     On Error Resume Next
     re_test = regex(ptn).Test(s)
     On Error GoTo 0
 End Function
 
 '文字列抽出
-Public Function re_match(s As String, ptn As String, _
+Function re_match(s As String, ptn As String, _
         Optional idx As Integer = 0, _
         Optional idx2 As Integer = -1) As Variant
     On Error Resume Next
@@ -64,10 +64,180 @@ Public Function re_match(s As String, ptn As String, _
 End Function
 
 '文字列置き換え
-Public Function re_replace(s As String, ptn As String, rep As String) As String
+Function re_replace(s As String, ptn As String, rep As String) As String
     On Error Resume Next
     re_replace = regex(ptn).Replace(s, rep)
     On Error GoTo 0
+End Function
+
+'文字列分割
+Function re_split(s As String, ptn As String) As String()
+    re_split = Split(regex(ptn).Replace(s, Chr(7)), Chr(7))
+End Function
+
+'----------------------------------------
+'パラメータ文字列
+'  <text> = [ <line> \n ] <line>
+'  <line> = \s* <key> \s* : \s* <val> \s* | .+
+'  <key>  = \w+
+'  <val>  = .+
+'----------------------------------------
+
+'パラメータ文字列からキーリスト取得
+Function ParamStrKeys(s As String) As String()
+    Dim lines() As String
+    lines = Split(s, Chr(10), , vbTextCompare)
+    Dim res() As String
+    ReDim res(UBound(lines))
+    Dim i As Integer, j As Integer
+    Dim line As String
+    For i = 0 To UBound(lines)
+        line = lines(i)
+        Dim kv() As String
+        kv = Split(line, ":", 2, vbTextCompare)
+        If UBound(kv) > 0 Then
+            res(j) = Trim(kv(0))
+            j = j + 1
+        End If
+    Next i
+    ReDim Preserve res(j - 1)
+    ParamStrKeys = res
+End Function
+
+'パラメータ文字列から値を取得
+Function ParamStrVal(s As String, k As String) As String
+    Dim line As Variant
+    For Each line In Split(s, Chr(10), , vbTextCompare)
+        Dim kv() As String
+        kv = Split(line, ":", 2, vbTextCompare)
+        If UBound(kv) > 0 Then
+            If UCase(k) = UCase(Trim(kv(0))) Then
+                ParamStrVal = Trim(kv(1))
+                Exit Function
+            End If
+        End If
+    Next line
+End Function
+
+'パラメータ文字列にキー・値を追加・更新
+Function UpdateParamStr(s As String, k As String, v As String) As String
+    Dim lines() As String
+    lines = Split(s, Chr(10), , vbTextCompare)
+    Dim line As String
+    Dim i As Integer
+    For i = 0 To UBound(lines)
+        line = lines(i)
+        Dim kv() As String
+        kv = Split(line, ":", 2, vbTextCompare)
+        If UBound(kv) > 0 Then
+            If k = Trim(kv(0)) Then
+                lines(i) = k & ":" & Trim(v)
+                Exit For
+            End If
+        End If
+    Next i
+    line = Join(lines, Chr(10))
+    If i > UBound(lines) Then
+        line = Join(Array(line, k & ":" & Trim(v)), Chr(10))
+    End If
+    line = Replace(line, Chr(10) & Chr(10), Chr(10))
+    UpdateParamStr = line
+End Function
+
+'パラメータ文字列から項目を削除
+Function RemoveParamStr(s As String, k As String) As String
+    Dim lines() As String
+    lines = Split(s, Chr(10), , vbTextCompare)
+    Dim res() As String
+    ReDim res(0 To UBound(lines))
+    Dim i As Integer, j As Integer
+    Dim line As String
+    For i = 0 To UBound(lines)
+        line = lines(i)
+        Dim kv() As String
+        kv = Split(line, ":", 2, vbTextCompare)
+        If UBound(kv) > 0 Then
+            If k <> Trim(kv(0)) Then
+                res(j) = line
+                j = j + 1
+            End If
+        Else
+            res(j) = line
+            j = j + 1
+        End If
+    Next i
+    ReDim Preserve res(j)
+    RemoveParamStr = Join(res, Chr(10))
+End Function
+
+'パラメータ文字列からディクショナリ作成
+Sub ParamStrDict(dict As Dictionary, s As String)
+    If dict Is Nothing Then Set dict = New Dictionary
+    Dim line As Variant
+    For Each line In Split(s, Chr(10), , vbTextCompare)
+        Dim kv() As String
+        kv = Split(line, ":", 2, vbTextCompare)
+        If UBound(kv) > 0 Then
+            dict.Add Trim(kv(0)), Trim(kv(1))
+        End If
+    Next line
+End Sub
+
+'----------------------------------------
+'配列文字列
+'  <text> = [ <rows> ; ] <rows>
+'  <rows> = [ \s* <item> \s+ , ] \s* <item> \s*
+'  <item> = \w+
+'----------------------------------------
+
+'配列文字列から配列へ変換
+Function StrToArr(s As String) As Variant
+    Dim lines() As String
+    lines = Split(s, ";", , vbTextCompare)
+    If UBound(lines) < 2 Then
+        StrToArr = Split(s, ",", , vbTextCompare)
+        Exit Function
+    End If
+    
+    Dim r As Long, c As Long
+    Dim ss() As String
+    Dim v As Variant
+    For Each v In lines
+        ss = Split(v, ",", , vbTextCompare)
+        If UBound(ss) >= 0 Then
+            If Trim(ss(0)) <> "" Then r = r + 1
+            If c < UBound(ss) Then c = UBound(ss)
+        End If
+    Next v
+    Dim res As Variant
+    ReDim res(1 To r, 1 To c + 1)
+    
+    Dim i As Long, j As Long
+    For Each v In lines
+        ss = Split(v, ",", , vbTextCompare)
+        If UBound(ss) >= 0 Then
+            If Trim(ss(0)) <> "" Then i = i + 1
+            For j = 0 To UBound(ss)
+                res(i, j + 1) = Trim(ss(j))
+            Next j
+        End If
+    Next v
+    
+    StrToArr = res
+End Function
+
+'配列から配列文字列へ変換
+Function ArrToStr(arr As Variant) As String
+    Dim s() As String
+    ReDim s(0 To UBound(s, 0))
+    Dim i As Long, j As Long
+    For i = 0 To UBound(arr, 0)
+        s(i) = arr(i, 0)
+        For j = 1 To UBound(arr, 1)
+            s(i) = s(i) & "," & arr(i, j)
+        Next j
+    Next i
+    ArrToStr = Join(s, ";")
 End Function
 
 '----------------------------------------
@@ -75,14 +245,76 @@ End Function
 '----------------------------------------
 
 'コレクションを配列に変換
-Function ToArray(col As Collection) As Variant()
+Function ColToArr(col As Collection) As Variant()
     Dim arr() As Variant
     ReDim arr(0 To col.Count - 1)
     Dim i As Integer
     For i = 1 To col.Count
         arr(i - 1) = col.Item(i)
     Next i
-    ToArray = arr
+    ColToArr = arr
+End Function
+
+'二次配列文字列から配列辞書に変換
+Sub ArrToDict(dic As Dictionary, arr As Variant, Optional n As Integer)
+    
+    If dic Is Nothing Then Set dic = New Dictionary
+    If n > UBound(arr, 2) - LBound(arr, 2) Then Exit Sub
+    
+    Dim i As Integer
+    For i = LBound(arr, 1) To UBound(arr, 1)
+        If Not dic.Exists(arr(i, n + LBound(arr, 2))) Then
+            dic.Add arr(i, n + LBound(arr, 2)), arr = wsf.Index(arr, i, Array(2, 4))
+        End If
+    Next i
+    
+End Sub
+
+'二次配列文字列から配列辞書に変換
+Sub ArrStrToDict(dic As Dictionary, s As String, Optional n As Integer)
+    
+    If dic Is Nothing Then Set dic = New Dictionary
+    Dim s1 As String
+    s1 = Replace(s, " ", "")
+    
+    Dim va As Variant
+    For Each va In Split(s1, ";")
+        Dim ss() As String
+        ss = Split(va, ",")
+        If UBound(ss) > n Then
+            Dim i As Integer
+            For i = 0 To n
+                Dim k As String
+                k = UCase(ss(i))
+                If k <> "" Then
+                    If Not dic.Exists(k) Then
+                        dic.Add k, ss
+                    End If
+                End If
+            Next i
+        End If
+    Next va
+    
+End Sub
+
+'配列の範囲抽出
+Function TakeArray(arr() As String, Optional p As Integer, Optional n As Integer) As String()
+    
+    Dim sz As Integer
+    sz = n
+    If sz = 0 Then sz = UBound(arr) - LBound(arr) - p + 1
+    Dim sp As Integer
+    sp = p + LBound(arr)
+    
+    Dim sa() As String
+    ReDim sa(0 To sz - 1)
+    
+    Dim i As Long
+    For i = 0 To sz - 1
+        sa(i) = arr(sp + i)
+    Next i
+    TakeArray = sa
+
 End Function
 
 '----------------------------------------
@@ -264,45 +496,42 @@ Function GetRelatedPath(path As String, Base As String) As String
 End Function
 
 '----------------------------------------
-'パラメータ機能
+'実行時パラメータ機能
 '----------------------------------------
 
 'パラメータ設定
-Sub SetParam(grp As String, k As String, ByVal v As String)
+Sub SetRtParam(grp As String, k As String, Optional v As String)
     Dim dic As Dictionary
-    Set dic = param_dict
+    Set dic = rt_param_dict
     Dim kw As String
     kw = grp & "_" & k
-    On Error Resume Next
-    dic.Remove kw
-    dic.Add kw, v
-    On Error GoTo 0
+    If dic.Exists(kw) Then dic.Remove kw
+    If v <> "" Then dic.Add kw, v
 End Sub
 
 'パラメータ取得
-Function GetParam(grp As String, k As String) As String
+Function GetRtParam(grp As String, k As String, Optional v As String) As String
     Dim dic As Dictionary
-    Set dic = param_dict
+    Set dic = rt_param_dict
     Dim kw As String
     kw = grp & "_" & k
-    On Error Resume Next
-    GetParam = dic.Item(kw)
-    On Error GoTo 0
+    GetRtParam = v
+    If dic.Exists(kw) Then GetRtParam = dic.Item(kw)
 End Function
 
 'パラメータ取得(boolean)
-Function GetParamBool(grp As String, k As String) As Boolean
+Function GetRtParamBool(grp As String, k As String) As Boolean
     Dim s As String
-    s = GetParam(grp, k)
+    s = GetRtParam(grp, k)
     If s = "" Then s = "False"
-    GetParamBool = s
+    GetRtParamBool = s
 End Function
 
 'パラメータディクショナリ
-Private Function param_dict() As Dictionary
+Private Function rt_param_dict() As Dictionary
     Static dic As Dictionary
     If dic Is Nothing Then Set dic = New Dictionary
-    Set param_dict = dic
+    Set rt_param_dict = dic
 End Function
 
 '----------------------------------------
@@ -422,8 +651,8 @@ Sub ProgressStatusBar(Optional i As Long = 1, Optional cnt As Long = 1)
     Dim p As Double: p = i / cnt
     Dim s As String: s = "進捗状況(" & Int(p * 100) & "%)"
     s = s & " : " & ProgressBar(p)
-    Dim tm As Double: tm = (Timer - tm_start) / p * (1 - p)
-    Application.StatusBar = s & " : 残り" & Int(tm) & "秒"
+    Dim TM As Double: TM = (Timer - tm_start) / p * (1 - p)
+    Application.StatusBar = s & " : 残り" & Int(TM) & "秒"
 End Sub
 
 Private Function ProgressBar(p As Double) As String

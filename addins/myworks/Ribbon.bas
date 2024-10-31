@@ -9,18 +9,36 @@ Option Private Module
 Private g_ribbon As IRibbonUI
 
 '----------------------------------------
+'common
+'----------------------------------------
+
+Private Function SelectRange() As Range
+    Dim ra As Range
+    If TypeName(Selection) = "Range" Then
+        Dim s As String
+        s = TypeName(Selection)
+        Set ra = Selection
+    Else
+        Set ra = Range(Selection.TopLeftCell, Selection.BottomRightCell)
+        ra.Select
+    End If
+    Set SelectRange = ra
+End Function
+
+'----------------------------------------
 'ribbon helper
 '----------------------------------------
 
-'ID番号取得
-Private Function RB_ID(control As IRibbonControl) As Integer
-    RB_ID = Val(Right(control.id, 1))
-End Function
-
-'TAG番号取得
-Private Function RB_TAG(control As IRibbonControl) As Integer
-    RB_TAG = Val(control.Tag)
-End Function
+'リボンを更新
+Private Sub RefreshRibbon(Optional id As String)
+    If g_ribbon Is Nothing Then Exit Sub
+    If id = "" Then
+        g_ribbon.Invalidate
+    Else
+        g_ribbon.InvalidateControl id
+    End If
+    DoEvents
+End Sub
 
 'リボンID番号取得
 Private Function RibbonID(control As IRibbonControl) As Integer
@@ -30,27 +48,22 @@ Private Function RibbonID(control As IRibbonControl) As Integer
     Dim vs As Variant
     vs = Split(s, ".")
     If UBound(vs) >= 0 Then
-        RibbonID = Val(vs(UBound(vs)))
+        RibbonID = Val("0" & vs(UBound(vs)))
         Exit Function
     End If
     vs = Split(s, "_")
     If UBound(vs) >= 0 Then
-        RibbonID = Val(vs(UBound(vs)))
+        RibbonID = Val("0" & vs(UBound(vs)))
         Exit Function
     End If
     RibbonID = Val(s)
 End Function
 
-'リボンを更新
-Private Sub RefreshRibbon()
-    If Not g_ribbon Is Nothing Then g_ribbon.Invalidate
-    DoEvents
-End Sub
-
 '----------------------------------------
-'Initialize
+'イベント
 '----------------------------------------
 
+'起動時実行
 Private Sub works_onLoad(ByVal Ribbon As IRibbonUI)
     Set g_ribbon = Ribbon
     '
@@ -62,11 +75,11 @@ Private Sub works_onLoad(ByVal Ribbon As IRibbonUI)
     Application.OnKey "+{F1}", "works_ShortcutKey2"
     '
     '初期化
-    SetParam "path", 1, True        'リンクあり
-    SetParam "path", 2, True        'フォルダあり
-    SetParam "path", 3, True        '再帰あり
-    SetParam "info", 1, True        'シート追加
-    SetParam "mark", "color", 10    'マーカカラーは黄色
+    SetRtParam "path", 1, True      'リンクあり
+    SetRtParam "path", 2, True      'フォルダあり
+    SetRtParam "path", 3, True      '再帰あり
+    SetRtParam "info", 1, True      'シート追加
+    SetRtParam "mark", "color", 10  'マーカカラーは黄色
 End Sub
 
 Private Sub works_ShortcutKey1()
@@ -82,7 +95,8 @@ Private Sub works_ShortcutKey2()
 End Sub
 
 '----------------------------------------
-'1x:レポート機能
+'■機能グループ1
+'レポート機能
 '----------------------------------------
 
 'レポートサイン
@@ -125,11 +139,11 @@ Private Sub works17_onAction(ByVal control As IRibbonControl)
 End Sub
 
 Private Sub works17_onChecked(ByRef control As IRibbonControl, ByRef pressed As Boolean)
-    SetParam "path", RibbonID(control), pressed
+    SetRtParam "path", RibbonID(control), CStr(pressed)
 End Sub
 
 Private Sub works17_getPressed(control As IRibbonControl, ByRef returnedVal)
-    returnedVal = GetParamBool("path", RibbonID(control))
+    returnedVal = GetRtParamBool("path", RibbonID(control))
 End Sub
 
 '情報取得
@@ -138,11 +152,11 @@ Private Sub works18_onAction(ByVal control As IRibbonControl)
 End Sub
 
 Private Sub works18_onChecked(ByRef control As IRibbonControl, ByRef pressed As Boolean)
-    SetParam "info", RibbonID(control), pressed
+    SetRtParam "info", RibbonID(control), CStr(pressed)
 End Sub
 
 Private Sub works18_getPressed(control As IRibbonControl, ByRef returnedVal)
-    returnedVal = GetParamBool("info", RibbonID(control))
+    returnedVal = GetRtParamBool("info", RibbonID(control))
 End Sub
 
 'エクスポート
@@ -152,15 +166,16 @@ Private Sub works19_onAction(ByVal control As IRibbonControl)
 End Sub
 
 Private Sub works19_onChecked(ByRef control As IRibbonControl, ByRef pressed As Boolean)
-    SetParam "export", RibbonID(control), pressed
+    SetRtParam "export", RibbonID(control), CStr(pressed)
 End Sub
 
 Private Sub works19_getPressed(control As IRibbonControl, ByRef returnedVal)
-    returnedVal = GetParamBool("export", RibbonID(control))
+    returnedVal = GetRtParamBool("export", RibbonID(control))
 End Sub
 
 '----------------------------------------
-'2x:罫線枠
+''■機能グループ2
+'罫線枠
 '----------------------------------------
 
 '移動・選択
@@ -213,7 +228,8 @@ Private Sub works28_getLabel(ByRef control As Office.IRibbonControl, ByRef label
 End Sub
 
 '----------------------------------------
-'3x:テンプレート機能
+'■機能グループ3
+'テンプレート機能
 '----------------------------------------
 
 Private Sub works3_onAction(ByVal control As IRibbonControl)
@@ -246,24 +262,25 @@ Private Sub works3_getEnabled(control As IRibbonControl, ByRef enable As Variant
 End Sub
 
 '----------------------------------------
-'4:marker
+'■機能グループ4
+'marker
 '----------------------------------------
 
 Private Sub works4_getLabel(control As IRibbonControl, ByRef label As Variant)
     Dim name() As Variant
     name = Array("-", "赤", "青", "緑", "灰色", "橙", "青緑", "淡い橙", "紫", "緑", "黄色")
-    label = name(Val(GetParam("mark", "color")))
+    label = name(Val(GetRtParam("mark", "color")))
 End Sub
 
 Private Sub works4_onGetImage(control As IRibbonControl, ByRef bitmap As Variant)
-    bitmap = "AppointmentColor" & Val(GetParam("mark", "color"))
+    bitmap = "AppointmentColor" & Val(GetRtParam("mark", "color"))
 End Sub
 
 Private Sub works4_onAction(control As IRibbonControl)
     Select Case RibbonID(control)
     Case 1
         If TypeName(Selection) <> "Range" Then Exit Sub
-        Call AddMarker(Selection, Val(GetParam("mark", "color")))
+        Call AddMarker(Selection, Val(GetRtParam("mark", "color")))
     Case 2
         If TypeName(Selection) <> "Range" Then Exit Sub
         Call ListMarker(Selection)
@@ -280,15 +297,16 @@ Private Sub works4_onAction(control As IRibbonControl)
 End Sub
 
 Private Sub works41_onAction(control As IRibbonControl, selectedId As String, selectedIndex As Integer)
-    Call SetParam("mark", "color", Mid(selectedId, InStr(1, selectedId, ".") + 1))
+    Call SetRtParam("mark", "color", Mid(selectedId, InStr(1, selectedId, ".") + 1))
     If Not g_ribbon Is Nothing Then g_ribbon.Invalidate
     DoEvents
     If TypeName(Selection) <> "Range" Then Exit Sub
-    Call AddMarker(Selection, Val(GetParam("mark", "color")))
+    Call AddMarker(Selection, Val(GetRtParam("mark", "color")))
 End Sub
 
 '----------------------------------------
-'5:revision mark
+'■機能グループ5
+'revision mark
 '----------------------------------------
 
 Private Sub works5_getLabel(control As IRibbonControl, ByRef label As Variant)

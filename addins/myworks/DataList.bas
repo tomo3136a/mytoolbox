@@ -21,7 +21,7 @@ Sub AddInfoSheet(mode As Integer)
     Set wb = ActiveWorkbook
     
     Dim ra As Range
-    If GetParamBool("info", 1) Then
+    If GetRtParamBool("info", 1) Then
         Dim ws As Worksheet
         Set ws = wb.Worksheets.Add
         Call SetInfoSheet(ws, Title)

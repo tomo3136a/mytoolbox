@@ -185,7 +185,7 @@ Private Function SelectFolder2(path As String) As String
                         "フォルダを選んでください", _
                         &H1 + &H10 + &H200, path)
         If fo Is Nothing Then Exit Function
-        SelectFolder2 = fo.items.Item.path
+        SelectFolder2 = fo.Items.Item.path
     End With
 End Function
 
@@ -257,7 +257,7 @@ Function SelectCell(Optional ra As Range, Optional s As String, Optional ptn As 
     SelectForm.AddValues ra
     SelectForm.Show
     Dim i As Integer
-    i = SelectForm.index
+    i = SelectForm.Index
     Dim v As Variant
     For Each v In ra
         If i = 0 Then Exit For

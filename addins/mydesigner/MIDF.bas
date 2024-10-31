@@ -95,10 +95,35 @@ End Type
 'IDFファイルを読み込み、シート作成
 Public Sub ImportIDF()
 
+    'IDFパラメータ取得
     Dim path As String
     path = GetRtParam("IDF", "path")
     If path = "" Then path = ActiveWorkbook.path
     
+    Dim list_name As String
+    list_name = GetRtParam("IDF", "list_name", "@IDF")
+    
+    'Dim list_title As String
+    'list_title = GetRtParam("IDF", "list_title", "ライブラリ")
+    
+    '管理シート作成
+    Dim list_ws As Worksheet
+    On Error Resume Next
+    Set list_ws = ActiveWorkbook.Worksheets(list_name)
+    On Error GoTo 0
+    If list_ws Is Nothing Then
+        Set list_ws = ActiveWorkbook.Worksheets.Add
+        list_ws.name = list_name
+    End If
+
+    '管理テーブル作成
+    Dim list_ce As Range
+    Set list_ce = FindCell("IDF", ActiveCell)
+    If list_ce Is Nothing Then
+        Set list_ce = list_ws.Cells(2, 2)
+    End If
+    
+    'ファイル選択
     With Application.FileDialog(msoFileDialogOpen)
         .Filters.Clear
         .Filters.Add "IDF file", "*.emn,*.brd,*.bdf,*.idb"
@@ -115,34 +140,70 @@ Public Sub ImportIDF()
         'ファイル読み込み
         Dim v As Variant
         For Each v In .SelectedItems
-            path = v
-            
-            'ファイルを配列に読み込み
-            Dim arr As Variant
-            ReadArrayIDF arr, path, True
-            If UBound(arr, 2) < 2 Then Exit For
-            
-            'ワークシート作成
             Dim ws As Worksheet
-            Set ws = Worksheets.Add(After:=Worksheets(Worksheets.Count))
-            ws.name = UniqueSheetName(ws.Parent, fso.GetFileName(path))
-            ws.Range("C:C").NumberFormatLocal = "#0.0###"
-            ws.Range("M:N").NumberFormatLocal = "#0.0###"
-            ws.Range("W:Y").NumberFormatLocal = "#0.0###"
+            ImportIDF_1 CStr(v), ws
+            If ws Is Nothing Then Exit Sub
             
-            'ワークシートに出力
-            Dim rcnt As Long
-            Dim ccnt As Long
-            rcnt = UBound(arr, 1)
-            ccnt = UBound(arr, 2)
-            ws.Range("A1").Resize(rcnt, ccnt).Value = arr
-            Set ws = Nothing
+            Dim ce As Range
+            Set ce = FindCell("IDF", list_ws.Cells(1, 1))
+            If ce Is Nothing Then
+                Dim r As Long
+                r = list_ws.UsedRange.Row + list_ws.UsedRange.Rows.Count
+                Set ce = list_ws.Cells(r + 2, 2)
+                ce.Value = "IDF"
+                
+                Dim vs As Variant
+                vs = Split("name,sheet,note", ",")
+                Dim i As Integer
+                With ce.Offset(2)
+                    For i = 0 To UBound(vs)
+                        .Offset(, i).Value = vs(i)
+                    Next i
+                End With
+            End If
+            Set ce = ce.Offset(3)
+            Do Until ce.Value = ""
+                Set ce = ce.Offset(1)
+            Loop
+            ce.Value = ws.name
+            ce.Offset(, 1).Value = ws.name
         Next v
         
         '画面チラつき防止処置解除
         ScreenUpdateOn
     End With
 
+End Sub
+
+Private Sub ImportIDF_1(ByVal path As String, ws As Worksheet)
+    
+    'ファイルを配列に読み込み
+    Dim arr As Variant
+    ReadArrayIDF arr, path, True
+    If UBound(arr, 2) < 2 Then Exit Sub
+    
+    'ワークシート作成
+    Set ws = Worksheets.Add(After:=Worksheets(Worksheets.Count))
+    ws.name = UniqueSheetName(ws.Parent, fso.GetFileName(path))
+    ws.Range("C:C").NumberFormatLocal = "#0.0###"
+    ws.Range("M:N").NumberFormatLocal = "#0.0###"
+    ws.Range("W:Y").NumberFormatLocal = "#0.0###"
+    
+    'ワークシートに出力
+    Dim rcnt As Long
+    Dim ccnt As Long
+    rcnt = UBound(arr, 1)
+    ccnt = UBound(arr, 2)
+    ws.Range("A1").Resize(rcnt, ccnt).Value = arr
+
+End Sub
+
+'----------------------------------------
+'IDF読み込み
+'----------------------------------------
+
+'IDFファイルを読み込み、シート作成
+Public Sub ImportIDF_old()
 End Sub
 
 'IDFファイルを読み込み、配列作成
@@ -204,7 +265,7 @@ Private Sub ReadIDF(col As Collection, path As String)
     Dim mode1 As Integer
     Dim mode2 As Integer
     Dim seq As Long
-    Dim index As Long
+    Dim Index As Long
     
     'ファイルを読み込み、行ごとに処理
     Dim st As Object
@@ -262,7 +323,7 @@ Private Sub ReadIDF(col As Collection, path As String)
                 Case 1
                     wa(FID.N_SECTION) = sect
                     wa(FID.N_OWNER) = owner
-                    index = 0
+                    Index = 0
                     If mode2 = EM2.N_VIA_KEEPOUT Then seq = seq + 1
                 Case 2
                     Select Case mode2
@@ -282,9 +343,9 @@ Private Sub ReadIDF(col As Collection, path As String)
                         wa(FID.N_REFERENCE) = va(1)
                     End Select
                 Case Else
-                    If wa(FID.N_LABEL) = s Then index = index + 1 Else index = 0
+                    If wa(FID.N_LABEL) = s Then Index = Index + 1 Else Index = 0
                     wa(FID.N_LABEL) = s
-                    wa(FID.N_INDEX) = index
+                    wa(FID.N_INDEX) = Index
                     wa(FID.N_XPOS) = va(1)
                     wa(FID.N_YPOS) = va(2)
                     wa(FID.N_ANGLE) = va(3)
@@ -350,14 +411,14 @@ Private Sub ReadIDF(col As Collection, path As String)
                 Case 1
                     wa(FID.N_SECTION) = sect
                     wa(FID.N_OWNER) = ""
-                    index = 0
+                    Index = 0
                 Case 2
                     wa(FID.N_GEOMETORY) = s
                     wa(FID.N_NUMBER) = va(1)
                     wa(FID.N_UNITS) = va(2)
                     wa(FID.N_HEIGHT) = va(3)
                 Case Else
-                    If wa(FID.N_LABEL) = s Then index = index + 1 Else index = 0
+                    If wa(FID.N_LABEL) = s Then Index = Index + 1 Else Index = 0
                     s = UCase(s)
                     wa(FID.N_LABEL) = s
                     If s = "PROP" Then
@@ -370,7 +431,7 @@ Private Sub ReadIDF(col As Collection, path As String)
                     Else
                         wa(FID.N_ATTRIBUTE) = ""
                         wa(FID.N_VAL) = ""
-                        wa(FID.N_INDEX) = index
+                        wa(FID.N_INDEX) = Index
                         wa(FID.N_XPOS) = va(1)
                         wa(FID.N_YPOS) = va(2)
                         wa(FID.N_ANGLE) = va(3)
@@ -416,8 +477,7 @@ End Function
 Public Sub ExportIDF()
 
     Dim root As String
-    root = GetRtParam("IDF", "path")
-    If root = "" Then root = ActiveWorkbook.path
+    root = GetRtParam("IDF", "path", ActiveWorkbook.path)
 
     Dim ws As Worksheet
     For Each ws In ActiveWindow.SelectedSheets
@@ -1479,9 +1539,9 @@ Private Function DrawShape( _
     If sc = 0 Then Exit Function
     scx = sc
     If env.flip Then scx = -scx
-    scy = sc
+    scy = -sc
     x0 = env.x0 + scx * x
-    y0 = env.y0 - scy * y
+    y0 = env.y0 + scy * y
     z0 = env.z0
 
     Dim sh As Shape
@@ -1490,11 +1550,11 @@ Private Function DrawShape( _
     '開始点
     Dim sect As String
     Dim label As Integer
-    Dim index As Integer
+    Dim Index As Integer
     Dim a1 As Double, x1 As Double, y1 As Double, h1 As Double
     sect = arr(r, FID.N_SECTION)
     label = arr(r, FID.N_LABEL)
-    index = arr(r, FID.N_INDEX)
+    Index = arr(r, FID.N_INDEX)
     a1 = arr(r, FID.N_ANGLE)
     x1 = arr(r, FID.N_XPOS)
     y1 = arr(r, FID.N_YPOS)
@@ -1503,7 +1563,7 @@ Private Function DrawShape( _
     
     Dim px As Double, py As Double
     px = x0 + scx * (Cos(a0) * x1 - Sin(a0) * y1)
-    py = y0 - scy * (Sin(a0) * x1 + Cos(a0) * y1)
+    py = y0 + scy * (Sin(a0) * x1 + Cos(a0) * y1)
     
     Dim a2 As Double, x2 As Double, y2 As Double
     Dim dx As Double, dy As Double
@@ -1517,9 +1577,9 @@ Private Function DrawShape( _
     Do While r <= UBound(arr)
         If sect <> arr(r, FID.N_SECTION) Then Exit Do
         If label <> arr(r, FID.N_LABEL) Then Exit Do
-        If index > arr(r, FID.N_INDEX) Then Exit Do
+        If Index > arr(r, FID.N_INDEX) Then Exit Do
         label = arr(r, FID.N_LABEL)
-        index = arr(r, FID.N_INDEX)
+        Index = arr(r, FID.N_INDEX)
         a2 = arr(r, FID.N_ANGLE)
         x2 = arr(r, FID.N_XPOS)
         y2 = arr(r, FID.N_YPOS)
@@ -1541,18 +1601,18 @@ Private Function DrawShape( _
         End If
         If CInt(a2) = 0 Then
             px = x0 + scx * (Cos(a0) * x2 - Sin(a0) * y2)
-            py = y0 - scy * (Sin(a0) * x2 + Cos(a0) * y2)
+            py = y0 + scy * (Sin(a0) * x2 + Cos(a0) * y2)
             fb.AddNodes msoSegmentLine, msoEditingAuto, px, py
         Else
             px = x0 + scx * (Cos(a0) * x1 - Sin(a0) * y1)
-            py = y0 - scy * (Sin(a0) * x1 + Cos(a0) * y1)
+            py = y0 + scy * (Sin(a0) * x1 + Cos(a0) * y1)
             fb.AddNodes msoSegmentLine, msoEditingAuto, px, py
             dx = (x2 - x1) / 2
             dy = (y2 - y1) / 2
             Dim a3 As Double, x3 As Double, y3 As Double
             a3 = Round(Tan(wsf.Pi * (180 - a2) / 360), 5)
             x3 = (x1 + x2) / 2 - dy * a3
-            y3 = (y1 + y2) / 2 - dx * a3
+            y3 = (y1 + y2) / 2 + dx * a3
             Dim aa As Double, ax As Double, ay As Double
             aa = a2 / n * wsf.Pi / 180
             ax = (x1 - x3)
@@ -1563,11 +1623,11 @@ Private Function DrawShape( _
                 x4 = x3 + Cos(i * aa) * ax - Sin(i * aa) * ay
                 y4 = y3 + Sin(i * aa) * ax + Cos(i * aa) * ay
                 px = x0 + scx * (Cos(a0) * x4 - Sin(a0) * y4)
-                py = y0 - scy * (Sin(a0) * x4 + Cos(a0) * y4)
+                py = y0 + scy * (Sin(a0) * x4 + Cos(a0) * y4)
                 fb.AddNodes msoSegmentCurve, msoEditingAuto, px, py
             Next i
             px = x0 + scx * (Cos(a0) * x2 - Sin(a0) * y2)
-            py = y0 - scy * (Sin(a0) * x2 + Cos(a0) * y2)
+            py = y0 + scy * (Sin(a0) * x2 + Cos(a0) * y2)
             fb.AddNodes msoSegmentCurve, msoEditingAuto, px, py
             fb.AddNodes msoSegmentLine, msoEditingAuto, px, py
         End If
@@ -1607,7 +1667,7 @@ Private Function DrawShape( _
     s = "IDF " & sect
     s = Join(Array(s, "p:" & px & "," & py), Chr(10))
     s = Join(Array(s, "d:" & dx & "," & dy), Chr(10))
-    s = Join(Array(s, "g:" & sc), Chr(10))
+    s = Join(Array(s, "sc:" & sc), Chr(10))
     sh.AlternativeText = s
     
     Set DrawShape = sh

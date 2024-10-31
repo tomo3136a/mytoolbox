@@ -264,7 +264,7 @@ Sub ArrToDict(dic As Dictionary, arr As Variant, Optional n As Integer)
     Dim i As Integer
     For i = LBound(arr, 1) To UBound(arr, 1)
         If Not dic.Exists(arr(i, n + LBound(arr, 2))) Then
-            dic.Add arr(i, n + LBound(arr, 2)), arr = wsf.index(arr, i, Array(2, 4))
+            dic.Add arr(i, n + LBound(arr, 2)), arr = wsf.Index(arr, i, Array(2, 4))
         End If
     Next i
     
@@ -500,21 +500,22 @@ End Function
 '----------------------------------------
 
 'パラメータ設定
-Sub SetRtParam(grp As String, k As String, ByVal v As String)
+Sub SetRtParam(grp As String, k As String, Optional v As String)
     Dim dic As Dictionary
     Set dic = rt_param_dict
     Dim kw As String
     kw = grp & "_" & k
     If dic.Exists(kw) Then dic.Remove kw
-    dic.Add kw, v
+    If v <> "" Then dic.Add kw, v
 End Sub
 
 'パラメータ取得
-Function GetRtParam(grp As String, k As String) As String
+Function GetRtParam(grp As String, k As String, Optional v As String) As String
     Dim dic As Dictionary
     Set dic = rt_param_dict
     Dim kw As String
     kw = grp & "_" & k
+    GetRtParam = v
     If dic.Exists(kw) Then GetRtParam = dic.Item(kw)
 End Function
 

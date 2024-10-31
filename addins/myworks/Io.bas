@@ -14,10 +14,10 @@ Sub MenuExport(ra As Range, mode As Integer)
     Select Case mode
     Case 1
         '選択範囲をスープレットシートにエクスポート
-        Call ExportRangeToSpreadSheet(ra, GetParamBool("export", 1))
+        Call ExportRangeToSpreadSheet(ra, GetRtParamBool("export", 1))
     Case 2
         '選択範囲をテキストファイルにエクスポート
-        Call ExportRangeToText(ra, GetParamBool("export", 1))
+        Call ExportRangeToText(ra, GetRtParamBool("export", 1))
     End Select
 End Sub
 

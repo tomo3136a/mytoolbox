@@ -234,6 +234,22 @@ Public Function SelectSheetCB(Optional wb As Workbook) As Worksheet
     If fsu Then Application.ScreenUpdating = True
 End Function
 
+'シート取得
+Function GetSheet(s As String) As Worksheet
+    Dim v As Variant
+    Dim ws As Worksheet
+    For Each v In ActiveWorkbook.Worksheets
+        If v.name = s Then Set ws = v
+    Next v
+    If ws Is Nothing Then
+        For Each v In ThisWorkbook.Worksheets
+            If v.name = s Then ws = v
+        Next v
+    End If
+    If ws Is Nothing Then Exit Function
+    Set GetSheet = ws
+End Function
+
 'セル選択
 Function SelectCell(Optional ra As Range, Optional s As String, Optional ptn As String) As Range
     If ra Is Nothing Then Set ra = Selection
@@ -249,6 +265,20 @@ Function SelectCell(Optional ra As Range, Optional s As String, Optional ptn As 
     Next v
     If Not v = Empty Then Set SelectCell = v
     Unload SelectForm
+End Function
+
+'セル取得
+Function GetCell(Optional msg As String, Optional Title As String) As Range
+    
+    Dim ce As Range
+    Do
+        On Error Resume Next
+        Set ce = Application.InputBox(msg, Title, Type:=8)
+        On Error GoTo 0
+        If ce Is Nothing Then Exit Function
+    Loop Until ce.Count = 1
+    Set GetCell = ce
+
 End Function
 
 'アドイン選択

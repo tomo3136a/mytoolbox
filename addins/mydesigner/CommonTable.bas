@@ -54,7 +54,7 @@ Function LeftTop(ra As Range) As Range
 End Function
 
 Function RightTop(ra As Range) As Range
-    Set RightTop = ra(1, ra.Columns.Coun)
+    Set RightTop = ra(1, ra.Columns.Count)
 End Function
 
 Function LeftBottom(ra As Range) As Range
@@ -239,17 +239,30 @@ End Function
 '----------------------------------------
 
 '•¶Žš—ñ‚ªˆê’v‚·‚écell‚ð’T‚·
-Function FindCell(ra As Range, s As String) As Range
+Function FindCell(s As String, Optional ByVal ra As Range) As Range
+    If ra Is Nothing Then Set ra = ActiveCell
     Dim ws As Worksheet
     Set ws = ra.Worksheet
-    Dim r As Long
-    Dim c As Integer
-    For r = ra.Row To ws.UsedRange.Rows.Count
-        For c = ra.Column To ws.UsedRange.Columns.Count
-            Dim ce As Range
-            Set ce = ws.Cells(r, c)
-            If ce.Value = s Then
-                Set FindCell = ce
+    
+    Dim ce As Range
+    Set ce = ws.UsedRange
+    Dim r As Long, c As Long
+    r = ra.Row
+    c = ra.Column
+    If r < ce.Row Then r = ce.Row
+    If c < ce.Column Then c = ce.Column
+    Set ce = ws.Range(ws.Cells(r, c), ce(ce.Rows.Count, ce.Columns.Count))
+    If ce.Rows.Count = 1 And ce.Columns.Count = 1 Then
+        If ce.Value = s Then Set FindCell = ce
+        Exit Function
+    End If
+    
+    Dim arr As Variant
+    arr = ce.Value
+    For r = 1 To UBound(arr, 1)
+        For c = 1 To UBound(arr, 2)
+            If arr(r, c) = s Then
+                Set FindCell = ce(r, c)
                 Exit Function
             End If
         Next c
@@ -296,7 +309,6 @@ End Sub
 Sub HeaderFixed(ra As Range)
     Application.ScreenUpdating = False
     If ActiveWindow.FreezePanes Then
-        'Application.ScreenUpdating = True
         ActiveWindow.FreezePanes = False
         Exit Sub
     End If
@@ -331,6 +343,10 @@ Sub HeaderColor(ra As Range)
     '
     old.Select
 End Sub
+
+Function GetHeaderColor() As Long
+    GetHeaderColor = g_header_color
+End Function
 
 'ƒwƒbƒ_”z—ñŽæ“¾
 Function GetHeaderArray(ce As Range, dic As Dictionary) As String()

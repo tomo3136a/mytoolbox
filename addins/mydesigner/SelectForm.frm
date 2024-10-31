@@ -3,7 +3,7 @@ Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} SelectForm
    Caption         =   "選択"
    ClientHeight    =   4680
    ClientLeft      =   105
-   ClientTop       =   465
+   ClientTop       =   450
    ClientWidth     =   3630
    OleObjectBlob   =   "SelectForm.frx":0000
    StartUpPosition =   1  'オーナー フォームの中央
@@ -13,8 +13,6 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-
-
 
 
 
@@ -43,8 +41,8 @@ Public Function Result() As String
     Result = sValue
 End Function
 
-Public Function index() As Integer
-    index = ListBox1.ListIndex
+Public Function Index() As Integer
+    Index = ListBox1.ListIndex
 End Function
 
 Public Sub AddItem(s As String)

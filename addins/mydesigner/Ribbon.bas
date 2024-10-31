@@ -30,6 +30,7 @@ End Function
 'ribbon helper
 '----------------------------------------
 
+'リボンを更新
 Private Sub RefreshRibbon(Optional id As String)
     If g_ribbon Is Nothing Then Exit Sub
     If id = "" Then
@@ -40,6 +41,7 @@ Private Sub RefreshRibbon(Optional id As String)
     DoEvents
 End Sub
 
+'リボンID番号取得
 Private Function RibbonID(control As IRibbonControl) As Integer
     Dim s As String
     s = control.Tag
@@ -47,18 +49,19 @@ Private Function RibbonID(control As IRibbonControl) As Integer
     Dim vs As Variant
     vs = Split(s, ".")
     If UBound(vs) >= 0 Then
-        RibbonID = val("0" & vs(UBound(vs)))
+        RibbonID = Val("0" & vs(UBound(vs)))
         Exit Function
     End If
     vs = Split(s, "_")
     If UBound(vs) >= 0 Then
-        RibbonID = val("0" & vs(UBound(vs)))
+        RibbonID = Val("0" & vs(UBound(vs)))
         Exit Function
     End If
+    RibbonID = Val(s)
 End Function
 
 '----------------------------------------
-'設定
+'イベント
 '----------------------------------------
 
 '起動時実行
@@ -84,24 +87,20 @@ Private Sub Designer_onAction(ByRef control As IRibbonControl, ByRef pressed As 
 End Sub
 
 '----------------------------------------
-'1x. 図形操作機能
+'■機能グループ1
+'図形操作機能
+'  1x: 図形リスト
+'  2x: 図形の更新
 '----------------------------------------
 
 Private Sub Designer1_onAction(ByVal control As IRibbonControl)
     Dim id As Integer: id = RibbonID(control)
     
     Select Case id \ 10
-    Case 1                                  '図形リスト(1x)
-        ListShapeInfo ActiveSheet, id Mod 10
-    Case 2                                  '図形の更新(2x)
-        Select Case id Mod 10
-        Case 0: UpdateShapeInfo ActiveCell  '図形リスト反映
-        Case 1: UpdateShapeName ActiveSheet '図形名修理
-        End Select
-    Case Else
+    Case 0
         Select Case id
         Case 3: RemoveSharps                '図形を削除
-        Case 4: ConvToPic                   '図形を絵に変換
+        Case 4: ConvertToPicture            '図形を絵に変換
         Case 5: SetShapeStyle               'テキストボックス基本設定
         Case 6: ToggleVisible 0             '塗りつぶし表示ON/OFF
         Case 7: ToggleVisible 3             '3D表示ON/OFF
@@ -112,11 +111,19 @@ Private Sub Designer1_onAction(ByVal control As IRibbonControl)
             'Call DefaultShapeSetting
             MsgBox TypeName(Selection)
         End Select
+    Case 1
+        ListShapeInfo ActiveSheet, id Mod 10
+    Case 2
+        Select Case id Mod 10
+        Case 0: UpdateShapeInfo ActiveCell  '図形リスト反映
+        Case 1: UpdateShapeName ActiveSheet '図形名修理
+        End Select
     End Select
 End Sub
 
 '----------------------------------------
-'2x. ツール機能
+''■機能グループ2
+'ツール機能
 '----------------------------------------
 
 '図形アイテム
@@ -135,27 +142,27 @@ Private Sub Designer2_getItemCount(control As IRibbonControl, ByRef returnedVal)
     returnedVal = ws.Shapes.Count
 End Sub
 
-Private Sub Designer2_getItemID(control As IRibbonControl, index As Integer, ByRef returnedVal)
-    returnedVal = index
+Private Sub Designer2_getItemID(control As IRibbonControl, Index As Integer, ByRef returnedVal)
+    returnedVal = Index
 End Sub
 
-Private Sub Designer2_getItemLabel(control As IRibbonControl, index As Integer, ByRef returnedVal)
+Private Sub Designer2_getItemLabel(control As IRibbonControl, Index As Integer, ByRef returnedVal)
     Dim ws As Worksheet
     Set ws = GetSheet("#shapes")
     If ws Is Nothing Then Exit Sub
-    returnedVal = ws.Shapes(1 + index).name
+    returnedVal = ws.Shapes(1 + Index).name
 End Sub
 
 Private Sub Designer2_getSelectedItemID(control As IRibbonControl, ByRef returnedVal)
     returnedVal = g_select
 End Sub
 
-Private Sub Designer2_onActionDropDown(control As IRibbonControl, id As String, index As Integer)
+Private Sub Designer2_onActionDropDown(control As IRibbonControl, id As String, Index As Integer)
     Dim ws As Worksheet
     Set ws = GetSheet("#shapes")
     If ws Is Nothing Then Exit Sub
-    Call SetDrawParam(10, ws.Shapes(index + 1).name)
-    g_select = index
+    Call SetDrawParam(10, ws.Shapes(Index + 1).name)
+    g_select = Index
     If Not g_ribbon Is Nothing Then g_ribbon.InvalidateControl control.id
 End Sub
 
@@ -217,7 +224,8 @@ Sub FindMacro(control As IRibbonControl)
 End Sub
 
 '----------------------------------------
-'3x. 作図機能(IDF)
+''■機能グループ3
+'作図機能(IDF)
 '----------------------------------------
 
 Private Sub Designer3_onAction(ByVal control As IRibbonControl)
@@ -227,7 +235,9 @@ Private Sub Designer3_onAction(ByVal control As IRibbonControl)
     Case 1: ImportIDF           'IDFファイル読み込み
     Case 2: ExportIDF           'IDFファイル書き出し
     Case 3: DrawIDF ce.Worksheet, ce.Left, ce.Top   'IDF作図
-    Case 4: 'ListKeywordIDF      'IDF作図
-    Case 5
+    Case 4: 'ListKeywordIDF     'IDF作図
+    Case 5: ImportIDF          'IDFファイル読み込み
+    Case 6: ImportIDF          'IDFファイル読み込み
     End Select
 End Sub
+

@@ -317,7 +317,7 @@ Public Sub RemoveSharps(Optional ByVal ws As Worksheet)
 End Sub
 
 'ê}å`ÇäGÇ…ïœä∑
-Public Sub ConvToPic()
+Public Sub ConvertToPicture()
     
     'ëŒè€ëIë
     If TypeName(Selection) = "Range" Then Exit Sub
@@ -721,32 +721,32 @@ Private Sub UpdateShapeValue(sh As Shape, k As String, ByVal v As Variant)
     'On Error Resume Next
     Select Case UCase(k)
     
-    Case "NAME": If sh.name <> v Then sh.name = CStr(v)
-    Case "TITLE": If sh.Title <> v Then sh.Title = CStr(v)
-    Case "ID": 'If sh.id <> v Then sh.id = v
+    Case "NAME": sh.name = CStr(v)
+    Case "TITLE": sh.Title = CStr(v)
+    Case "ID":
     Case "TYPE":
     Case "STYLE":
     
-    Case "TOP": If sh.Top <> v Then sh.Top = CDbl(v)
-    Case "LEFT": If sh.Left <> v Then sh.Left = CDbl(v)
-    Case "BACK": If sh.ThreeD.Z <> v Then sh.ThreeD.Z = CDbl(v)
-    Case "ROTATION": If sh.Rotation <> v Then sh.Rotation = CDbl(v)
+    Case "TOP": sh.Top = CDbl(v)
+    Case "LEFT": sh.Left = CDbl(v)
+    Case "BACK": sh.ThreeD.Z = CDbl(v)
+    Case "ROTATION": sh.Rotation = CDbl(v)
     
-    Case "HEIGHT": If sh.Height <> v Then sh.Height = CDbl(v)
-    Case "WIDTH": If sh.Width <> v Then sh.Width = CDbl(v)
-    Case "DEPTH": If sh.ThreeD.Depth <> v Then sh.ThreeD.Depth = CDbl(v)
+    Case "HEIGHT": sh.Height = CDbl(v)
+    Case "WIDTH": sh.Width = CDbl(v)
+    Case "DEPTH": sh.ThreeD.Depth = CDbl(v)
     
-    Case "VISIBLE": If sh.Visible <> CBool(v) Then sh.Visible = CBool(v)
+    Case "VISIBLE": sh.Visible = CBool(v)
     
-    Case "LINEVISIBLE": If sh.line.Visible <> CBool(v) Then sh.line.Visible = CBool(v)
-    Case "LINECOLOR": If sh.line.ForeColor <> v Then sh.line.ForeColor = v
+    Case "LINEVISIBLE": sh.line.Visible = CBool(v)
+    Case "LINECOLOR": sh.line.ForeColor = v
     
-    Case "FILLVISIBLE": If sh.Fill.Visible <> CBool(v) Then sh.Fill.Visible = CBool(v)
-    Case "FILLCOLOR": If sh.Fill.ForeColor <> v Then sh.Fill.ForeColor = v
-    Case "TRANSPARENCY": If sh.Fill.Transparency <> v Then sh.Fill.Transparency = v
+    Case "FILLVISIBLE": sh.Fill.Visible = CBool(v)
+    Case "FILLCOLOR": sh.Fill.ForeColor = v
+    Case "TRANSPARENCY": sh.Fill.Transparency = v
     
-    Case "TEXT": If sh.TextFrame2.TextRange.text <> v Then sh.TextFrame2.TextRange.text = v
-    Case "ALTTEXT": If sh.AlternativeText <> v Then sh.AlternativeText = v
+    Case "TEXT": sh.TextFrame2.TextRange.text = v
+    Case "ALTTEXT": sh.AlternativeText = v
     
     Case "SCALE": sh.AlternativeText = UpdateParamStr(sh.AlternativeText, "sc", CStr(v))
     Case "X0": sh.AlternativeText = UpdateParamStr(sh.AlternativeText, "x0", CStr(v))

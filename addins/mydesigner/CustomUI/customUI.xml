@@ -77,6 +77,7 @@
               <button id="b3.5" onAction="Designer3_onAction" label="描画" imageMso="ShapesMoreShapes" />
             </menu>
           </splitButton>
+          <button id="b3.6" onAction="Designer3_onAction" label="読み込み" imageMso="GetExternalDataImportClassic" size="large" />
           <editBox id="c3.2" onChange="Designer_onChange" label="比率" getText="Designer_getText" sizeString="wwwww" />
           <editBox id="c3.3" onChange="Designer_onChange" label="目盛り" getText="Designer_getText" sizeString="wwwww" />
           <checkBox id="c3.4" onAction="Designer_onAction" label="原点" />
