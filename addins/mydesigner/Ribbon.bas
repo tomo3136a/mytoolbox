@@ -49,15 +49,15 @@ Private Function RibbonID(control As IRibbonControl) As Integer
     Dim vs As Variant
     vs = Split(s, ".")
     If UBound(vs) >= 0 Then
-        RibbonID = Val("0" & vs(UBound(vs)))
+        RibbonID = val("0" & vs(UBound(vs)))
         Exit Function
     End If
     vs = Split(s, "_")
     If UBound(vs) >= 0 Then
-        RibbonID = Val("0" & vs(UBound(vs)))
+        RibbonID = val("0" & vs(UBound(vs)))
         Exit Function
     End If
-    RibbonID = Val(s)
+    RibbonID = val(s)
 End Function
 
 '----------------------------------------
@@ -99,6 +99,7 @@ Private Sub Designer1_onAction(ByVal control As IRibbonControl)
     Select Case id \ 10
     Case 0
         Select Case id
+        Case 1: SetDefaultShapeStyle        '図形初期値を設定
         Case 3: RemoveSharps                '図形を削除
         Case 4: ConvertToPicture            '図形を絵に変換
         Case 5: SetShapeStyle               'テキストボックス基本設定
@@ -232,9 +233,9 @@ Private Sub Designer3_onAction(ByVal control As IRibbonControl)
     Dim ce As Range: Set ce = ActiveCell
     
     Select Case RibbonID(control)
-    Case 1: ImportIDF           'IDFファイル読み込み
-    Case 2: ExportIDF           'IDFファイル書き出し
-    Case 3: DrawIDF ce.Worksheet, ce.Left, ce.Top   'IDF作図
+    Case 1: DrawIDF ce.Worksheet, ce.Left, ce.Top   'IDF作図
+    Case 2: ImportIDF           'IDFファイル読み込み
+    Case 3: ExportIDF           'IDFファイル書き出し
     Case 4: 'ListKeywordIDF     'IDF作図
     Case 5: ImportIDF          'IDFファイル読み込み
     Case 6: ImportIDF          'IDFファイル読み込み

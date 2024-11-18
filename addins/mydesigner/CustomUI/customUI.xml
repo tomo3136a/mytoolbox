@@ -4,6 +4,7 @@
     <tabs>
       <tab id="TabDesigner" label="作図" insertAfterQ="TabAddIns">
         <group id="g1" label="図形操作" imageMso="ComAddInsDialog">
+          <button id="b1.1" onAction="Designer1_onAction" label="標準図形設定" imageMso="ObjectFormatDialog" size="large" />
           <button id="b1.3" onAction="Designer1_onAction" label="図形削除" imageMso="Clear" />
           <button id="b1.4" onAction="Designer1_onAction" label="絵に変換" imageMso="SelectionPane" />
           <button id="b1.7" onAction="Designer1_onAction" label="3D" imageMso="SelectionPane" />
@@ -65,24 +66,17 @@
         </group>
         <group id="g3" label="IDF" imageMso="ComAddInsDialog">
           <splitButton id="g31" size="large">
-            <button id="b3.1" onAction="Designer3_onAction" label="読み込み" imageMso="GetExternalDataImportClassic" />
+            <button id="b3.1" onAction="Designer3_onAction" label="描画" imageMso="ShapesMoreShapes" />
             <menu id="m31">
-              <button id="b3.2" onAction="Designer3_onAction" label="エクスポート" imageMso="ExportTextFile" />
+              <button id="b3.2" onAction="Designer3_onAction" label="読み込み" imageMso="GetExternalDataImportClassic" />
+              <button id="b3.3" onAction="Designer3_onAction" label="エクスポート" imageMso="ExportTextFile" />
             </menu>
           </splitButton>
-          <splitButton id="g32" size="large">
-            <button id="b3.3" onAction="Designer3_onAction" label="描画" imageMso="ShapesMoreShapes" />
-            <menu id="Designer.m32">
-              <button id="b3.4" onAction="Designer3_onAction" label="描画(シート)" imageMso="ShapesMoreShapes" />
-              <button id="b3.5" onAction="Designer3_onAction" label="描画" imageMso="ShapesMoreShapes" />
-            </menu>
-          </splitButton>
-          <button id="b3.6" onAction="Designer3_onAction" label="読み込み" imageMso="GetExternalDataImportClassic" size="large" />
           <editBox id="c3.2" onChange="Designer_onChange" label="比率" getText="Designer_getText" sizeString="wwwww" />
-          <editBox id="c3.3" onChange="Designer_onChange" label="目盛り" getText="Designer_getText" sizeString="wwwww" />
-          <checkBox id="c3.4" onAction="Designer_onAction" label="原点" />
-          <checkBox id="c3.5" onAction="Designer_onAction" label="背景" />
-          <checkBox id="c3.6" onAction="Designer_onAction" label="方眼紙" />
+          <checkBox id="c3.4" onAction="Designer_onAction" label="PTH" />
+          <checkBox id="c3.5" onAction="Designer_onAction" label="ビア制約" />
+          <checkBox id="c3.6" onAction="Designer_onAction" label="配線制約" />
+          <checkBox id="c3.7" onAction="Designer_onAction" label="配置制約" />
         </group>
         <!-- <group id="Designer.g4" label="IDF" imageMso="ComAddInsDialog">
           <button id="RD14" onAction="RD58_onAction" label="​ｘｘｘ" imageMso="GetExternalDataFromText" size="large" />

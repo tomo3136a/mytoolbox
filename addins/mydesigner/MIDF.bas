@@ -55,6 +55,7 @@ Private Enum FID
                     'POWER_OPR[mW], POWER_MAX[mW], THERM_COND[W/m・℃],
                     'THETA_JB[℃/W], THETA_JC[℃/W], Other
     N_VAL           'attribute value
+    N_END
 End Enum
 
 'mode1 ids
@@ -83,9 +84,10 @@ Private Type T_EnvIDF
     z0 As Double
     t0 As Double
     sc As Double
+    scz As Double
     angle As Double
     flip As Boolean
-    dir As Boolean
+    dir As Double
 End Type
 
 '----------------------------------------
@@ -102,9 +104,6 @@ Public Sub ImportIDF()
     
     Dim list_name As String
     list_name = GetRtParam("IDF", "list_name", "@IDF")
-    
-    'Dim list_title As String
-    'list_title = GetRtParam("IDF", "list_title", "ライブラリ")
     
     '管理シート作成
     Dim list_ws As Worksheet
@@ -126,7 +125,8 @@ Public Sub ImportIDF()
     'ファイル選択
     With Application.FileDialog(msoFileDialogOpen)
         .Filters.Clear
-        .Filters.Add "IDF file", "*.emn,*.brd,*.bdf,*.idb"
+        .Filters.Add "IDF file", "*.emn,*.brd,*.bdf,*.idb,*.emp,*.lib,*.ldf,*.idl"
+        .Filters.Add "design file", "*.emn,*.brd,*.bdf,*.idb"
         .Filters.Add "library file", "*.emp,*.lib,*.ldf,*.idl"
         .Filters.Add "全てのファイル", "*.*"
         .FilterIndex = 1
@@ -726,154 +726,139 @@ End Function
 'ワークシートからIDF描画
 Public Sub DrawIDF(ws As Worksheet, x As Double, y As Double)
     '
-    'データライブラリ取得
-    Dim name As String
+    'ライブラリ作成
     Dim lib As Dictionary
-    name = GetDataIDF(lib)
+    Set lib = New Dictionary
+    
+    'デザイン取得
+    Dim name As String
+    LoadDesign name, lib
     If name = "*" Then Exit Sub
-    If name = "" Then Exit Sub
+    If Not lib.Exists(name) Then Exit Sub
+    If Not lib.Exists("$" & name) Then Exit Sub
     
-   'データ配列取得
+    'データ配列取得
     Dim arr As Variant
-    If Not lib("$arr").Exists(name) Then Exit Sub
-    arr = lib("$arr")(name)
-    
-    '描画スケール取得
-    Dim sc As Double
-    sc = GetDrawParam(2)
+    arr = lib("$" & name)
     
     '描画領域計算
     Dim dra As Variant
-    dra = DrawingAreaIDF(arr)
+    CalcDrawingArea dra, arr
     
-    '原点計算
-    Dim x0 As Double
-    Dim y0 As Double
-    x0 = x - sc * dra(0)
-    y0 = y + sc * dra(1) + sc * dra(5)
+    'スケール・原点計算
+    Dim sc As Double, x0 As Double, y0 As Double
+    sc = GetDrawParam(2)
+    x0 = x - sc * (dra(0))
+    y0 = y + sc * (dra(1) + dra(5))
     
-    Dim a As Double
-    Dim f As Boolean
-    
-    '描画環境設定
+    '環境変数作成
     Dim env As T_EnvIDF
     SetEnvIDF env, x0, y0, 0, sc
     
-    Dim pos As Dictionary
-    Set pos = lib("$pos")
-
-    Dim ns2 As Collection
-    Set ns2 = New Collection
-    
     Dim sh As Shape
-    Dim k As String
-    Dim i As Long
-    Dim r As Long
-    Dim s As String
-    
     Dim ns As Collection
     Set ns = New Collection
     
-    'OUTLINE, KEEPOUT
-    'k = Join(Array(name, "BOARD_OUTLINE", "", ""), "-")
-    'Set sh = DrawGroupOutline(ws, env, k, arr, pos)
-    'If Not sh Is Nothing Then ns.Add sh.name
-    'k = Join(Array(name, "PANEL_OUTLINE", "", ""), "-")
-    'Set sh = DrawGroupOutline(ws, env, k, arr, pos)
-    'If Not sh Is Nothing Then ns.Add sh.name
-    k = Join(Array(name, "DRILLED_HOLES", "", ""), "-")
-    Set sh = DrawGroupHole(ws, env, k, arr, pos)
-    'If Not sh Is Nothing Then ns.Add sh.name
-    'If ns.Count > 0 Then Set sh = GroupShape(ws, ns, "OUTLINE")
-    If Not sh Is Nothing Then ns2.Add sh.name
-    
-    'OUTLINE, KEEPOUT
-    'OUTLINE, KEEPOUT
-    k = Join(Array(name, "VIA_KEEPOUT", "", ""), "-")
-    Set sh = DrawGroupOutline(ws, env, k, arr, pos)
-    If Not sh Is Nothing Then ns2.Add sh.name
+    'Assy描画
+    Set sh = DrawAssy(ws, env, lib, name)
+    If Not sh Is Nothing Then ns.Add sh.name
 
-    Dim side As Variant
-    side = Array("ALL", "BOTH", "BOTTOM", "INNER", "TOP")
-    For i = 0 To UBound(side)
-        Set ns = New Collection
-        k = Join(Array(name, "OTHER_OUTLINE", side(i), ""), "-")
-        Set sh = DrawGroupOutline(ws, env, k, arr, pos)
-        If Not sh Is Nothing Then ns.Add sh.name
-        k = Join(Array(name, "ROUTE_OUTLINE", side(i), ""), "-")
-        Set sh = DrawGroupOutline(ws, env, k, arr, pos)
-        If Not sh Is Nothing Then ns.Add sh.name
-        k = Join(Array(name, "ROUTE_KEEPOUT", side(i), ""), "-")
-        Set sh = DrawGroupOutline(ws, env, k, arr, pos)
-        If Not sh Is Nothing Then ns.Add sh.name
-        k = Join(Array(name, "PLACE_OUTLINE", side(i), ""), "-")
-        Set sh = DrawGroupOutline(ws, env, k, arr, pos)
-        If Not sh Is Nothing Then ns.Add sh.name
-        k = Join(Array(name, "PLACE_KEEPOUT", side(i), ""), "-")
-        Set sh = DrawGroupOutline(ws, env, k, arr, pos)
-        If Not sh Is Nothing Then ns.Add sh.name
-        k = Join(Array(name, "PLACE_REGION", side(i), ""), "-")
-        Set sh = DrawGroupOutline(ws, env, k, arr, pos)
-        If Not sh Is Nothing Then ns.Add sh.name
-        k = Join(Array(name, "PLACEMENT", side(i), ""), "-")
-        Set sh = DrawGroupPlace(ws, env, k, arr, pos, lib)
-        If Not sh Is Nothing Then ns.Add sh.name
-        Set sh = Nothing
-        If ns.Count > 0 Then Set sh = GroupShape(ws, ns, k)
-        If Not sh Is Nothing Then ns2.Add sh.name
-    Next i
+    '原点マーク
+    Set sh = DrawOrigin(ws, env, arr, lib)
+    If Not sh Is Nothing Then ns.Add sh.name
+        
+    If ns.Count > 0 Then Set sh = GroupShape(ws, ns, name)
     
-    k = Join(Array(name, "NOTES", "", ""), "-")
-    Set sh = DrawGroupNote(ws, env, k, arr, pos)
-    If Not sh Is Nothing Then ns2.Add sh.name
-    
-    'ORIGIN
-    Set sh = DrawOrigin(ws, env, arr, pos)
-    If Not sh Is Nothing Then ns2.Add sh.name
-    
-    If ns2.Count > 0 Then Set sh = GroupShape(ws, ns2, name)
+    Set ns = Nothing
+    Set lib = Nothing
 
 End Sub
 
-'描画パラメータ設定
-Private Function DrawEnv( _
-    x0 As Double, y0 As Double, _
-    g As Double, a As Double, f As Boolean) As Variant
-    DrawEnv = Array(a, g, f, x0, y0)
-End Function
+'-------------------------------------
+'デザイン読み込み
+'-------------------------------------
 
-Private Sub SetEnvIDF(env As T_EnvIDF, _
-    Optional x0 As Double, Optional y0 As Double, Optional z0 As Double, _
-    Optional sc As Double, Optional angle As Double, _
-    Optional flip As Boolean, Optional dir As Boolean)
-    env.x0 = x0
-    env.y0 = y0
-    env.z0 = z0
-    env.sc = sc
-    env.angle = angle
-    env.flip = flip
-    env.dir = dir
-End Sub
+'ライブラリを辞書に登録
+Private Sub LoadDesign(name As String, lib As Dictionary)
     
+    'ライブラリシート選択
+    Dim ws As Worksheet
+    Set ws = SelectSheetCB(ActiveWorkbook)
+    name = "*"
+    If ws Is ActiveSheet Then Exit Sub
+    If ws.UsedRange.Rows.Count < 1 Then Exit Sub
+    If ws.UsedRange.Columns.Count < FID.N_VAL Then Exit Sub
+    name = UCase(ws.name)
+    
+    'ライブラリデータ配列取得
+    Dim ra As Range
+    Set ra = ws.UsedRange.Offset(1)
+    Set ra = ra.Resize(ra.Rows.Count - 1)
+    Dim arr As Variant
+    arr = ra.Value
+    Set ra = Nothing
+    Set ws = Nothing
+    
+    'ライブラリ名取得
+    Dim rmax As Long, r As Long
+    rmax = UBound(arr, 1)
+    If rmax > 10 Then rmax = 10
+    For r = 1 To rmax
+        If "" <> arr(r, FID.N_NAME) Then
+            name = UCase(arr(r, FID.N_NAME))
+            Exit For
+        End If
+    Next r
+    
+    'データ配列を解析し辞書に追加
+    If lib.Exists("$" & name) Then Exit Sub
+    lib.Add "$" & name, arr
+        
+    Dim kw As String
+    If r > rmax Then
+        'library
+        For r = 1 To UBound(arr, 1)
+            If "" & arr(r, FID.N_INDEX) = "0" Then
+                kw = UCase(arr(r, FID.N_GEOMETORY))
+                If Not lib.Exists(kw) Then lib.Add kw, Array(name, r)
+            End If
+        Next r
+    Else
+        'board
+        Dim dic As Dictionary
+        Set dic = New Dictionary
+        For r = 1 To UBound(arr, 1)
+            kw = "" & arr(r, FID.N_INDEX)
+            If kw = "" Or kw = "0" Then
+                kw = arr(r, FID.N_SECTION)
+                kw = Join(Array(kw, arr(r, FID.N_LAYER), arr(r, FID.N_REFERENCE)), "-")
+                kw = UCase(kw)
+                Dim col As Collection
+                If dic.Exists(kw) Then
+                    Set col = dic(kw)
+                Else
+                    Set col = New Collection
+                    dic.Add kw, col
+                End If
+                col.Add r
+            End If
+        Next r
+        If Not lib.Exists(name) Then lib.Add name, dic
+    End If
+    
+End Sub
+
+'-------------------------------------
 
 '描画配列から全体範囲を取得
-Private Function DrawingAreaIDF(arr As Variant) As Variant
-    Dim r As Long
-    For r = 1 To UBound(arr, 1)
-        Select Case UCase(Trim(arr(r, FID.N_FILE_TYPE)))
-        Case "BOARD_FILE"
-            Exit For
-        Case "PANEL_FILE"
-            Exit For
-        Case "LIBRARY_FILE"
-            Exit For
-        End Select
-    Next r
-    If r > UBound(arr, 1) Then Exit Function
+Private Sub CalcDrawingArea(da As Variant, arr As Variant)
     
+    Dim r As Long
     Dim x As Double, y As Double
+    r = 2
     x = arr(r, FID.N_XPOS)
     y = arr(r, FID.N_YPOS)
+    
     Dim xs As Double, ys As Double, xe As Double, ye As Double
     xs = xe = x
     ys = ye = y
@@ -886,122 +871,204 @@ Private Function DrawingAreaIDF(arr As Variant) As Variant
         If y > ye Then ye = y
     Next r
 
-    DrawingAreaIDF = Array(xs, ys, xe, ye, xe - xs, ye - ys)
-End Function
+    da = Array(xs, ys, xe, ye, xe - xs + 1, ye - ys + 1)
 
-'ライブラリを辞書に登録
-Private Function GetDataIDF(dic As Dictionary) As String
-    
-    'ライブラリシート選択
-    Dim ws As Worksheet
-    Set ws = SelectSheetCB(ActiveWorkbook)
-    If ws Is ActiveSheet Then
-        GetDataIDF = "*"
-        Exit Function
-    End If
-    
-    'ライブラリデータ配列取得
-    Dim arr As Variant
-    If ws.UsedRange.Rows.Count < 1 Then Exit Function
-    If ws.UsedRange.Columns.Count < FID.N_VAL Then Exit Function
-    arr = ws.UsedRange.Value
-    Set ws = Nothing
-    
-    'データ配列の名前取得
-    Dim dataname As String
-    dataname = GetDataName(arr)
-    
-    'データ配列を解析し辞書に追加
-    ParseArrayIDF arr, dic
-    
-    GetDataIDF = dataname
-
-End Function
-
-'データ配列からデータ名取得
-Private Function GetDataName(arr As Variant) As String
-    
-    Dim name As String
-    Dim r As Long
-    For r = 1 To 10
-        If r > UBound(arr, 1) Then Exit For
-        If FID.N_IDF_VERSION > UBound(arr, 2) Then Exit For
-        If Not TypeName(arr(r, FID.N_IDF_VERSION)) = "String" Then
-            If "" <> arr(r, FID.N_NAME) Then
-                name = arr(r, FID.N_NAME)
-                Exit For
-            End If
-        End If
-    Next r
-    GetDataName = UCase(name)
-
-End Function
-
-Private Sub ParseArrayIDF(arr As Variant, dic As Dictionary)
-    
-    Dim dic_arr As Dictionary
-    Dim dic_pos As Dictionary
-    If dic Is Nothing Then
-        Set dic = New Dictionary
-        Set dic_arr = New Dictionary
-        Set dic_pos = New Dictionary
-        dic.Add "$arr", dic_arr
-        dic.Add "$pos", dic_pos
-    Else
-        Set dic_arr = dic("$arr")
-        Set dic_pos = dic("$pos")
-    End If
-    
-    Dim name As String
-    name = GetDataName(arr)
-    If dic_arr.Exists(name) Then Exit Sub
-    dic_arr.Add name, arr
-    
-    Dim s As String
-    Dim s1 As String
-    Dim s2 As String
-    Dim kw As String
-    Dim r As Long
-    For r = 1 To UBound(arr, 1)
-        kw = "" & arr(r, FID.N_INDEX)
-        kw = UCase(kw)
-        If kw = "" Or kw = "0" Then
-            kw = UCase(arr(r, FID.N_SECTION))
-            If kw = "ELECTRICAL" Or kw = "MECHANICAL" Then
-                kw = arr(r, FID.N_GEOMETORY) & "-" & arr(r, FID.N_NUMBER)
-                kw = UCase(kw)
-                Dim v As Variant
-                v = Array(name, r)
-                If Not dic.Exists(kw) Then dic.Add kw, v
-            Else
-                kw = Join(Array(arr(r, FID.N_NAME), kw, arr(r, FID.N_LAYER), arr(r, FID.N_REFERENCE)), "-")
-                kw = UCase(kw)
-                Dim col As Collection
-                If dic_pos.Exists(kw) Then
-                    Set col = dic_pos(kw)
-                Else
-                    Set col = New Collection
-                    dic_pos.Add kw, col
-                End If
-                col.Add r
-            End If
-        End If
-    Next r
-    
-    Set dic_arr = Nothing
-    Set dic_pos = Nothing
-    
 End Sub
 
 '-------------------------------------
 
-'原点表示
+'描画パラメータ設定
+Private Sub SetEnvIDF( _
+    env As T_EnvIDF, _
+    Optional x0 As Double, Optional y0 As Double, Optional z0 As Double, _
+    Optional sc As Double = 1, Optional scz As Double = 1, _
+    Optional angle As Double, _
+    Optional flip As Boolean, Optional dir As Double = 1)
+    env.x0 = x0
+    env.y0 = y0
+    env.z0 = z0
+    env.sc = sc
+    env.scz = scz
+    env.angle = angle
+    env.flip = flip
+    env.dir = dir
+End Sub
+    
+'-------------------------------------
+'描画
+'-------------------------------------
+
+'Assy描画
+Private Function DrawAssy( _
+        ws As Worksheet, env As T_EnvIDF, _
+        lib As Dictionary, name As String) As Shape
+        
+    Dim ns As Collection
+    Set ns = New Collection
+    
+    Dim arr As Variant
+    arr = lib("$" & name)
+    Dim dic As Object
+    If Not lib.Exists(name) Then Exit Function
+    Set dic = lib(name)
+    GetTinkness env, dic, arr
+    
+    Dim sh As Shape
+    Dim ns2 As Collection
+    Dim side As Variant
+    Dim k As String
+
+    'Board
+    Set sh = DrawBoard(ws, env, lib, name)
+    If Not sh Is Nothing Then ns.Add sh.name
+    
+    'PLACEMENT(BOTTOM)
+    If True Then
+        env.scz = -env.scz
+        env.z0 = env.z0 + env.scz * env.t0
+        env.flip = Not env.flip
+        
+        k = Join(Array("PLACEMENT", "BOTTOM", ""), "-")
+        Set sh = DrawGroupPlace(ws, env, k, arr, lib(name), lib)
+        If Not sh Is Nothing Then ns.Add sh.name
+        
+        k = Join(Array("OTHER_OUTLINE", "BOTTOM", ""), "-")
+        Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
+        If Not sh Is Nothing Then ns.Add sh.name
+        
+        env.flip = Not env.flip
+        env.z0 = env.z0 - env.scz * env.t0
+        env.scz = -env.scz
+    End If
+    
+    'PLACEMENT(TOP)
+    If True Then
+        k = Join(Array("PLACEMENT", "TOP", ""), "-")
+        Set sh = DrawGroupPlace(ws, env, k, arr, lib(name), lib)
+        If Not sh Is Nothing Then ns.Add sh.name
+        
+        k = Join(Array("OTHER_OUTLINE", "TOP", ""), "-")
+        Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
+        If Not sh Is Nothing Then ns.Add sh.name
+    End If
+    
+    'OUTLINE, KEEPOUT, REGION(BOTTOM)
+    env.scz = -env.scz
+    env.z0 = env.z0 + env.scz * env.t0
+    
+    For Each side In Array("ALL", "BOTH", "BOTTOM")
+        Set ns2 = New Collection
+        If IsDrawParam(7) Then
+            k = Join(Array("ROUTE_OUTLINE", side, ""), "-")
+            Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
+            If Not sh Is Nothing Then ns2.Add sh.name
+            
+            k = Join(Array("ROUTE_KEEPOUT", side, ""), "-")
+            Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
+            If Not sh Is Nothing Then ns2.Add sh.name
+        End If
+            
+        If IsDrawParam(6) Then
+            k = Join(Array("PLACE_OUTLINE", side, ""), "-")
+            Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
+            If Not sh Is Nothing Then ns2.Add sh.name
+            
+            k = Join(Array("PLACE_KEEPOUT", side, ""), "-")
+            Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
+            If Not sh Is Nothing Then ns2.Add sh.name
+            
+            k = Join(Array("PLACE_REGION", side, ""), "-")
+            Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
+            If Not sh Is Nothing Then ns2.Add sh.name
+        End If
+            
+        Set sh = Nothing
+        If ns2.Count > 0 Then Set sh = GroupShape(ws, ns2, name & "_BOTTOM")
+        If Not sh Is Nothing Then ns.Add sh.name
+        Set ns2 = Nothing
+    Next side
+    
+    env.z0 = env.z0 - env.scz * env.t0
+    env.scz = -env.scz
+
+    'OUTLINE, KEEPOUT, REGION(TOP)
+    For Each side In Array("ALL", "BOTH", "INNER", "TOP")
+        Set ns2 = New Collection
+        If IsDrawParam(7) Then
+            k = Join(Array("ROUTE_OUTLINE", side, ""), "-")
+            Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
+            If Not sh Is Nothing Then ns2.Add sh.name
+            
+            k = Join(Array("ROUTE_KEEPOUT", side, ""), "-")
+            Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
+            If Not sh Is Nothing Then ns2.Add sh.name
+        End If
+        
+        If IsDrawParam(6) Then
+            k = Join(Array("PLACE_OUTLINE", side, ""), "-")
+            Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
+            If Not sh Is Nothing Then ns2.Add sh.name
+            
+            k = Join(Array("PLACE_KEEPOUT", side, ""), "-")
+            Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
+            If Not sh Is Nothing Then ns2.Add sh.name
+            
+            k = Join(Array("PLACE_REGION", side, ""), "-")
+            Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
+            If Not sh Is Nothing Then ns2.Add sh.name
+        End If
+        
+        Set sh = Nothing
+        If ns2.Count > 0 Then Set sh = GroupShape(ws, ns2, name & "_TOP")
+        If Not sh Is Nothing Then ns.Add sh.name
+        Set ns2 = Nothing
+    Next side
+    
+    'VIA
+    If IsDrawParam(5) Then
+        k = Join(Array("VIA_KEEPOUT", "", ""), "-")
+        Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
+        If Not sh Is Nothing Then ns.Add sh.name
+    End If
+
+    'NOTES
+    If IsDrawParam(8) Then
+        k = Join(Array("NOTES", "", ""), "-")
+        Set sh = DrawGroupNote(ws, env, k, arr, lib(name))
+        If Not sh Is Nothing Then ns.Add sh.name
+    End If
+    
+    If ns.Count > 0 Then Set sh = GroupShape(ws, ns, name)
+    Set DrawAssy = sh
+    Set ns = Nothing
+    
+End Function
+
+Private Sub GetTinkness(env As T_EnvIDF, dic As Dictionary, arr As Variant)
+
+    env.t0 = 0
+    Dim k As Variant, v As Variant
+    For Each k In Array("BOARD_OUTLINE", "PANEL_OUTLINE")
+        k = Join(Array(k, "", ""), "-")
+        If dic.Exists(k) Then
+            For Each v In dic(k)
+                env.t0 = arr(CLng(v), FID.N_HEIGHT)
+                Exit Sub
+            Next v
+        End If
+    Next k
+
+End Sub
+
+'-------------------------------------
+
+'原点描画
 Private Function DrawOrigin( _
         ws As Worksheet, env As T_EnvIDF, _
         arr As Variant, dic As Dictionary) As Shape
     
-    Dim g As Double
-    g = env.sc
+    Dim sc As Double
+    sc = env.sc
     
     Dim x0 As Double
     Dim y0 As Double
@@ -1009,22 +1076,21 @@ Private Function DrawOrigin( _
     y0 = env.y0
     
     Dim dra As Variant
-    dra = DrawingAreaIDF(arr)
+    CalcDrawingArea dra, arr
     
     Dim dx As Double
     Dim dy As Double
     Dim w As Double
     dx = dra(4)
     dy = dra(5)
-    
     w = 50
     
     Dim tw As Double
     Dim tx As Double
     Dim ty As Double
-    tw = g * w * 2
-    tx = x0 - g * w
-    ty = y0 - g * w
+    tw = sc * w * 2
+    tx = x0 - sc * w
+    ty = y0 - sc * w
     
     Dim sh As Shape
     Set sh = ws.Shapes.AddShape(msoShapeFlowchartOr, tx, ty, tw, tw)
@@ -1036,15 +1102,65 @@ Private Function DrawOrigin( _
     
     Set DrawOrigin = sh
     Set sh = Nothing
-    
-    'Set sh = AddShapeRect(ws, env, x0, y0, dx, dy)
-    'Set sh = Nothing
 
 End Function
 
 '-------------------------------------
 'グループ描画
 '-------------------------------------
+
+'ボード描画
+Private Function DrawBoard( _
+        ws As Worksheet, env As T_EnvIDF, _
+        lib As Dictionary, name As String) As Shape
+        
+    Dim arr As Variant
+    arr = lib("$" & name)
+    Dim dic As Object
+    If Not lib.Exists(name) Then Exit Function
+    Set dic = lib(name)
+    
+    Dim ns As Collection
+    Set ns = New Collection
+    Dim sh As Shape
+    Dim k As Variant, v As Variant
+    
+    'Board/Panel outline
+    env.z0 = env.z0 - env.scz * env.t0
+    For Each k In Array("BOARD_OUTLINE", "PANEL_OUTLINE")
+        k = Join(Array(k, "", ""), "-")
+        If dic.Exists(k) Then
+            For Each v In dic(k)
+                Set sh = DrawOutline(ws, env, arr, CLng(v))
+                If Not sh Is Nothing Then
+                    SetStyleIDF sh, CStr(k)
+                    ns.Add sh.name
+                End If
+            Next v
+        End If
+    Next k
+    env.z0 = env.z0 + env.scz * env.t0
+    
+    'Hole
+    For Each k In dic.Keys
+        If k Like ("DRILLED_HOLES*") Then
+            For Each v In dic(k)
+                If IsDrawParam(4) Or arr(CLng(v), FID.N_GEOMETORY) <> "PTH" Then
+                    Set sh = DrawHole(ws, env, arr, CLng(v))
+                    If Not sh Is Nothing Then
+                        SetStyleIDF sh, CStr(k)
+                        ns.Add sh.name
+                    End If
+                End If
+            Next v
+        End If
+    Next k
+    
+    If ns.Count > 1 Then Set sh = GroupShape(ws, ns, name)
+    Set ns = Nothing
+    Set DrawBoard = sh
+
+End Function
 
 'OUTLINE/CUTOUT描画グループ化
 Private Function DrawGroupOutline( _
@@ -1062,10 +1178,8 @@ Private Function DrawGroupOutline( _
     Dim sh As Shape
     
     Dim i As Long
-    Dim r As Long
     For i = 1 To col.Count
-        r = col(i)
-        Set sh = DrawOutline(ws, env, arr, r)
+        Set sh = DrawOutline(ws, env, arr, CLng(col(i)))
         ns.Add sh.name
     Next i
     If ns.Count > 1 Then Set sh = GroupShape(ws, ns, grp)
@@ -1074,70 +1188,6 @@ Private Function DrawGroupOutline( _
     SetStyleIDF sh, grp
     
     Set DrawGroupOutline = sh
-
-End Function
-
-'ホール描画グループ化
-Private Function DrawGroupHole( _
-        ws As Worksheet, env As T_EnvIDF, grp As String, _
-        arr As Variant, dic As Dictionary) As Shape
-        
-    Dim ns As Collection
-    Set ns = New Collection
-    
-    Dim col As Collection
-    Dim sh As Shape
-    Dim i As Long
-    Dim r As Long
-    
-    'Board
-    Dim k As String
-    Dim v As Variant
-    k = Join(Array(Split(grp, "-")(0), "BOARD_OUTLINE", "", ""), "-")
-    If dic.Exists(k) Then
-        Set col = dic(k)
-        For i = 1 To col.Count
-            Set sh = DrawOutline(ws, env, arr, CLng(col(i)))
-            If Not sh Is Nothing Then
-                SetStyleIDF sh, k
-                ns.Add sh.name
-            End If
-        Next i
-    End If
-    
-    'Panel
-    k = Join(Array(Split(grp, "-")(0), "PANEL_OUTLINE", "", ""), "-")
-    If dic.Exists(k) Then
-        Set col = dic(k)
-        For i = 1 To col.Count
-            Set sh = DrawOutline(ws, env, arr, CLng(col(i)))
-            If Not sh Is Nothing Then
-                SetStyleIDF sh, k
-                ns.Add sh.name
-            End If
-        Next i
-    End If
-    
-    'Hole
-    Dim kw As Variant
-    For Each kw In dic.Keys
-        k = kw
-        If k Like (grp & "*") Then
-            Set col = dic(k)
-            For i = 1 To col.Count
-                env.z0 = env.z0 + 1
-                Set sh = DrawHole(ws, env, arr, CLng(col(i)))
-                If Not sh Is Nothing Then
-                    SetStyleIDF sh, k
-                    ns.Add sh.name
-                End If
-            Next i
-        End If
-    Next kw
-    
-    If ns.Count > 1 Then Set sh = GroupShape(ws, ns, grp)
-    Set ns = Nothing
-    Set DrawGroupHole = sh
 
 End Function
 
@@ -1190,7 +1240,7 @@ Private Function DrawGroupPlace( _
     Dim sh As Shape
     
     Dim kw As Variant
-    For Each kw In dic.Keys
+     For Each kw In dic.Keys
         Dim k As String
         k = kw
         If k Like (grp & "*") Then
@@ -1245,25 +1295,6 @@ Private Function DrawOutline( _
     Dim kw As String
     kw = arr(r, FID.N_SECTION)
     
-    env.z0 = 0
-    env.dir = False
-    Select Case kw
-    Case "BOARD_OUTLINE"
-        env.t0 = arr(r, FID.N_HEIGHT)
-        env.z0 = -env.t0
-    Case "PANEL_OUTLINE"
-        env.t0 = arr(r, FID.N_HEIGHT)
-        env.z0 = -env.t0
-    Case "OTHER_OUTLINE"
-    End Select
-    
-    Select Case CStr(arr(r, FID.N_LAYER))
-    Case "TOP"
-    Case "BOTTOM"
-        env.z0 = -arr(r, FID.N_HEIGHT) - env.t0
-        env.dir = True
-    End Select
-    
     Dim sh As Shape
     Set sh = DrawShape(ws, env, arr, r, 0, 0)
     If sh Is Nothing Then Exit Function
@@ -1271,6 +1302,7 @@ Private Function DrawOutline( _
     
     SetStyleIDF sh, kw, CStr(arr(r, FID.N_LABEL))
     Set DrawOutline = sh
+    
     Set sh = Nothing
     
 End Function
@@ -1284,18 +1316,17 @@ Private Function DrawHole( _
     sc = env.sc
     x0 = env.x0
     y0 = env.y0
-    z0 = -env.t0
+    z0 = env.z0
 
-    Dim tw As Double, tx As Double, ty As Double, th As Double
+    Dim tw As Double, tx As Double, ty As Double
     tw = arr(r, FID.N_LENGTH)
-    tx = arr(r, FID.N_LENGTH) / 2
+    tx = arr(r, FID.N_LENGTH) / 2 * env.dir
     ty = arr(r, FID.N_LENGTH) / 2
-    th = env.t0
     
     Dim pw As Double, px As Double, py As Double
     Dim kw As String
     pw = sc * tw
-    px = x0 + sc * (arr(r, FID.N_XPOS) - tx)
+    px = x0 + sc * (arr(r, FID.N_XPOS) - tx) * env.dir
     py = y0 - sc * (arr(r, FID.N_YPOS) + ty)
     kw = arr(r, FID.N_GEOMETORY) & "-" & arr(r, FID.N_NUMBER)
     
@@ -1322,8 +1353,8 @@ Private Function DrawHole( _
         .BevelBottomType = msoBevelAngle
         .BevelBottomInset = 0
         .BevelBottomDepth = 0
-        .Depth = sc * th
-        .Z = sc * (z0 + th)
+        .Depth = 0
+        .z = sc * z0
     End With
     
     kw = arr(r, FID.N_SECTION)
@@ -1355,7 +1386,7 @@ Public Function DrawNote( _
     Dim pw As Double, ph As Double, px As Double, py As Double
     pw = sc * tw
     ph = sc * th
-    px = x0 + sc * (arr(r, FID.N_XPOS) - tx)
+    px = x0 + sc * (arr(r, FID.N_XPOS) - tx) * env.dir
     py = y0 - sc * (arr(r, FID.N_YPOS) + ty)
     
     Dim sh As Shape
@@ -1399,7 +1430,7 @@ Public Function DrawNote( _
         .BevelBottomDepth = 0
         .ExtrusionColor.RGB = RGB(255, 0, 0)
         .Depth = 0
-        .Z = 20
+        .z = 20
     End With
     
     Set DrawNote = sh
@@ -1429,44 +1460,41 @@ Private Function DrawPlace( _
     ta = a0 + a1
     tx = x0 + sc * x1
     ty = y0 - sc * y1
-    Dim tenv As T_EnvIDF
-    SetEnvIDF tenv, tx, ty, 0, env.sc, ta
     
-    tenv.z0 = arr(r, FID.N_HEIGHT)
+    Dim tenv As T_EnvIDF
+    SetEnvIDF tenv, tx, ty, 0, sc, env.scz, ta, env.flip, env.dir
     tenv.t0 = env.t0
-    tenv.dir = False
-    Select Case CStr(arr(r, FID.N_LAYER))
-    Case "TOP"
-    Case "BOTTOM"
-        tenv.z0 = -arr(r, FID.N_HEIGHT) - tenv.t0
-        tenv.dir = True
-        tenv.flip = True
-    End Select
+    
+    tenv.z0 = env.z0
+    tenv.scz = env.scz
+    tenv.flip = env.flip
     
     Dim kw As String
-    kw = arr(r, FID.N_GEOMETORY) & " " & arr(r, FID.N_NUMBER)
+    kw = arr(r, FID.N_GEOMETORY)
     kw = UCase(kw)
     
     Dim name As String
-    If lib.Exists(kw) Then
-        name = GetDataIDF(lib)
+    If Not lib.Exists(kw) Then
+        MsgBox kw
+        Call LoadDesign(name, lib)
     End If
     
-    Dim grp1 As String
-    Dim grp2 As String
-    grp1 = arr(r, FID.N_LAYER)
-    grp2 = grp1
-    
-    Dim r2 As Long
-    
-    Dim ns As Collection
-    Set ns = New Collection
     Dim sh As Shape
-    Set sh = DrawPart(ws, tenv, tx, ty, arr, r, lib)
+    If TypeName(lib(kw)) = "Dictionary" Then
+        If Not lib.Exists("$" & kw) Then Exit Function
+        Dim arr2 As Variant
+        arr2 = lib("$" & kw)
+        tenv.dir = tenv.scz
+        Set sh = DrawAssy(ws, tenv, lib, kw)
+    Else
+        If tenv.dir < 0 Then
+            tx = x0 - sc * x1
+            tenv.x0 = tx
+        End If
+        Set sh = DrawPart(ws, tenv, tx, ty, arr, r, lib)
+    End If
     If sh Is Nothing Then Exit Function
     sh.name = arr(r, FID.N_REFERENCE) & " " & sh.id
-    ns.Add sh.name
-    
     Set DrawPlace = sh
     Set sh = Nothing
 
@@ -1481,32 +1509,23 @@ Private Function DrawPart( _
         lib As Dictionary) As Shape
     
     Dim kw As String
-    kw = arr(r, FID.N_GEOMETORY) & "-" & arr(r, FID.N_NUMBER)
+    kw = arr(r, FID.N_GEOMETORY)
     kw = UCase(kw)
     If Not lib.Exists(kw) Then
+        MsgBox kw
         Dim s As String
-        s = GetDataIDF(lib)
+        Call LoadDesign(s, lib)
         If s = "*" Then
             r = UBound(arr, 1)
             Exit Function
         End If
     End If
     
-    Dim part As Variant
     Dim arr2 As Variant
-    Dim r2 As Long
-    Dim dic2 As Dictionary
-    Set dic2 = lib("$arr")
-    If Not dic2.Exists("") Then Exit Function
-    arr2 = lib("$arr")("")
-    part = lib(kw)
-    If TypeName(part) = "Empty" Then Exit Function
-    r2 = part(1)
+    arr2 = lib("$" & lib(kw)(0))
     If TypeName(arr2) = "Empty" Then Exit Function
-    
-    If env.dir Then
-        env.z0 = env.z0 - arr2(r2, FID.N_HEIGHT)
-    End If
+    Dim r2 As Long
+    r2 = lib(kw)(1)
     
     Dim sh As Shape
     Set sh = DrawShape(ws, env, arr2, r2, 0, 0)
@@ -1533,7 +1552,7 @@ Private Function DrawShape( _
     
     Dim sc As Double, scx As Double, scy As Double
     Dim a0 As Double, f0 As Boolean
-    Dim x0 As Double, y0 As Double, z0 As Double
+    Dim x0 As Double, y0 As Double
     a0 = env.angle
     sc = env.sc
     If sc = 0 Then Exit Function
@@ -1542,7 +1561,6 @@ Private Function DrawShape( _
     scy = -sc
     x0 = env.x0 + scx * x
     y0 = env.y0 + scy * y
-    z0 = env.z0
 
     Dim sh As Shape
     Dim fb As FreeformBuilder
@@ -1655,7 +1673,11 @@ Private Function DrawShape( _
         .BevelBottomInset = 0
         .BevelBottomDepth = 0
         .Depth = sc * h1
-        .Z = sc * (z0 + h1)
+        If env.scz > 0 Then
+            .z = sc * (env.z0 + h1)
+        Else
+            .z = sc * env.z0
+        End If
     End With
     
     px = (sh.Left - x0) / sc
@@ -1676,7 +1698,7 @@ Private Function DrawShape( _
 End Function
 
 '----------------------------------------
-'
+'IDF表示属性
 '----------------------------------------
 
 '種別に合わせたスタイル設定
@@ -1732,11 +1754,7 @@ Private Sub SetStyleIDF(obj As Object, k1 As String, Optional k2 As String)
         obj.line.Weight = 0
         obj.line.Visible = True
         obj.Fill.ForeColor.RGB = RGB(0, 0, 0)
-        'obj.Fill.Transparency = 0.4
         obj.Fill.Visible = False
-        'obj.ThreeD.PresetMaterial = msoMaterialPowder
-        'obj.ThreeD.PresetMaterial = msoMaterialTranslucentPowder
-        'obj.ThreeD.PresetMaterial = msoMaterialClear
     Case "NOTES"
     Case "PLACEMENT"
         obj.Fill.Visible = msoTrue
@@ -1744,55 +1762,5 @@ Private Sub SetStyleIDF(obj As Object, k1 As String, Optional k2 As String)
         obj.Fill.Transparency = 0
     Case Else
     End Select
-End Sub
-
-Public Sub SetDefaultShapeStyle(sh As Shape)
-    With sh
-        With .TextFrame2
-            .MarginLeft = 0
-            .MarginRight = 0
-            .MarginTop = 0
-            .MarginBottom = 0
-            .VerticalAnchor = msoAnchorBottom
-            .HorizontalAnchor = msoAnchorNone
-            .WordWrap = msoFalse
-        End With
-        .TextFrame.VerticalOverflow = xlOartVerticalOverflowOverflow
-        .TextFrame.HorizontalOverflow = xlOartHorizontalOverflowOverflow
-    End With
-End Sub
-
-'----------------------------------------
-'
-'----------------------------------------
-
-'-------------------------------------
-
-Private Function ArrayToCollection( _
-        arr As Variant, s As String, _
-        Optional id1 As Integer, _
-        Optional id2 As Integer) As Collection
-    
-    Dim col As Collection
-    Set col = New Collection
-    
-    Dim r As Long
-    For r = 1 To UBound(arr, 1)
-        Dim s1 As String
-        s1 = arr(r, id1)
-        Dim s2 As String
-        s2 = arr(r, id2)
-        If s2 <> "" Then s1 = s1 & "_" & s2
-        If s1 = s Then col.Add r
-    Next r
-    
-    Set ArrayToCollection = col
-
-End Function
-
-
-
-Public Sub eof()
-            ScreenUpdateOn
 End Sub
 

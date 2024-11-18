@@ -94,6 +94,9 @@ Public Sub SetDrawParam(id As Integer, ByVal val As String)
     Case 4: g_flag = (g_flag And (65535 - 1)) Or (val * 1)
     Case 5: g_flag = (g_flag And (65535 - 2)) Or (val * 2)
     Case 6: g_flag = (g_flag And (65535 - 4)) Or (val * 4)
+    Case 7: g_flag = (g_flag And (65535 - 8)) Or (val * 8)
+    Case 8: g_flag = (g_flag And (65535 - 16)) Or (val * 16)
+    Case 9: g_flag = (g_flag And (65535 - 32)) Or (val * 32)
     Case 10: g_part = val
     End Select
 End Sub
@@ -142,13 +145,36 @@ End Sub
 
 '図形基本設定
 '[3] テキスト, 塗りつぶしと線
-Public Sub SetShapeStyle(Optional sr As ShapeRange)
+Public Sub SetShapeStyle(Optional ByVal sr As ShapeRange)
+    If sr Is Nothing Then
+        If TypeName(Selection) = "Range" Then Exit Sub
+        Set sr = Selection.ShapeRange
+    End If
     Call SetShapeSetting(sr, 3)
 End Sub
 
 '標準図形設定
-Public Sub DefaultShapeSetting(Optional sr As ShapeRange)
+Public Sub DefaultShapeSetting(Optional ByVal sr As ShapeRange)
+    If sr Is Nothing Then
+        If TypeName(Selection) = "Range" Then Exit Sub
+        Set sr = Selection.ShapeRange
+    End If
     Call SetShapeSetting(sr, 511)
+End Sub
+
+Public Sub SetDefaultShapeStyle()
+    Dim ws As Worksheet
+    Set ws = ActiveSheet
+    Dim sh As Shape
+    Set sh = ws.Shapes.AddShape(msoShapeOval, 10, 10, 10, 10)
+    Call SetShapeSetting(ws.Shapes.Range(sh.name), 1 + 2 + 4 + 256)
+    sh.Delete
+    Set sh = ws.Shapes.AddLine(10, 10, 20, 20)
+    Call SetShapeSetting(ws.Shapes.Range(sh.name), 1 + 2 + 4 + 256)
+    sh.Delete
+    Set sh = ws.Shapes.AddTextbox(msoTextOrientationDownward, 10, 10, 10, 10)
+    Call SetShapeSetting(ws.Shapes.Range(sh.name), 1 + 2 + 4 + 256)
+    sh.Delete
 End Sub
 
 '----------------------------------------
@@ -160,21 +186,18 @@ End Sub
 '[256] デフォルト設定
 Private Sub SetShapeSetting(Optional ByVal sr As ShapeRange, Optional mode As Integer = 255)
     
-    If sr Is Nothing Then
-        If TypeName(Selection) = "Range" Then Exit Sub
-        Set sr = Selection.ShapeRange
-    End If
     Dim sh As Shape
+    On Error Resume Next
     
     '設定(テキスト)
     If mode And 1 Then
         With sr.TextFrame2
             'With .TextRange.Font
             'End With
-            .MarginLeft = 0.1
-            .MarginRight = 0.1
-            .MarginTop = 0.1
-            .MarginBottom = 0.1
+            .MarginLeft = 1
+            .MarginRight = 1
+            .MarginTop = 1
+            .MarginBottom = 1
             .AutoSize = msoAutoSizeNone
             .WordWrap = msoFalse
             .VerticalAnchor = msoAnchorBottom
@@ -190,10 +213,13 @@ Private Sub SetShapeSetting(Optional ByVal sr As ShapeRange, Optional mode As In
     If mode And 2 Then
         With sr.Fill
             .Visible = msoTrue
-            .ForeColor.RGB = RGB(255, 0, 0)
+            '.ForeColor.RGB = RGB(255, 0, 0)
+            .ForeColor.ObjectThemeColor = msoThemeColorBackground1
+            .ForeColor.TintAndShade = 0
+            .ForeColor.Brightness = 0
             .Transparency = 0
             .Solid
-            .Visible = msoFalse
+            '.Visible = msoFalse
         End With
         With sr.line
             .Visible = msoTrue
@@ -205,9 +231,9 @@ Private Sub SetShapeSetting(Optional ByVal sr As ShapeRange, Optional mode As In
     '設定(サイズとプロパティ)
     If mode And 4 Then
         sr.LockAspectRatio = msoTrue
-        sr.Placement = xlFreeFloating
+        sr.Placement = xlMove
         For Each sh In sr
-            sh.Placement = xlFreeFloating
+            sh.Placement = xlMove
         Next sh
     End If
     '
@@ -219,9 +245,9 @@ Private Sub SetShapeSetting(Optional ByVal sr As ShapeRange, Optional mode As In
     End If
     
     'デフォルト設定
-    If mode And 256 Then
-        sr.SetShapesDefaultProperties
-    End If
+    If mode And 256 Then sr.SetShapesDefaultProperties
+
+    On Error GoTo 0
 
 End Sub
 
@@ -500,19 +526,37 @@ End Function
 '----------------------------------------
 
 '図形情報リストアップ
-Public Sub ListShapeInfo(ws As Worksheet, Optional mode As Integer)
+Public Sub ListShapeInfo(ByVal ws As Worksheet, Optional mode As Integer)
     
     '出力先セル/図形リスト取得
     Dim ce As Range
     Dim sr As Variant
+    Dim sr2 As ShapeRange
     If TypeName(Selection) = "Range" Then
         Set ce = FarLeftTop(Selection)
+        If ce.Row > 1 Then
+            Dim s As String
+            s = ce.Offset(-1).Value
+            If s <> "" Then
+                Dim ss() As String
+                ss = Split(Replace(s, "]", ""), "[", 2)
+                If UBound(ss) = 0 Then
+                    Set ws = ActiveWorkbook.Sheets(ss(0))
+                Else
+                    Set ws = Workbooks(ss(1)).Sheets(ss(0))
+                End If
+            End If
+        End If
         Set sr = ws.Shapes
     Else
         Set ce = GetCell("リスト出力位置を指定してください", "図形リスト出力")
         Set sr = Selection.ShapeRange
     End If
     If ce Is Nothing Or sr Is Nothing Then Exit Sub
+    If ce.Value = "" Then
+        ce.Value = sr.Parent.name & "[" & sr.Parent.Parent.name & "]"
+        Set ce = ce.Offset(1)
+    End If
     
     'テーブル項目取得
     Dim dic As Dictionary
@@ -538,7 +582,7 @@ Public Sub ListShapeInfo(ws As Worksheet, Optional mode As Integer)
     'ヘッダ行設定
     Dim r As Long
     Dim c As Long
-    Dim s As String
+    'Dim s As String
     For c = 0 To UBound(hdr)
         s = UCase(hdr(c))
         If dic.Exists(s) Then
@@ -686,7 +730,7 @@ Private Function ShapeValue(sh As Shape, k As String, Optional ts As String) As 
     
     Case "TOP": v = sh.Top
     Case "LEFT": v = sh.Left
-    Case "BACK": v = sh.ThreeD.Z
+    Case "BACK": v = sh.ThreeD.z
     Case "ROTATION": v = sh.Rotation
     
     Case "HEIGHT": v = sh.Height
@@ -729,7 +773,7 @@ Private Sub UpdateShapeValue(sh As Shape, k As String, ByVal v As Variant)
     
     Case "TOP": sh.Top = CDbl(v)
     Case "LEFT": sh.Left = CDbl(v)
-    Case "BACK": sh.ThreeD.Z = CDbl(v)
+    Case "BACK": sh.ThreeD.z = CDbl(v)
     Case "ROTATION": sh.Rotation = CDbl(v)
     
     Case "HEIGHT": sh.Height = CDbl(v)
