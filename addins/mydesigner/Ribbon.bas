@@ -129,41 +129,47 @@ End Sub
 
 '図形アイテム
 Private Sub Designer2_onAction(ByVal control As IRibbonControl)
-    On Error Resume Next
-    Call DrawGraphItem(RibbonID(control), SelectRange)
-    On Error GoTo 0
-    RefreshRibbon "c21"
+        Select Case RibbonID(control)
+    Case 1: PlaceDrawParts          '配置
+    Case 2: CopyDrawParts           'コピー
+    Case 3: RegistoryDrawParts      '登録
+    Case 4: RemoveDrawParts         '削除
+    Case 5: CopyDrawPartsSheet      '設定ローカル化
+    Case 6: ToggleAddinBook         '設定シート編集
+    End Select
+    RefreshRibbon "c41"             'リスト更新
 End Sub
 
 '部品選択
 Private Sub Designer2_getItemCount(control As IRibbonControl, ByRef returnedVal)
-    Dim ws As Worksheet
-    Set ws = GetSheet("#shapes")
-    If ws Is Nothing Then Exit Sub
-    returnedVal = ws.Shapes.Count
+    Dim cnt As Long
+    DrawPartsCount cnt
+    If cnt = 0 Then cnt = 1
+    returnedVal = cnt
 End Sub
 
-Private Sub Designer2_getItemID(control As IRibbonControl, Index As Integer, ByRef returnedVal)
-    returnedVal = Index
+Private Sub Designer2_getItemID(control As IRibbonControl, index As Integer, ByRef returnedVal)
+    returnedVal = index
 End Sub
 
-Private Sub Designer2_getItemLabel(control As IRibbonControl, Index As Integer, ByRef returnedVal)
-    Dim ws As Worksheet
-    Set ws = GetSheet("#shapes")
-    If ws Is Nothing Then Exit Sub
-    returnedVal = ws.Shapes(1 + Index).name
+Private Sub Designer2_getItemLabel(control As IRibbonControl, index As Integer, ByRef returnedVal)
+    Dim s As String
+    DrawPartsName index, s
+    returnedVal = s
 End Sub
 
 Private Sub Designer2_getSelectedItemID(control As IRibbonControl, ByRef returnedVal)
+    Dim cnt As Long
+    DrawPartsCount cnt
+    If cnt > 0 Then cnt = cnt - 1
+    If g_select > cnt Then g_select = cnt
+    SelectDrawParts g_select
     returnedVal = g_select
 End Sub
 
-Private Sub Designer2_onActionDropDown(control As IRibbonControl, id As String, Index As Integer)
-    Dim ws As Worksheet
-    Set ws = GetSheet("#shapes")
-    If ws Is Nothing Then Exit Sub
-    Call SetDrawParam(10, ws.Shapes(Index + 1).name)
-    g_select = Index
+Private Sub Designer2_onActionDropDown(control As IRibbonControl, id As String, index As Integer)
+    SelectDrawParts index
+    g_select = index
     If Not g_ribbon Is Nothing Then g_ribbon.InvalidateControl control.id
 End Sub
 
@@ -191,32 +197,45 @@ Sub Test1Macro(control As IRibbonControl)
     Set obj = Selection
     On Error GoTo 0
     If obj Is Nothing Then Exit Sub
+    If TypeName(obj) = "Range" Then Exit Sub
     '
     Dim sz As Integer
     Set shra = obj.ShapeRange
     
     sz = shra.TextFrame2.TextRange.Characters.Count
-    shra.TextFrame2.TextRange.Characters(sz, 1).Font.Superscript = True
+    If sz > 0 Then
+        shra.TextFrame2.TextRange.Characters(sz, 1).Font.Superscript = True
+    End If
     'obj.TextFrame.Characters.text = "test"
     
-    MsgBox "Test1 macro"
+    'MsgBox "Test1 macro"
 End Sub
 
 Sub Test2Macro(control As IRibbonControl)
-    MsgBox "Test2 macro"
+    ToggleAddinBook
+    RefreshRibbon "c41"
 End Sub
 
 Sub Test3Macro(control As IRibbonControl)
-    MsgBox "Test3 macro"
+    Dim sn As String
+    sn = "#shapes"
+    Dim ws As Worksheet
+    Set ws = GetSheet(sn)
+    If ws Is Nothing Then
+        Set ws = ThisWorkbook.Sheets.Add
+        ws.name = sn
+    End If
+    
 End Sub
 
 Sub Test4Macro(control As IRibbonControl)
-    MsgBox "Test4 macro"
+    '部品登録
+    RegistoryDrawParts
+    RefreshRibbon "c41"
 End Sub
 
 Sub HelpMacro(control As IRibbonControl)
-    RefreshRibbon "A"
-    MsgBox "Help macro"
+    'RefreshRibbon "A"
 End Sub
 
 Sub FindMacro(control As IRibbonControl)

@@ -35,7 +35,7 @@ End Function
 '文字列有無
 Function re_test(s As String, ptn As String) As Boolean
     On Error Resume Next
-    re_test = regex(ptn).Test(s)
+    re_test = regex(ptn).test(s)
     On Error GoTo 0
 End Function
 
@@ -264,7 +264,7 @@ Sub ArrToDict(dic As Dictionary, arr As Variant, Optional n As Integer)
     Dim i As Integer
     For i = LBound(arr, 1) To UBound(arr, 1)
         If Not dic.Exists(arr(i, n + LBound(arr, 2))) Then
-            dic.Add arr(i, n + LBound(arr, 2)), arr = wsf.Index(arr, i, Array(2, 4))
+            dic.Add arr(i, n + LBound(arr, 2)), arr = wsf.index(arr, i, Array(2, 4))
         End If
     Next i
     
@@ -670,3 +670,19 @@ Private Function ProgressBar(p As Double) As String
         ProgressBar = "■■■■■"
     End If
 End Function
+
+'----------------------------------------
+'画面チラつき防止
+'----------------------------------------
+
+'アドインブック表示トグル
+Sub ToggleAddinBook()
+    If ThisWorkbook.IsAddin Then
+        ThisWorkbook.IsAddin = False
+        ThisWorkbook.Activate
+    Else
+        ThisWorkbook.IsAddin = True
+        ThisWorkbook.Save
+    End If
+End Sub
+

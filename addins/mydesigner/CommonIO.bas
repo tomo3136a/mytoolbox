@@ -235,7 +235,7 @@ Public Function SelectSheetCB(Optional wb As Workbook) As Worksheet
 End Function
 
 'ÉVÅ[ÉgéÊìæ
-Function GetSheet(s As String) As Worksheet
+Function GetSheet(s As String, Optional wb As Workbook) As Worksheet
     Dim v As Variant
     Dim ws As Worksheet
     For Each v In ActiveWorkbook.Worksheets
@@ -243,10 +243,14 @@ Function GetSheet(s As String) As Worksheet
     Next v
     If ws Is Nothing Then
         For Each v In ThisWorkbook.Worksheets
-            If v.name = s Then ws = v
+            If v.name = s Then Set ws = v
         Next v
     End If
-    If ws Is Nothing Then Exit Function
+    If ws Is Nothing Then
+        If wb Is Nothing Then Exit Function
+        Set ws = wb.Worksheets.Add
+        ws.name = s
+    End If
     Set GetSheet = ws
 End Function
 
@@ -257,7 +261,7 @@ Function SelectCell(Optional ra As Range, Optional s As String, Optional ptn As 
     SelectForm.AddValues ra
     SelectForm.Show
     Dim i As Integer
-    i = SelectForm.Index
+    i = SelectForm.index
     Dim v As Variant
     For Each v In ra
         If i = 0 Then Exit For

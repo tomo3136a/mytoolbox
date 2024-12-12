@@ -70,14 +70,14 @@ End Function
 '----------------------------------------
 
 'テーブル先頭取得
-Function FarLeftTop(ByVal ra As Range) As Range
+Function TableLeftTop(ByVal ra As Range) As Range
     Dim ce As Range
     Set ra = ra.Cells(1, 1)
     Do
         Set ce = ra
         Set ra = FarTop(FarLeft(ra))
     Loop While ce.Address <> ra.Address
-    Set FarLeftTop = ce
+    Set TableLeftTop = ce
     '
     Dim i As Integer
     For i = 1 To 5
@@ -87,7 +87,7 @@ Function FarLeftTop(ByVal ra As Range) As Range
             Set ce = ce.Offset(1)
         End If
     Next i
-    If ce <> "" Then Set FarLeftTop = ce
+    If ce <> "" Then Set TableLeftTop = ce
 End Function
 
 '上端取得
@@ -342,6 +342,11 @@ Sub HeaderColor(ra As Range)
     End If
     '
     old.Select
+End Sub
+
+Sub SetHeaderColor(ra As Range)
+    If g_header_color = 0 Then HeaderColor ra
+    TableHeaderRange(ra).Interior.color = g_header_color
 End Sub
 
 Function GetHeaderColor() As Long

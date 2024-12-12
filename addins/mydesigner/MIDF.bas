@@ -265,7 +265,7 @@ Private Sub ReadIDF(col As Collection, path As String)
     Dim mode1 As Integer
     Dim mode2 As Integer
     Dim seq As Long
-    Dim Index As Long
+    Dim index As Long
     
     'ファイルを読み込み、行ごとに処理
     Dim st As Object
@@ -323,7 +323,7 @@ Private Sub ReadIDF(col As Collection, path As String)
                 Case 1
                     wa(FID.N_SECTION) = sect
                     wa(FID.N_OWNER) = owner
-                    Index = 0
+                    index = 0
                     If mode2 = EM2.N_VIA_KEEPOUT Then seq = seq + 1
                 Case 2
                     Select Case mode2
@@ -343,9 +343,9 @@ Private Sub ReadIDF(col As Collection, path As String)
                         wa(FID.N_REFERENCE) = va(1)
                     End Select
                 Case Else
-                    If wa(FID.N_LABEL) = s Then Index = Index + 1 Else Index = 0
+                    If wa(FID.N_LABEL) = s Then index = index + 1 Else index = 0
                     wa(FID.N_LABEL) = s
-                    wa(FID.N_INDEX) = Index
+                    wa(FID.N_INDEX) = index
                     wa(FID.N_XPOS) = va(1)
                     wa(FID.N_YPOS) = va(2)
                     wa(FID.N_ANGLE) = va(3)
@@ -411,14 +411,14 @@ Private Sub ReadIDF(col As Collection, path As String)
                 Case 1
                     wa(FID.N_SECTION) = sect
                     wa(FID.N_OWNER) = ""
-                    Index = 0
+                    index = 0
                 Case 2
                     wa(FID.N_GEOMETORY) = s
                     wa(FID.N_NUMBER) = va(1)
                     wa(FID.N_UNITS) = va(2)
                     wa(FID.N_HEIGHT) = va(3)
                 Case Else
-                    If wa(FID.N_LABEL) = s Then Index = Index + 1 Else Index = 0
+                    If wa(FID.N_LABEL) = s Then index = index + 1 Else index = 0
                     s = UCase(s)
                     wa(FID.N_LABEL) = s
                     If s = "PROP" Then
@@ -431,7 +431,7 @@ Private Sub ReadIDF(col As Collection, path As String)
                     Else
                         wa(FID.N_ATTRIBUTE) = ""
                         wa(FID.N_VAL) = ""
-                        wa(FID.N_INDEX) = Index
+                        wa(FID.N_INDEX) = index
                         wa(FID.N_XPOS) = va(1)
                         wa(FID.N_YPOS) = va(2)
                         wa(FID.N_ANGLE) = va(3)
@@ -923,7 +923,7 @@ Private Function DrawAssy( _
     If Not sh Is Nothing Then ns.Add sh.name
     
     'PLACEMENT(BOTTOM)
-    If True Then
+    If IsDrawParam(5) Then
         env.scz = -env.scz
         env.z0 = env.z0 + env.scz * env.t0
         env.flip = Not env.flip
@@ -942,7 +942,7 @@ Private Function DrawAssy( _
     End If
     
     'PLACEMENT(TOP)
-    If True Then
+    If IsDrawParam(4) Then
         k = Join(Array("PLACEMENT", "TOP", ""), "-")
         Set sh = DrawGroupPlace(ws, env, k, arr, lib(name), lib)
         If Not sh Is Nothing Then ns.Add sh.name
@@ -953,86 +953,90 @@ Private Function DrawAssy( _
     End If
     
     'OUTLINE, KEEPOUT, REGION(BOTTOM)
-    env.scz = -env.scz
-    env.z0 = env.z0 + env.scz * env.t0
-    
-    For Each side In Array("ALL", "BOTH", "BOTTOM")
-        Set ns2 = New Collection
-        If IsDrawParam(7) Then
-            k = Join(Array("ROUTE_OUTLINE", side, ""), "-")
-            Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
-            If Not sh Is Nothing Then ns2.Add sh.name
-            
-            k = Join(Array("ROUTE_KEEPOUT", side, ""), "-")
-            Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
-            If Not sh Is Nothing Then ns2.Add sh.name
-        End If
-            
-        If IsDrawParam(6) Then
-            k = Join(Array("PLACE_OUTLINE", side, ""), "-")
-            Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
-            If Not sh Is Nothing Then ns2.Add sh.name
-            
-            k = Join(Array("PLACE_KEEPOUT", side, ""), "-")
-            Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
-            If Not sh Is Nothing Then ns2.Add sh.name
-            
-            k = Join(Array("PLACE_REGION", side, ""), "-")
-            Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
-            If Not sh Is Nothing Then ns2.Add sh.name
-        End If
-            
-        Set sh = Nothing
-        If ns2.Count > 0 Then Set sh = GroupShape(ws, ns2, name & "_BOTTOM")
-        If Not sh Is Nothing Then ns.Add sh.name
-        Set ns2 = Nothing
-    Next side
-    
-    env.z0 = env.z0 - env.scz * env.t0
-    env.scz = -env.scz
+    If IsDrawParam(5) Then
+        env.scz = -env.scz
+        env.z0 = env.z0 + env.scz * env.t0
+        
+        For Each side In Array("ALL", "BOTH", "BOTTOM")
+            Set ns2 = New Collection
+            If IsDrawParam(7) Then
+                k = Join(Array("ROUTE_OUTLINE", side, ""), "-")
+                Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
+                If Not sh Is Nothing Then ns2.Add sh.name
+                
+                k = Join(Array("ROUTE_KEEPOUT", side, ""), "-")
+                Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
+                If Not sh Is Nothing Then ns2.Add sh.name
+            End If
+                
+            If IsDrawParam(6) Then
+                k = Join(Array("PLACE_OUTLINE", side, ""), "-")
+                Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
+                If Not sh Is Nothing Then ns2.Add sh.name
+                
+                k = Join(Array("PLACE_KEEPOUT", side, ""), "-")
+                Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
+                If Not sh Is Nothing Then ns2.Add sh.name
+                
+                k = Join(Array("PLACE_REGION", side, ""), "-")
+                Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
+                If Not sh Is Nothing Then ns2.Add sh.name
+            End If
+                
+            Set sh = Nothing
+            If ns2.Count > 0 Then Set sh = GroupShape(ws, ns2, name & "_BOTTOM")
+            If Not sh Is Nothing Then ns.Add sh.name
+            Set ns2 = Nothing
+        Next side
+        
+        env.z0 = env.z0 - env.scz * env.t0
+        env.scz = -env.scz
+    End If
 
     'OUTLINE, KEEPOUT, REGION(TOP)
-    For Each side In Array("ALL", "BOTH", "INNER", "TOP")
-        Set ns2 = New Collection
-        If IsDrawParam(7) Then
-            k = Join(Array("ROUTE_OUTLINE", side, ""), "-")
-            Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
-            If Not sh Is Nothing Then ns2.Add sh.name
+    If IsDrawParam(4) Then
+        For Each side In Array("ALL", "BOTH", "INNER", "TOP")
+            Set ns2 = New Collection
+            If IsDrawParam(7) Then
+                k = Join(Array("ROUTE_OUTLINE", side, ""), "-")
+                Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
+                If Not sh Is Nothing Then ns2.Add sh.name
+                
+                k = Join(Array("ROUTE_KEEPOUT", side, ""), "-")
+                Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
+                If Not sh Is Nothing Then ns2.Add sh.name
+            End If
             
-            k = Join(Array("ROUTE_KEEPOUT", side, ""), "-")
-            Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
-            If Not sh Is Nothing Then ns2.Add sh.name
-        End If
-        
-        If IsDrawParam(6) Then
-            k = Join(Array("PLACE_OUTLINE", side, ""), "-")
-            Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
-            If Not sh Is Nothing Then ns2.Add sh.name
+            If IsDrawParam(6) Then
+                k = Join(Array("PLACE_OUTLINE", side, ""), "-")
+                Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
+                If Not sh Is Nothing Then ns2.Add sh.name
+                
+                k = Join(Array("PLACE_KEEPOUT", side, ""), "-")
+                Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
+                If Not sh Is Nothing Then ns2.Add sh.name
+                
+                k = Join(Array("PLACE_REGION", side, ""), "-")
+                Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
+                If Not sh Is Nothing Then ns2.Add sh.name
+            End If
             
-            k = Join(Array("PLACE_KEEPOUT", side, ""), "-")
-            Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
-            If Not sh Is Nothing Then ns2.Add sh.name
-            
-            k = Join(Array("PLACE_REGION", side, ""), "-")
-            Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
-            If Not sh Is Nothing Then ns2.Add sh.name
-        End If
-        
-        Set sh = Nothing
-        If ns2.Count > 0 Then Set sh = GroupShape(ws, ns2, name & "_TOP")
-        If Not sh Is Nothing Then ns.Add sh.name
-        Set ns2 = Nothing
-    Next side
+            Set sh = Nothing
+            If ns2.Count > 0 Then Set sh = GroupShape(ws, ns2, name & "_TOP")
+            If Not sh Is Nothing Then ns.Add sh.name
+            Set ns2 = Nothing
+        Next side
+    End If
     
     'VIA
-    If IsDrawParam(5) Then
+    If IsDrawParam(8) Then
         k = Join(Array("VIA_KEEPOUT", "", ""), "-")
         Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
         If Not sh Is Nothing Then ns.Add sh.name
     End If
 
     'NOTES
-    If IsDrawParam(8) Then
+    If IsDrawParam(9) Then
         k = Join(Array("NOTES", "", ""), "-")
         Set sh = DrawGroupNote(ws, env, k, arr, lib(name))
         If Not sh Is Nothing Then ns.Add sh.name
@@ -1120,7 +1124,7 @@ Private Function DrawBoard( _
     If Not lib.Exists(name) Then Exit Function
     Set dic = lib(name)
     
-    Dim ns As Collection
+    Dim ns As Collection, ns2 As Collection
     Set ns = New Collection
     Dim sh As Shape
     Dim k As Variant, v As Variant
@@ -1128,33 +1132,65 @@ Private Function DrawBoard( _
     'Board/Panel outline
     env.z0 = env.z0 - env.scz * env.t0
     For Each k In Array("BOARD_OUTLINE", "PANEL_OUTLINE")
+        Set ns2 = New Collection
+        Set sh = Nothing
         k = Join(Array(k, "", ""), "-")
         If dic.Exists(k) Then
             For Each v In dic(k)
                 Set sh = DrawOutline(ws, env, arr, CLng(v))
                 If Not sh Is Nothing Then
                     SetStyleIDF sh, CStr(k)
-                    ns.Add sh.name
+                    ns2.Add sh.name
                 End If
             Next v
         End If
+        If ns2.Count > 1 Then Set sh = GroupShape(ws, ns2, CStr(k))
+        If Not sh Is Nothing Then ns.Add sh.name
+        Set ns2 = Nothing
     Next k
     env.z0 = env.z0 + env.scz * env.t0
     
-    'Hole
+    'Hole(NPTH)
+    Set ns2 = New Collection
+    Set sh = Nothing
     For Each k In dic.Keys
         If k Like ("DRILLED_HOLES*") Then
             For Each v In dic(k)
-                If IsDrawParam(4) Or arr(CLng(v), FID.N_GEOMETORY) <> "PTH" Then
+                If arr(CLng(v), FID.N_GEOMETORY) <> "PTH" Then
                     Set sh = DrawHole(ws, env, arr, CLng(v))
                     If Not sh Is Nothing Then
                         SetStyleIDF sh, CStr(k)
-                        ns.Add sh.name
+                        ns2.Add sh.name
                     End If
                 End If
             Next v
         End If
     Next k
+    If ns2.Count > 1 Then Set sh = GroupShape(ws, ns2, "DRILLED_HOLES_NPTH")
+    If Not sh Is Nothing Then ns.Add sh.name
+    Set ns2 = Nothing
+    
+    'Hole(PTH)
+    If IsDrawParam(8) Then
+        Set ns2 = New Collection
+        Set sh = Nothing
+        For Each k In dic.Keys
+            If k Like ("DRILLED_HOLES*") Then
+                For Each v In dic(k)
+                    If arr(CLng(v), FID.N_GEOMETORY) = "PTH" Then
+                        Set sh = DrawHole(ws, env, arr, CLng(v))
+                        If Not sh Is Nothing Then
+                            SetStyleIDF sh, CStr(k)
+                            ns2.Add sh.name
+                        End If
+                    End If
+                Next v
+            End If
+        Next k
+        If ns2.Count > 1 Then Set sh = GroupShape(ws, ns2, "DRILLED_HOLES_PTH")
+        If Not sh Is Nothing Then ns.Add sh.name
+        Set ns2 = Nothing
+    End If
     
     If ns.Count > 1 Then Set sh = GroupShape(ws, ns, name)
     Set ns = Nothing
@@ -1520,6 +1556,7 @@ Private Function DrawPart( _
             Exit Function
         End If
     End If
+    If Not lib.Exists(kw) Then Exit Function
     
     Dim arr2 As Variant
     arr2 = lib("$" & lib(kw)(0))
@@ -1568,11 +1605,11 @@ Private Function DrawShape( _
     '開始点
     Dim sect As String
     Dim label As Integer
-    Dim Index As Integer
+    Dim index As Integer
     Dim a1 As Double, x1 As Double, y1 As Double, h1 As Double
     sect = arr(r, FID.N_SECTION)
     label = arr(r, FID.N_LABEL)
-    Index = arr(r, FID.N_INDEX)
+    index = arr(r, FID.N_INDEX)
     a1 = arr(r, FID.N_ANGLE)
     x1 = arr(r, FID.N_XPOS)
     y1 = arr(r, FID.N_YPOS)
@@ -1595,9 +1632,9 @@ Private Function DrawShape( _
     Do While r <= UBound(arr)
         If sect <> arr(r, FID.N_SECTION) Then Exit Do
         If label <> arr(r, FID.N_LABEL) Then Exit Do
-        If Index > arr(r, FID.N_INDEX) Then Exit Do
+        If index > arr(r, FID.N_INDEX) Then Exit Do
         label = arr(r, FID.N_LABEL)
-        Index = arr(r, FID.N_INDEX)
+        index = arr(r, FID.N_INDEX)
         a2 = arr(r, FID.N_ANGLE)
         x2 = arr(r, FID.N_XPOS)
         y2 = arr(r, FID.N_YPOS)

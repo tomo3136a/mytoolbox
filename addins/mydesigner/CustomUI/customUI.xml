@@ -49,20 +49,26 @@
             </splitButton>
           <!-- </box> -->
         </group>
-        <group id="g4" label="ツール" imageMso="ComAddInsDialog">
-          <splitButton id="g41" size="large">
-            <button id="b4.1" onAction="Designer2_onAction" label="方眼紙" imageMso="GridSettings" />
-            <menu id="m41">
-              <button id="b4.2" onAction="Designer2_onAction" label="軸線" imageMso="DrawingCanvasResize" />
-              <button id="b4.3" onAction="Designer2_onAction" label="原点" imageMso="DrawingCanvasResize" />
-            </menu>
-          </splitButton>
-          <dropDown id="c41" onAction="Designer2_onActionDropDown" label="部品:" sizeString="aaaaaaaaaaaaaaaaaa"
-            getItemCount="Designer2_getItemCount" getItemID="Designer2_getItemID"
-            getItemLabel="Designer2_getItemLabel" getSelectedItemID="Designer2_getSelectedItemID" />
-            <button id="b4.4" onAction="Designer2_onAction" label="配置" imageMso="ShapesInsertGallery" />
-            <button id="b4.5" onAction="Designer2_onAction" label="更新" imageMso="ObjectRotateFree" />
-            <dynamicMenu id="A" label="Menu A" imageMso="FormatPainter" getContent="Designer2_getMenuContent" size="large" />
+        <group id="g4" label="部品" imageMso="ComAddInsDialog">
+          <box id="g41" boxStyle="vertical">
+            <dropDown id="c41" onAction="Designer2_onActionDropDown" label="名前:" sizeString="aaaaaaaaaaaaaaaaaa"
+              getItemCount="Designer2_getItemCount" getItemID="Designer2_getItemID"
+              getItemLabel="Designer2_getItemLabel" getSelectedItemID="Designer2_getSelectedItemID" />
+            <buttonGroup id="g42">
+              <button id="b4.1" onAction="Designer2_onAction" label="配置" imageMso="ShapesDuplicate" />
+              <button id="b4.2" onAction="Designer2_onAction" label="コピー" imageMso="Copy" />
+              <menu id="m41" label="その他" >
+                <button id="b4.3" onAction="Designer2_onAction" label="登録" imageMso="SourceControlAddObjects" />
+                <button id="b4.4" onAction="Designer2_onAction" label="削除" imageMso="Clear" />
+                <menuSeparator id="s41" />
+                <button id="b4.5" onAction="Designer2_onAction" label="シート複製" />
+                <button id="b4.6" onAction="Designer2_onAction" label="シート編集" />
+                <menuSeparator id="s42" />
+                <button id="b4.7" onAction="Designer2_onAction" label="リスト更新" imageMso="ObjectRotateFree" />
+              </menu>
+            </buttonGroup>
+            <!-- <dynamicMenu id="A" label="Menu A" imageMso="FormatPainter" getContent="Designer2_getMenuContent" size="large" /> -->
+          </box>
         </group>
         <group id="g3" label="IDF" imageMso="ComAddInsDialog">
           <splitButton id="g31" size="large">
@@ -73,10 +79,12 @@
             </menu>
           </splitButton>
           <editBox id="c3.2" onChange="Designer_onChange" label="比率" getText="Designer_getText" sizeString="wwwww" />
-          <checkBox id="c3.4" onAction="Designer_onAction" label="PTH" />
-          <checkBox id="c3.5" onAction="Designer_onAction" label="ビア制約" />
+          <checkBox id="c3.4" onAction="Designer_onAction" label="A面" />
+          <checkBox id="c3.5" onAction="Designer_onAction" label="B面" />
           <checkBox id="c3.6" onAction="Designer_onAction" label="配線制約" />
           <checkBox id="c3.7" onAction="Designer_onAction" label="配置制約" />
+          <checkBox id="c3.8" onAction="Designer_onAction" label="PTH" />
+          <checkBox id="c3.9" onAction="Designer_onAction" label="Note" />
         </group>
         <!-- <group id="Designer.g4" label="IDF" imageMso="ComAddInsDialog">
           <button id="RD14" onAction="RD58_onAction" label="​ｘｘｘ" imageMso="GetExternalDataFromText" size="large" />
