@@ -89,90 +89,128 @@ End Sub
 '----------------------------------------
 '■機能グループ1
 '図形操作機能
-'  1x: 図形リスト
-'  2x: 図形の更新
 '----------------------------------------
 
 Private Sub Designer1_onAction(ByVal control As IRibbonControl)
     Dim id As Integer: id = RibbonID(control)
+    Dim no As Integer: no = id Mod 10
+    Dim v As Variant
     
     Select Case id \ 10
     Case 0
-        Select Case id
-        Case 1: SetDefaultShapeStyle        '図形初期値を設定
-        Case 3: RemoveSharps                '図形を削除
+        Select Case no
+        Case 1: SetDefaultShapeStyle        '標準図形設定
+        Case 2: 'DefaultShapeSetting
+        Case 3: RemoveSharps                '図形削除
         Case 4: ConvertToPicture            '図形を絵に変換
         Case 5: SetShapeStyle               'テキストボックス基本設定
         Case 6: ToggleVisible 0             '塗りつぶし表示ON/OFF
         Case 7: ToggleVisible 3             '3D表示ON/OFF
-        Case 8
-            Dim s2 As String
-            s2 = GetShapeProperty(Selection.ShapeRange, "zero")
-        Case 9                              'オブジェクトの初期化
-            'Call DefaultShapeSetting
-            MsgBox TypeName(Selection)
-        End Select
-    Case 1
-        ListShapeInfo ActiveSheet, id Mod 10
-    Case 2
-        Select Case id Mod 10
-        Case 0: UpdateShapeInfo ActiveCell  '図形リスト反映
-        Case 1: UpdateShapeName ActiveSheet '図形名修理
+        Case 8                              '原点取得
+            v = GetShapeProperty(Selection.ShapeRange, "zero")
+        Case 9: MsgBox TypeName(Selection)  'オブジェクトの初期化
         End Select
     End Select
 End Sub
 
 '----------------------------------------
-''■機能グループ2
-'ツール機能
+'■機能グループ2
+'図形操作機能
+'  1x: 図形リスト
+'  2x: 図形の更新
+'----------------------------------------
+
+Private Sub Designer2_onAction(ByVal control As IRibbonControl)
+    Dim id As Integer: id = RibbonID(control)
+    Dim no As Integer: no = id Mod 10
+    Dim v As Variant
+    
+    Select Case id \ 10
+    Case 1: AddListShapeHeader ActiveCell, no   'ヘッダ項目追加
+    Case 2
+        Select Case no
+        Case 1: ListShapeInfo ActiveSheet   'リスト表示
+        Case 2: UpdateShapeInfo ActiveCell  '図形リスト反映
+        Case 3: UpdateShapeName ActiveSheet '図形名一括更新
+        End Select
+    End Select
+End Sub
+
+'----------------------------------------
+''■機能グループ3
+'作図機能(IDF)
+'----------------------------------------
+
+Private Sub Designer3_onAction(ByVal control As IRibbonControl)
+    Dim ce As Range: Set ce = ActiveCell
+    Dim ws As Worksheet: Set ws = ce.Worksheet
+    
+    Select Case RibbonID(control)
+    Case 1: DrawIDF ws, ce.Left, ce.Top 'IDF作図
+    Case 2: ImportIDF                   'IDFファイル読み込み
+    Case 3: ExportIDF                   'IDFファイル書き出し
+    Case 4: 'ListKeywordIDF             'IDF作図
+    Case 5: ImportIDF                   'IDFファイル読み込み
+    Case 6: ImportIDF                   'IDFファイル読み込み
+    End Select
+End Sub
+
+'----------------------------------------
+''■機能グループ4
+'部品配置機能
 '----------------------------------------
 
 '図形アイテム
-Private Sub Designer2_onAction(ByVal control As IRibbonControl)
-        Select Case RibbonID(control)
-    Case 1: PlaceDrawParts          '配置
-    Case 2: CopyDrawParts           'コピー
-    Case 3: RegistoryDrawParts      '登録
-    Case 4: RemoveDrawParts         '削除
-    Case 5: CopyDrawPartsSheet      '設定ローカル化
-    Case 6: ToggleAddinBook         '設定シート編集
+Private Sub Designer4_onAction(ByVal control As IRibbonControl)
+    Select Case RibbonID(control)
+    Case 1: AddDrawItem             '配置
+    Case 2: CopyDrawItem            'コピー
+    Case 3: DrawItemEntry           '登録
+    Case 4: DrawItemDelete          '削除
+    Case 5: DuplicateDrawItemSheet  '設定ローカル化
+    Case 6: ImportDrawItemSheet     '設定シート取込
+    'Case 7: ToggleAddinBook
     End Select
-    RefreshRibbon "c41"             'リスト更新
+    RefreshRibbon "c41"
 End Sub
 
 '部品選択
-Private Sub Designer2_getItemCount(control As IRibbonControl, ByRef returnedVal)
+Private Sub Designer4_getItemCount(control As IRibbonControl, ByRef returnedVal)
     Dim cnt As Long
-    DrawPartsCount cnt
-    If cnt = 0 Then cnt = 1
+    DrawItemCount cnt
+    If cnt < 1 Then cnt = 1
     returnedVal = cnt
 End Sub
 
-Private Sub Designer2_getItemID(control As IRibbonControl, index As Integer, ByRef returnedVal)
+Private Sub Designer4_getItemID(control As IRibbonControl, index As Integer, ByRef returnedVal)
     returnedVal = index
 End Sub
 
-Private Sub Designer2_getItemLabel(control As IRibbonControl, index As Integer, ByRef returnedVal)
+Private Sub Designer4_getItemLabel(control As IRibbonControl, index As Integer, ByRef returnedVal)
     Dim s As String
-    DrawPartsName index, s
+    DrawItemName index, s
     returnedVal = s
 End Sub
 
-Private Sub Designer2_getSelectedItemID(control As IRibbonControl, ByRef returnedVal)
+Private Sub Designer4_getSelectedItemID(control As IRibbonControl, ByRef returnedVal)
     Dim cnt As Long
-    DrawPartsCount cnt
+    DrawItemCount cnt
     If cnt > 0 Then cnt = cnt - 1
     If g_select > cnt Then g_select = cnt
-    SelectDrawParts g_select
+    DrawItemSelect g_select
     returnedVal = g_select
 End Sub
 
-Private Sub Designer2_onActionDropDown(control As IRibbonControl, id As String, index As Integer)
-    SelectDrawParts index
+Private Sub Designer4_onActionDropDown(control As IRibbonControl, id As String, index As Integer)
     g_select = index
+    DrawItemSelect g_select
     If Not g_ribbon Is Nothing Then g_ribbon.InvalidateControl control.id
 End Sub
 
+'----------------------------------------
+''■機能グループn
+'拡張機能
+'----------------------------------------
 
 'ダイナミックメニュー
 Private Sub Designer2_getMenuContent(ByVal control As IRibbonControl, ByRef returnedVal)
@@ -229,35 +267,11 @@ Sub Test3Macro(control As IRibbonControl)
 End Sub
 
 Sub Test4Macro(control As IRibbonControl)
-    '部品登録
-    RegistoryDrawParts
-    RefreshRibbon "c41"
 End Sub
 
 Sub HelpMacro(control As IRibbonControl)
-    'RefreshRibbon "A"
 End Sub
 
 Sub FindMacro(control As IRibbonControl)
-    RefreshRibbon
-    MsgBox "Find macro"
-End Sub
-
-'----------------------------------------
-''■機能グループ3
-'作図機能(IDF)
-'----------------------------------------
-
-Private Sub Designer3_onAction(ByVal control As IRibbonControl)
-    Dim ce As Range: Set ce = ActiveCell
-    
-    Select Case RibbonID(control)
-    Case 1: DrawIDF ce.Worksheet, ce.Left, ce.Top   'IDF作図
-    Case 2: ImportIDF           'IDFファイル読み込み
-    Case 3: ExportIDF           'IDFファイル書き出し
-    Case 4: 'ListKeywordIDF     'IDF作図
-    Case 5: ImportIDF          'IDFファイル読み込み
-    Case 6: ImportIDF          'IDFファイル読み込み
-    End Select
 End Sub
 

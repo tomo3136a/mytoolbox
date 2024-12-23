@@ -672,7 +672,7 @@ Private Function ProgressBar(p As Double) As String
 End Function
 
 '----------------------------------------
-'画面チラつき防止
+'アドインブック
 '----------------------------------------
 
 'アドインブック表示トグル
@@ -685,4 +685,56 @@ Sub ToggleAddinBook()
         ThisWorkbook.Save
     End If
 End Sub
+
+'アドインブックからテンプレートシートを複製
+Sub CopyAddinSheet()
+    Dim ws As Worksheet
+    Set ws = SelectSheet(ThisWorkbook, "^[^#]")
+    If ws Is Nothing Then Exit Sub
+    ws.Copy After:=ActiveSheet
+End Sub
+
+'アドインブックのテンプレートシート更新
+Function UpdateAddinSheet(ws As Worksheet)
+    Dim asu As Boolean
+    asu = Application.ScreenUpdating
+    Application.ScreenUpdating = False
+    '
+    Dim ws2 As Worksheet
+    For Each ws2 In ThisWorkbook.Sheets
+        If ws2.name = ws.name Then Exit For
+    Next ws2
+    If ws2 Is Nothing Then
+        ThisWorkbook.IsAddin = False
+        ws.Copy After:=ThisWorkbook.Sheets(1)
+        ThisWorkbook.IsAddin = True
+    Else
+        Dim old As Range
+        Set old = Selection
+        ws.Cells.Select
+        Selection.Copy
+        Set ws2 = ThisWorkbook.Sheets(ws.name)
+        ws2.Paste ws2.Cells(1, 1)
+        Application.CutCopyMode = False
+        old.Select
+    End If
+    '
+    Application.ScreenUpdating = asu
+End Function
+
+'----------------------------------------
+'検索
+'----------------------------------------
+
+'名前から検索
+Function SearchName(col As Variant, name As String) As Variant
+    Dim v As Variant
+    For Each v In col
+        If v.name = name Then
+            Set SearchName = v
+            Exit Function
+        End If
+    Next v
+    Set SearchName = Nothing
+End Function
 

@@ -70,7 +70,7 @@ End Function
 '----------------------------------------
 
 'ƒe[ƒuƒ‹æ“ªæ“¾
-Function TableLeftTop(ByVal ra As Range) As Range
+Function TableLeftTop(ByVal ra As Range, Optional n As Long = 5) As Range
     Dim ce As Range
     Set ra = ra.Cells(1, 1)
     Do
@@ -79,8 +79,8 @@ Function TableLeftTop(ByVal ra As Range) As Range
     Loop While ce.Address <> ra.Address
     Set TableLeftTop = ce
     '
-    Dim i As Integer
-    For i = 1 To 5
+    Dim i As Long
+    For i = 1 To n
         If ce = "" Then
             Set ce = ce.Offset(1)
         ElseIf ce.Offset(0, 1) = "" Then

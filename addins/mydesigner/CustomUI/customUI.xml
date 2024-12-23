@@ -7,6 +7,8 @@
           <button id="b1.1" onAction="Designer1_onAction" label="標準図形設定" imageMso="ObjectFormatDialog" size="large" />
           <button id="b1.3" onAction="Designer1_onAction" label="図形削除" imageMso="Clear" />
           <button id="b1.4" onAction="Designer1_onAction" label="絵に変換" imageMso="SelectionPane" />
+          <button id="b1.5" onAction="Designer1_onAction" label="テキストボックス基本設定" imageMso="SObjectFormatDialog" />
+          <button id="b1.6" onAction="Designer1_onAction" label="塗りつぶし表示ON/OFF" imageMso="SObjectFormatDialog" />
           <button id="b1.7" onAction="Designer1_onAction" label="3D" imageMso="SelectionPane" />
           <button id="b1.8" onAction="Designer1_onAction" label="原点" imageMso="SelectionPane" />
           <button id="b1.9" onAction="Designer1_onAction" label="タイプ" imageMso="SelectionPane" />
@@ -15,60 +17,38 @@
           <control idQ="ObjectFlipVertical" visible="true" />
           <control idQ="ObjectsSelect" visible="true" />
           <control idQ="SelectionPane" visible="true" />
+          <control idQ="ObjectSizeAndPropertiesDialog" visible="true" />
           <control idQ="_3DRotationOptionsDialog" visible="true" />
         </group>
-        <group id="g2" label="図形リスト" imageMso="ComAddInsDialog">
+        <group id="g2" label="図形情報" imageMso="ComAddInsDialog">
           <!-- <box id="g21" boxStyle="vertical"> -->
-            <editBox id="c2.1" onChange="Designer_onChange" getText="Designer_getText" sizeString="wwwwwwwww" />
-            <splitButton id="g211">
-              <button id="b2.10" onAction="Designer1_onAction" label="リスト" imageMso="PlayMacro" />
-              <menu id="m21">
-                <button id="b2.11" onAction="Designer1_onAction" label="形状リスト" imageMso="PlayMacro" />
-                <button id="b2.12" onAction="Designer1_onAction" label="位置リスト" imageMso="PlayMacro" />
-                <button id="b2.13" onAction="Designer1_onAction" label="サイズリスト" imageMso="PlayMacro" />
-                <button id="b2.14" onAction="Designer1_onAction" label="表示リスト" imageMso="PlayMacro" />
-                <button id="b2.15" onAction="Designer1_onAction" label="枠線リスト" imageMso="PlayMacro" />
-                <button id="b2.16" onAction="Designer1_onAction" label="塗りつぶしリスト" imageMso="PlayMacro" />
-                <button id="b2.17" onAction="Designer1_onAction" label="テキストリスト" imageMso="PlayMacro" />
-                <button id="b2.18" onAction="Designer1_onAction" label="代替えリスト" imageMso="PlayMacro" />
-                <button id="b2.19" onAction="Designer1_onAction" label="属性リスト" imageMso="PlayMacro" />
+          <editBox id="c2.1" onChange="Designer_onChange" getText="Designer_getText" sizeString="wwwwwwwww" />
+          <splitButton id="g211">
+            <button id="b2.21" onAction="Designer2_onAction" label="リスト" imageMso="PlayMacro" />
+            <menu id="m21">
+              <menu id="m211" label="項目追加">
+                <button id="b2.11" onAction="Designer2_onAction" label="形状" imageMso="PlayMacro" />
+                <button id="b2.12" onAction="Designer2_onAction" label="位置" imageMso="PlayMacro" />
+                <button id="b2.13" onAction="Designer2_onAction" label="サイズ" imageMso="PlayMacro" />
+                <button id="b2.14" onAction="Designer2_onAction" label="表示" imageMso="PlayMacro" />
+                <button id="b2.15" onAction="Designer2_onAction" label="枠線" imageMso="PlayMacro" />
+                <button id="b2.16" onAction="Designer2_onAction" label="塗りつぶし" imageMso="PlayMacro" />
+                <button id="b2.17" onAction="Designer2_onAction" label="テキスト" imageMso="PlayMacro" />
+                <button id="b2.18" onAction="Designer2_onAction" label="代替え" imageMso="PlayMacro" />
+                <button id="b2.19" onAction="Designer2_onAction" label="属性" imageMso="PlayMacro" />
                 <menuSeparator id="s21" />
               </menu>
-            </splitButton>
-            <splitButton id="g22">
-              <button id="b2.20" onAction="Designer1_onAction" label="更新" imageMso="ObjectFormatDialog" />
-              <menu id="m22">
-                <button id="b2.21" onAction="Designer1_onAction" label="図形名更新" imageMso="SelectionPane" />
-                <button id="b2.22" onAction="Designer1_onAction" label="図形設定1" imageMso="ObjectFormatDialog" />
-                <button id="b2.23" onAction="Designer1_onAction" label="図形設定2" imageMso="ObjectFormatDialog" />
-                <button id="b2.24" onAction="Designer1_onAction" label="テキストボックス設定" imageMso="SelectionPane" />
-                <button id="b2.26" onAction="Designer1_onAction" label="塗りつぶしON/OFF" imageMso="SelectionPane" />
-            <!-- <button id="b2.7" onAction="Designer1_onAction" label="装飾②" imageMso="SelectionPane" size="large" /> -->
-            <!-- <button id="b2.7" onAction="Designer1_onAction" label="図形名更新" imageMso="SelectionPane" /> -->
-              </menu>
-            </splitButton>
+            </menu>
+          </splitButton>
+          <button id="b2.22" onAction="Designer2_onAction" label="更新" imageMso="ObjectFormatDialog" />
+          <button id="b2.23" onAction="Designer2_onAction" label="図形名更新" imageMso="SelectionPane" />
+          <button id="b2.24" onAction="Designer2_onAction" label="図形設定1" imageMso="ObjectFormatDialog" />
+          <button id="b2.25" onAction="Designer2_onAction" label="図形設定2" imageMso="ObjectFormatDialog" />
+          <button id="b2.26" onAction="Designer2_onAction" label="テキストボックス設定" imageMso="SelectionPane" />
+          <button id="b2.27" onAction="Designer2_onAction" label="塗りつぶしON/OFF" imageMso="SelectionPane" />
+          <!-- <button id="b2.28" onAction="Designer2_onAction" label="装飾②" imageMso="SelectionPane" size="large" /> -->
+          <!-- <button id="b2.29" onAction="Designer2_onAction" label="図形名更新" imageMso="SelectionPane" /> -->
           <!-- </box> -->
-        </group>
-        <group id="g4" label="部品" imageMso="ComAddInsDialog">
-          <box id="g41" boxStyle="vertical">
-            <dropDown id="c41" onAction="Designer2_onActionDropDown" label="名前:" sizeString="aaaaaaaaaaaaaaaaaa"
-              getItemCount="Designer2_getItemCount" getItemID="Designer2_getItemID"
-              getItemLabel="Designer2_getItemLabel" getSelectedItemID="Designer2_getSelectedItemID" />
-            <buttonGroup id="g42">
-              <button id="b4.1" onAction="Designer2_onAction" label="配置" imageMso="ShapesDuplicate" />
-              <button id="b4.2" onAction="Designer2_onAction" label="コピー" imageMso="Copy" />
-              <menu id="m41" label="その他" >
-                <button id="b4.3" onAction="Designer2_onAction" label="登録" imageMso="SourceControlAddObjects" />
-                <button id="b4.4" onAction="Designer2_onAction" label="削除" imageMso="Clear" />
-                <menuSeparator id="s41" />
-                <button id="b4.5" onAction="Designer2_onAction" label="シート複製" />
-                <button id="b4.6" onAction="Designer2_onAction" label="シート編集" />
-                <menuSeparator id="s42" />
-                <button id="b4.7" onAction="Designer2_onAction" label="リスト更新" imageMso="ObjectRotateFree" />
-              </menu>
-            </buttonGroup>
-            <!-- <dynamicMenu id="A" label="Menu A" imageMso="FormatPainter" getContent="Designer2_getMenuContent" size="large" /> -->
-          </box>
         </group>
         <group id="g3" label="IDF" imageMso="ComAddInsDialog">
           <splitButton id="g31" size="large">
@@ -85,6 +65,27 @@
           <checkBox id="c3.7" onAction="Designer_onAction" label="配置制約" />
           <checkBox id="c3.8" onAction="Designer_onAction" label="PTH" />
           <checkBox id="c3.9" onAction="Designer_onAction" label="Note" />
+        </group>
+        <group id="g4" label="部品" imageMso="ComAddInsDialog">
+          <box id="g41" boxStyle="vertical">
+            <dropDown id="c41" onAction="Designer4_onActionDropDown" label="名前:" sizeString="aaaaaaaaaaaaaaaaaa"
+              getItemCount="Designer4_getItemCount" getItemID="Designer4_getItemID"
+              getItemLabel="Designer4_getItemLabel" getSelectedItemID="Designer4_getSelectedItemID" />
+            <buttonGroup id="g42">
+              <button id="b4.1" onAction="Designer4_onAction" label="配置" imageMso="ShapesDuplicate" />
+              <button id="b4.2" onAction="Designer4_onAction" label="コピー" imageMso="Copy" />
+              <menu id="m41" label="その他" >
+                <button id="b4.3" onAction="Designer4_onAction" label="登録" imageMso="SourceControlAddObjects" />
+                <button id="b4.4" onAction="Designer4_onAction" label="削除" imageMso="Clear" />
+                <menuSeparator id="s41" />
+                <button id="b4.5" onAction="Designer4_onAction" label="シート複製" />
+                <button id="b4.6" onAction="Designer4_onAction" label="シート取込" />
+                <menuSeparator id="s42" />
+                <button id="b4.7" onAction="Designer4_onAction" label="リスト更新" imageMso="ObjectRotateFree" />
+              </menu>
+            </buttonGroup>
+            <!-- <dynamicMenu id="A" label="Menu A" imageMso="FormatPainter" getContent="Designer4_getMenuContent" size="large" /> -->
+          </box>
         </group>
         <!-- <group id="Designer.g4" label="IDF" imageMso="ComAddInsDialog">
           <button id="RD14" onAction="RD58_onAction" label="​ｘｘｘ" imageMso="GetExternalDataFromText" size="large" />

@@ -327,48 +327,37 @@ Public Sub ToggleVisible(mode As Integer, Optional sr As ShapeRange)
 End Sub
 
 '図形名更新
-Public Sub UpdateShapeName(ws As Worksheet)
+Public Sub UpdateShapeName(v As Variant, Optional bid As Boolean = True)
     
     Dim re As Object
     Set re = regex("\s+\d*$")
     
-    Dim sh As Shape
-    For Each sh In ws.Shapes
-        Dim s As String
-        s = re.Replace(sh.name, " " & sh.id)
-        If s <> sh.name Then sh.name = s
-        If sh.Type = msoGroup Then
-            Dim sh2 As Shape
-            For Each sh2 In sh.GroupItems
-                s = re.Replace(sh2.name, " " & sh2.id)
-                If s <> sh2.name Then sh2.name = s
-            Next sh2
-        End If
-    Next sh
-
-End Sub
-
-Public Sub UpdateShapeRangeName(sr As ShapeRange)
+    Dim sr As Variant
+    Select Case TypeName(v)
+    Case "ShapeRange": Set sr = v
+    Case "Worksheet": Set sr = v.Shapes
+    Case "Shape": Set sr = v.Parent.Shapes.Range(v.name)
+    Case Else: Exit Sub
+    End Select
+    If v Is Nothing Then Exit Sub
     
-    Dim re As Object
-    Set re = regex("\s+\d*$")
-    
-    Dim sh As Shape
+    Dim sh As Shape, sh2 As Shape
+    Dim s As String
     For Each sh In sr
-        Dim s As String
-        s = re.Replace(sh.name, " " & sh.id)
+        s = re.Replace(sh.name, "")
+        If bid Then s = s & " " & sh.id
         If s <> sh.name Then sh.name = s
         If sh.Type = msoGroup Then
-            Dim sh2 As Shape
             For Each sh2 In sh.GroupItems
-                s = re.Replace(sh2.name, " " & sh2.id)
+                s = re.Replace(sh2.name, "")
+                If bid Then s = s & " " & sh2.id
                 If s <> sh2.name Then sh2.name = s
             Next sh2
         End If
     Next sh
-
+    
 End Sub
- 
+  
 '----------------------------------------
 '図形制御
 '----------------------------------------
@@ -436,11 +425,11 @@ Public Sub ConvertToPicture()
 End Sub
 
 '----------------------------------------
-'図形部品描画
+'部品描画
 '----------------------------------------
 
 '登録部品数取得
-Sub DrawPartsCount(cnt As Long)
+Sub DrawItemCount(ByRef cnt As Long)
     
     Dim ws As Worksheet
     Set ws = GetSheet("#shapes")
@@ -450,7 +439,7 @@ Sub DrawPartsCount(cnt As Long)
 End Sub
 
 '登録部品名取得
-Sub DrawPartsName(index As Integer, name As String)
+Sub DrawItemName(index As Integer, ByRef name As String)
     
     If index < 0 Then Exit Sub
     Dim ws As Worksheet
@@ -463,7 +452,7 @@ Sub DrawPartsName(index As Integer, name As String)
 End Sub
 
 '登録部品選択
-Sub SelectDrawParts(index As Integer)
+Sub DrawItemSelect(ByRef index As Integer)
     
     Dim s As String
     Dim ws As Worksheet
@@ -480,12 +469,13 @@ Sub SelectDrawParts(index As Integer)
 End Sub
 
 '部品登録
-Sub RegistoryDrawParts()
+Sub DrawItemEntry()
     
     If TypeName(Selection) = "Range" Then Exit Sub
     Dim ws As Worksheet
     Set ws = GetSheet("#shapes", ThisWorkbook)
     
+    '登録位置を計算
     Dim ce As Range
     Dim r As Long
     Dim sh As Shape
@@ -495,12 +485,29 @@ Sub RegistoryDrawParts()
     Next sh
     Set ce = ws.Cells(r + 2, 2)
 
-    Selection.Copy
-    ws.Paste ce
+
+    '部品化
     Dim sr As ShapeRange
     Set sr = Selection.ShapeRange
-    If sr.Count > 1 Then sr.Group
-    
+    If sr.Count > 1 Then
+        Dim s As String
+        s = InputBox("名前を入力してください。")
+        If s = "" Then Exit Sub
+        sr.Group
+        sr.name = s
+    End If
+    UpdateShapeName sr
+    sr.LockAspectRatio = msoTrue
+    For Each sh In sr
+        sh.Placement = xlMove
+    Next sh
+
+    'shapesシートに登録
+    sr.Select
+    Selection.Copy
+    ws.Paste ce
+
+    'アドインファイルなら保存
     If ws.Parent.name = ThisWorkbook.name Then
         ThisWorkbook.Save
     End If
@@ -508,8 +515,8 @@ Sub RegistoryDrawParts()
 End Sub
 
 '部品削除
-Sub RemoveDrawParts()
-    
+Sub DrawItemDelete()
+
     Dim ws As Worksheet
     Set ws = GetSheet("#shapes")
     If ws Is Nothing Then Exit Sub
@@ -523,7 +530,7 @@ Sub RemoveDrawParts()
 End Sub
 
 '部品配置
-Sub PlaceDrawParts()
+Sub AddDrawItem()
     
     If g_part = "" Then Exit Sub
     Dim ws As Worksheet
@@ -539,12 +546,12 @@ Sub PlaceDrawParts()
     
     ws.Shapes(g_part).Copy
     ra.Worksheet.Paste
-    UpdateShapeRangeName Selection.ShapeRange
+    UpdateShapeName Selection.ShapeRange
 
 End Sub
 
 '部品コピー
-Sub CopyDrawParts()
+Sub CopyDrawItem()
     
     If g_part = "" Then Exit Sub
     Dim ws As Worksheet
@@ -557,12 +564,23 @@ End Sub
 
 
 '部品シート複製
-Sub CopyDrawPartsSheet()
+Sub DuplicateDrawItemSheet()
     
     Dim ws As Worksheet
     Set ws = GetSheet("#shapes")
     If ws Is Nothing Then Exit Sub
     ws.Copy After:=ActiveSheet
+
+End Sub
+
+'部品シート取込
+Sub ImportDrawItemSheet()
+    
+    Dim ws As Worksheet
+    Set ws = SearchName(ThisWorkbook.Worksheets, "#shapes")
+    If Not ws Is Nothing Then ws.Delete
+    If Not UpdateAddinSheet(ActiveSheet) Then
+    End If
 
 End Sub
 
@@ -668,8 +686,138 @@ Private Function DrawGraph2( _
 End Function
 
 '----------------------------------------
-'図形属性制御
+'図形情報
 '----------------------------------------
+
+'エントリ追加
+Public Sub SelectCellAndShape(ByVal ws As Worksheet, ce As Range, sr As Variant)
+    
+    '出力先セル/図形リスト取得
+    If TypeName(Selection) = "Range" Then
+        Set ce = TableLeftTop(Selection)
+        If ce.Row > 2 Then LinkedSheet ws, ce.Offset(-2).Value
+        Set sr = ws.Shapes
+    Else
+        Set ce = GetCell("リスト出力位置を指定してください", "図形リスト出力")
+        Set sr = Selection.ShapeRange
+    End If
+    If ce Is Nothing Or sr Is Nothing Then Exit Sub
+    If ce.Value = "" Then
+        If ce.Parent.name <> sr.Parent.name Then
+            ce.Value = sr.Parent.name & "[" & sr.Parent.Parent.name & "]"
+            Set ce = ce.Offset(1)
+            ce.Clear
+            Set ce = ce.Offset(1)
+        End If
+    End If
+    
+End Sub
+
+Function LeftTopRange(ce As Range) As Range
+    
+    Dim ws As Worksheet
+    Set ws = ce.Parent
+    
+    Dim rp As Long, rs As Long, r As Long
+    Dim cp As Long, cs As Long, c As Long
+    rp = ce.Row
+    cp = ce.Column
+    rs = rp
+    cs = cp
+    
+    Dim rpt As Boolean
+    rpt = True
+    Do While rpt
+        rpt = False
+        
+        r = rs
+        Do While r > 0
+            
+            For c = cs - 1 To 1 Step -1
+                If ws.Cells(r, c) = "" Then Exit For
+                cs = c
+            Next c
+            
+            r = r - 1
+            If r < 1 Then Exit Do
+            
+            Dim f1 As Boolean
+            f1 = False
+            For c = cs + 1 To cp
+                If ws.Cells(r, c) <> "" Then
+                    f1 = True
+                    Exit For
+                End If
+            Next c
+            If Not f1 Then Exit Do
+            rs = r
+        Loop
+    
+    Loop
+    
+    Set LeftTopRange = ws.Cells(rs, cs)
+End Function
+
+'エントリ追加
+Public Sub AddListShapeHeader(ByVal ce As Range, Optional mode As Integer)
+    
+    'テーブル項目取得
+    Dim dic As Dictionary
+    ArrStrToDict dic, c_ShapeInfoMember, 1
+    
+    'ヘッダ取得
+    Dim ra As Range
+    Set ra = TableHeaderRange(TableLeftTop(ce, 0))
+    
+    '存在するヘッダ項目取得
+    Dim hdr_dic As Dictionary
+    Set hdr_dic = New Dictionary
+    Dim s As String
+    Dim v As Variant
+    For Each v In Union(ra, ra.Offset(, 1)).Value
+        s = Trim(UCase(v))
+        If s <> "" Then
+            If dic.Exists(s) Then s = dic(s)(0)
+            If Not hdr_dic.Exists(s) Then hdr_dic.Add s, 1
+        End If
+    Next v
+    
+    '追加ヘッダ項目取得
+    Dim hdr() As String
+    StringToRow hdr, c_ShapeInfoHeader, mode
+    Dim hdr_col As Collection
+    Set hdr_col = New Collection
+    For Each v In hdr
+        s = UCase(v)
+        If dic.Exists(s) Then
+            v = dic(s)(1)
+            s = dic(s)(0)
+        End If
+        If Not hdr_dic.Exists(s) Then
+            hdr_dic.Add s, 1
+            hdr_col.Add v
+        End If
+    Next v
+    If hdr_col.Count < 1 Then Exit Sub
+    ReDim v(1 To 1, 1 To hdr_col.Count)
+    Dim i As Long
+    For i = 1 To hdr_col.Count
+        v(1, i) = hdr_col(i)
+    Next i
+    Set ra = ra.Offset(, ra.Columns.Count).Cells(1, 1)
+    Set ra = ra.Resize(1, hdr_col.Count)
+    
+    '画面更新停止
+    ScreenUpdateOff
+    
+    'ヘッダ追加
+    ra.Value = v
+    
+    '画面更新再開
+    ScreenUpdateOn
+
+End Sub
+
 
 '図形情報リストアップ
 Public Sub ListShapeInfo(ByVal ws As Worksheet, Optional mode As Integer)
