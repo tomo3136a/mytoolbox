@@ -35,7 +35,7 @@ End Function
 '文字列有無
 Function re_test(s As String, ptn As String) As Boolean
     On Error Resume Next
-    re_test = regex(ptn).test(s)
+    re_test = regex(ptn).Test(s)
     On Error GoTo 0
 End Function
 
@@ -73,6 +73,22 @@ End Function
 '文字列分割
 Function re_split(s As String, ptn As String) As String()
     re_split = Split(regex(ptn).Replace(s, Chr(7)), Chr(7))
+End Function
+
+'----------------------------------------
+'検索
+'----------------------------------------
+
+'コレクションから名前を指定して検索(配列は除く)
+Function SearchName(col As Object, name As String) As Object
+    Dim v As Object
+    For Each v In col
+        If v.name = name Then
+            Set SearchName = v
+            Exit Function
+        End If
+    Next v
+    Set SearchName = Nothing
 End Function
 
 '----------------------------------------
@@ -720,21 +736,5 @@ Function UpdateAddinSheet(ws As Worksheet)
     End If
     '
     Application.ScreenUpdating = asu
-End Function
-
-'----------------------------------------
-'検索
-'----------------------------------------
-
-'名前から検索
-Function SearchName(col As Variant, name As String) As Variant
-    Dim v As Variant
-    For Each v In col
-        If v.name = name Then
-            Set SearchName = v
-            Exit Function
-        End If
-    Next v
-    Set SearchName = Nothing
 End Function
 

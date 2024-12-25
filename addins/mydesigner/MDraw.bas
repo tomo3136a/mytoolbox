@@ -521,8 +521,10 @@ Sub DrawItemDelete()
     Set ws = GetSheet("#shapes")
     If ws Is Nothing Then Exit Sub
     If g_part = "" Then Exit Sub
+    
     ws.Shapes(g_part).Delete
     g_part = ""
+
     If ws.Parent.name = ThisWorkbook.name Then
         ThisWorkbook.Save
     End If
@@ -562,13 +564,13 @@ Sub CopyDrawItem()
 
 End Sub
 
-
 '部品シート複製
 Sub DuplicateDrawItemSheet()
     
     Dim ws As Worksheet
     Set ws = GetSheet("#shapes")
     If ws Is Nothing Then Exit Sub
+    
     ws.Copy After:=ActiveSheet
 
 End Sub
@@ -578,6 +580,7 @@ Sub ImportDrawItemSheet()
     
     Dim ws As Worksheet
     Set ws = SearchName(ThisWorkbook.Worksheets, "#shapes")
+    
     If Not ws Is Nothing Then ws.Delete
     If Not UpdateAddinSheet(ActiveSheet) Then
     End If
@@ -585,178 +588,8 @@ Sub ImportDrawItemSheet()
 End Sub
 
 '----------------------------------------
-'アイテム作画(軸線)
-'----------------------------------------
-
-'軸線作画
-Public Function DrawAxis( _
-        ws As Worksheet, x0 As Double, y0 As Double, _
-        w As Double, h As Double, Optional r As Double = 10) As String
-    DrawAxis = DrawAxis2(ws, x0, y0, w, h, r)
-End Function
-
-Private Function DrawAxis2( _
-        ws As Worksheet, x0 As Double, y0 As Double, _
-        w As Double, h As Double, r As Double) As String
-    Dim ns As Collection
-    Set ns = New Collection
-    '
-    Dim sh As Object
-    Set sh = ws.Shapes.AddLine(x0, y0 + 2 * r, x0, y0 - h)
-    sh.line.ForeColor.RGB = RGB(0, 0, 0)
-    ns.Add sh.name
-    Set sh = ws.Shapes.AddLine(x0 - 2 * r, y0, x0 + w, y0)
-    sh.line.ForeColor.RGB = RGB(0, 0, 0)
-    ns.Add sh.name
-    If r > 0 Then
-        Set sh = ws.Shapes.AddShape(msoShapeOval, x0 - r, y0 - r, 2 * r, 2 * r)
-        sh.line.ForeColor.RGB = RGB(0, 0, 0)
-        sh.Fill.Visible = msoFalse
-        ns.Add sh.name
-    End If
-    '
-    Set sh = ws.Shapes.Range(ColToArr(ns)).Group
-    sh.name = "軸線 " & sh.id
-    DrawAxis2 = sh.name
-End Function
-
-'----------------------------------------
-'アイテム作画(方眼紙)
-'----------------------------------------
-
-'方眼紙作成
-Public Function DrawGraph( _
-        ws As Worksheet, x0 As Double, y0 As Double, _
-        w As Double, h As Double) As String
-    DrawGraph = DrawGraph2(ws, x0, y0, w, h)
-End Function
-
-Private Function DrawGraph2( _
-        ws As Worksheet, x0 As Double, y0 As Double, _
-        w As Double, h As Double) As String
-    Dim dp As Double
-    dp = GetDrawParam(2) * GetDrawParam(3)
-    If dp < 0.1 Then
-        MsgBox ("間隔が狭すぎます。(" & dp & ")")
-        Exit Function
-    End If
-    '
-    Dim x1 As Double
-    Dim y1 As Double
-    Dim x2 As Double
-    Dim y2 As Double
-    x1 = x0
-    y1 = y0 - h
-    x2 = x0 + w
-    y2 = y0
-    '
-    Dim ns As Collection
-    Set ns = New Collection
-    '
-    Dim sh As Object
-    Dim p As Double
-    Dim i As Integer
-    For i = 1 To Int(w / dp)
-        p = x1 + dp * i
-        Set sh = ws.Shapes.AddLine(p, y1, p, y2)
-        If i Mod 10 <> 0 Then sh.line.DashStyle = msoLineRoundDot
-        sh.line.Weight = 0.25
-        sh.line.ForeColor.RGB = RGB(0, 0, 255)
-        ns.Add sh.name
-    Next i
-    For i = 1 To Int(h / dp)
-        p = y2 - dp * i
-        Set sh = ws.Shapes.AddLine(x1, p, x2, p)
-        If i Mod 10 <> 0 Then sh.line.DashStyle = msoLineRoundDot
-        sh.line.Weight = 0.25
-        sh.line.ForeColor.RGB = RGB(0, 0, 255)
-        ns.Add sh.name
-    Next i
-    Set sh = ws.Shapes.AddLine(x1, y1, x1, y2)
-    sh.line.ForeColor.RGB = RGB(0, 0, 0)
-    ns.Add sh.name
-    Set sh = ws.Shapes.AddLine(x1, y2, x2, y2)
-    sh.line.ForeColor.RGB = RGB(0, 0, 0)
-    ns.Add sh.name
-    '
-    Set sh = ws.Shapes.Range(ColToArr(ns)).Group
-    sh.line.Transparency = 0.5
-    sh.name = "方眼紙 " & sh.id
-    DrawGraph2 = sh.name
-End Function
-
-'----------------------------------------
 '図形情報
 '----------------------------------------
-
-'エントリ追加
-Public Sub SelectCellAndShape(ByVal ws As Worksheet, ce As Range, sr As Variant)
-    
-    '出力先セル/図形リスト取得
-    If TypeName(Selection) = "Range" Then
-        Set ce = TableLeftTop(Selection)
-        If ce.Row > 2 Then LinkedSheet ws, ce.Offset(-2).Value
-        Set sr = ws.Shapes
-    Else
-        Set ce = GetCell("リスト出力位置を指定してください", "図形リスト出力")
-        Set sr = Selection.ShapeRange
-    End If
-    If ce Is Nothing Or sr Is Nothing Then Exit Sub
-    If ce.Value = "" Then
-        If ce.Parent.name <> sr.Parent.name Then
-            ce.Value = sr.Parent.name & "[" & sr.Parent.Parent.name & "]"
-            Set ce = ce.Offset(1)
-            ce.Clear
-            Set ce = ce.Offset(1)
-        End If
-    End If
-    
-End Sub
-
-Function LeftTopRange(ce As Range) As Range
-    
-    Dim ws As Worksheet
-    Set ws = ce.Parent
-    
-    Dim rp As Long, rs As Long, r As Long
-    Dim cp As Long, cs As Long, c As Long
-    rp = ce.Row
-    cp = ce.Column
-    rs = rp
-    cs = cp
-    
-    Dim rpt As Boolean
-    rpt = True
-    Do While rpt
-        rpt = False
-        
-        r = rs
-        Do While r > 0
-            
-            For c = cs - 1 To 1 Step -1
-                If ws.Cells(r, c) = "" Then Exit For
-                cs = c
-            Next c
-            
-            r = r - 1
-            If r < 1 Then Exit Do
-            
-            Dim f1 As Boolean
-            f1 = False
-            For c = cs + 1 To cp
-                If ws.Cells(r, c) <> "" Then
-                    f1 = True
-                    Exit For
-                End If
-            Next c
-            If Not f1 Then Exit Do
-            rs = r
-        Loop
-    
-    Loop
-    
-    Set LeftTopRange = ws.Cells(rs, cs)
-End Function
 
 'エントリ追加
 Public Sub AddListShapeHeader(ByVal ce As Range, Optional mode As Integer)
@@ -804,7 +637,9 @@ Public Sub AddListShapeHeader(ByVal ce As Range, Optional mode As Integer)
     For i = 1 To hdr_col.Count
         v(1, i) = hdr_col(i)
     Next i
-    Set ra = ra.Offset(, ra.Columns.Count).Cells(1, 1)
+    If ra.Cells(1, 1).Value <> "" Then
+        Set ra = ra.Offset(, ra.Columns.Count)
+    End If
     Set ra = ra.Resize(1, hdr_col.Count)
     
     '画面更新停止
