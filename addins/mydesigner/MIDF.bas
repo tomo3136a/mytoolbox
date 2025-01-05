@@ -90,6 +90,76 @@ Private Type T_EnvIDF
     dir As Double
 End Type
 
+Private Enum EFLAG
+    EF_SIDEA = 1
+    EF_SIDEB
+    EF_PLACE
+    EF_ROUTE
+    EF_PTH
+    EF_NOTE
+End Enum
+
+
+'環境パラメータ
+Private g_scale As Double           'スケール
+Private g_flag(1 To 10) As Boolean  'モードフラグ
+                                    ' 1.A面, 2.B面
+                                    ' 3.配置制約, 4.配線制約
+                                    ' 5.PTH, 6:Note
+
+'----------------------------------------
+'パラメータ制御
+'----------------------------------------
+
+'IDFパラメータ初期化
+Sub IDF_ResetParam(Optional id As Integer)
+    If id = 0 Or id = 1 Then g_scale = 0.1
+    If id <> 0 And id <> 2 Then Exit Sub
+    Dim i As Integer
+    For i = 1 To UBound(g_flag)
+        g_flag(i) = False
+    Next i
+    g_flag(1) = True
+    g_flag(2) = True
+End Sub
+
+'IDFパラメータ設定
+Sub IDF_SetParam(id As Integer, ByVal val As String)
+    Select Case id
+    Case 1
+        If val <= 0 Then
+            MsgBox "比率の設定が間違っています。(設定値>0)" & Chr(10) & "設定値： " & val
+            Exit Sub
+        End If
+        g_scale = val
+    End Select
+End Sub
+
+'IDFパラメータ取得
+Function IDF_GetParam(id As Integer) As String
+    Select Case id
+    Case 1
+        If g_scale <= 0 Then
+            IDF_ResetParam id
+            MsgBox "比率の設定を初期化しました。(設定値" & g_scale & ")"
+        End If
+        IDF_GetParam = g_scale
+    End Select
+End Function
+
+'IDFフラグ設定
+Sub IDF_SetFlag(id As Integer, Optional ByVal val As Boolean = True)
+    g_flag(id) = val
+    'g_flag = g_flag And Not 2 ^ (id Mod 24)
+    'If val Then g_flag = g_flag Or 2 ^ (id Mod 24)
+End Sub
+
+'IDFフラグチェック
+Function IDF_IsFlag(id As Integer) As Boolean
+    IDF_IsFlag = g_flag(id)
+    'IDF_IsFlag = Not ((g_flag And 2 ^ (id Mod 24)) = 0)
+End Function
+
 '----------------------------------------
 'IDF読み込み
 '----------------------------------------
@@ -102,25 +172,25 @@ Public Sub ImportIDF()
     path = GetRtParam("IDF", "path")
     If path = "" Then path = ActiveWorkbook.path
     
-    Dim list_name As String
-    list_name = GetRtParam("IDF", "list_name", "@IDF")
+    'Dim list_name As String
+    'list_name = GetRtParam("IDF", "list_name", "@IDF")
     
     '管理シート作成
-    Dim list_ws As Worksheet
-    On Error Resume Next
-    Set list_ws = ActiveWorkbook.Worksheets(list_name)
-    On Error GoTo 0
-    If list_ws Is Nothing Then
-        Set list_ws = ActiveWorkbook.Worksheets.Add
-        list_ws.name = list_name
-    End If
+    'Dim list_ws As Worksheet
+    'On Error Resume Next
+    'Set list_ws = ActiveWorkbook.Worksheets(list_name)
+    'On Error GoTo 0
+    'If list_ws Is Nothing Then
+    '    Set list_ws = ActiveWorkbook.Worksheets.Add
+    '    list_ws.name = list_name
+    'End If
 
     '管理テーブル作成
-    Dim list_ce As Range
-    Set list_ce = FindCell("IDF", ActiveCell)
-    If list_ce Is Nothing Then
-        Set list_ce = list_ws.Cells(2, 2)
-    End If
+    'Dim list_ce As Range
+    'Set list_ce = FindCell("IDF", ActiveCell)
+    'If list_ce Is Nothing Then
+    '    Set list_ce = list_ws.Cells(2, 2)
+    'End If
     
     'ファイル選択
     With Application.FileDialog(msoFileDialogOpen)
@@ -144,29 +214,29 @@ Public Sub ImportIDF()
             ImportIDF_1 CStr(v), ws
             If ws Is Nothing Then Exit Sub
             
-            Dim ce As Range
-            Set ce = FindCell("IDF", list_ws.Cells(1, 1))
-            If ce Is Nothing Then
-                Dim r As Long
-                r = list_ws.UsedRange.Row + list_ws.UsedRange.Rows.Count
-                Set ce = list_ws.Cells(r + 2, 2)
-                ce.Value = "IDF"
-                
-                Dim vs As Variant
-                vs = Split("name,sheet,note", ",")
-                Dim i As Integer
-                With ce.Offset(2)
-                    For i = 0 To UBound(vs)
-                        .Offset(, i).Value = vs(i)
-                    Next i
-                End With
-            End If
-            Set ce = ce.Offset(3)
-            Do Until ce.Value = ""
-                Set ce = ce.Offset(1)
-            Loop
-            ce.Value = ws.name
-            ce.Offset(, 1).Value = ws.name
+            'Dim ce As Range
+            'Set ce = FindCell("IDF", list_ws.Cells(1, 1))
+            'If ce Is Nothing Then
+            '    Dim r As Long
+            '    r = list_ws.UsedRange.Row + list_ws.UsedRange.Rows.Count
+            '    Set ce = list_ws.Cells(r + 2, 2)
+            '    ce.Value = "IDF"
+            '
+            '    Dim vs As Variant
+            '    vs = Split("name,sheet,note", ",")
+            '    Dim i As Integer
+            '    With ce.Offset(2)
+            '        For i = 0 To UBound(vs)
+            '            .Offset(, i).Value = vs(i)
+            '        Next i
+            '    End With
+            'End If
+            'Set ce = ce.Offset(3)
+            'Do Until ce.Value = ""
+            '    Set ce = ce.Offset(1)
+            'Loop
+            'ce.Value = ws.name
+            'ce.Offset(, 1).Value = ws.name
         Next v
         
         '画面チラつき防止処置解除
@@ -201,10 +271,6 @@ End Sub
 '----------------------------------------
 'IDF読み込み
 '----------------------------------------
-
-'IDFファイルを読み込み、シート作成
-Public Sub ImportIDF_old()
-End Sub
 
 'IDFファイルを読み込み、配列作成
 Private Sub ReadArrayIDF(arr As Variant, path As String, Optional hdr As Boolean)
@@ -723,8 +789,15 @@ End Function
 'IDF描画
 '-------------------------------------
 
+'IDF描画
+Public Sub DrawIDF()
+    Dim ce As Range: Set ce = ActiveCell
+    Dim ws As Worksheet: Set ws = ce.Worksheet
+    DrawIDF_1 ws, ce.Left, ce.Top
+End Sub
+
 'ワークシートからIDF描画
-Public Sub DrawIDF(ws As Worksheet, x As Double, y As Double)
+Private Sub DrawIDF_1(ws As Worksheet, x As Double, y As Double)
     '
     'ライブラリ作成
     Dim lib As Dictionary
@@ -747,7 +820,7 @@ Public Sub DrawIDF(ws As Worksheet, x As Double, y As Double)
     
     'スケール・原点計算
     Dim sc As Double, x0 As Double, y0 As Double
-    sc = GetDrawParam(2)
+    sc = g_scale
     x0 = x - sc * (dra(0))
     y0 = y + sc * (dra(1) + dra(5))
     
@@ -923,7 +996,7 @@ Private Function DrawAssy( _
     If Not sh Is Nothing Then ns.Add sh.name
     
     'PLACEMENT(BOTTOM)
-    If IsDrawParam(5) Then
+    If g_flag(2) Then
         env.scz = -env.scz
         env.z0 = env.z0 + env.scz * env.t0
         env.flip = Not env.flip
@@ -942,7 +1015,7 @@ Private Function DrawAssy( _
     End If
     
     'PLACEMENT(TOP)
-    If IsDrawParam(4) Then
+    If g_flag(1) Then
         k = Join(Array("PLACEMENT", "TOP", ""), "-")
         Set sh = DrawGroupPlace(ws, env, k, arr, lib(name), lib)
         If Not sh Is Nothing Then ns.Add sh.name
@@ -953,13 +1026,13 @@ Private Function DrawAssy( _
     End If
     
     'OUTLINE, KEEPOUT, REGION(BOTTOM)
-    If IsDrawParam(5) Then
+    If g_flag(2) Then
         env.scz = -env.scz
         env.z0 = env.z0 + env.scz * env.t0
         
         For Each side In Array("ALL", "BOTH", "BOTTOM")
             Set ns2 = New Collection
-            If IsDrawParam(7) Then
+            If g_flag(4) Then
                 k = Join(Array("ROUTE_OUTLINE", side, ""), "-")
                 Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
                 If Not sh Is Nothing Then ns2.Add sh.name
@@ -969,7 +1042,7 @@ Private Function DrawAssy( _
                 If Not sh Is Nothing Then ns2.Add sh.name
             End If
                 
-            If IsDrawParam(6) Then
+            If g_flag(3) Then
                 k = Join(Array("PLACE_OUTLINE", side, ""), "-")
                 Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
                 If Not sh Is Nothing Then ns2.Add sh.name
@@ -994,10 +1067,10 @@ Private Function DrawAssy( _
     End If
 
     'OUTLINE, KEEPOUT, REGION(TOP)
-    If IsDrawParam(4) Then
+    If g_flag(1) Then
         For Each side In Array("ALL", "BOTH", "INNER", "TOP")
             Set ns2 = New Collection
-            If IsDrawParam(7) Then
+            If g_flag(4) Then
                 k = Join(Array("ROUTE_OUTLINE", side, ""), "-")
                 Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
                 If Not sh Is Nothing Then ns2.Add sh.name
@@ -1007,7 +1080,7 @@ Private Function DrawAssy( _
                 If Not sh Is Nothing Then ns2.Add sh.name
             End If
             
-            If IsDrawParam(6) Then
+            If g_flag(3) Then
                 k = Join(Array("PLACE_OUTLINE", side, ""), "-")
                 Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
                 If Not sh Is Nothing Then ns2.Add sh.name
@@ -1029,14 +1102,14 @@ Private Function DrawAssy( _
     End If
     
     'VIA
-    If IsDrawParam(8) Then
+    If g_flag(5) Then
         k = Join(Array("VIA_KEEPOUT", "", ""), "-")
         Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
         If Not sh Is Nothing Then ns.Add sh.name
     End If
 
     'NOTES
-    If IsDrawParam(9) Then
+    If g_flag(6) Then
         k = Join(Array("NOTES", "", ""), "-")
         Set sh = DrawGroupNote(ws, env, k, arr, lib(name))
         If Not sh Is Nothing Then ns.Add sh.name
@@ -1103,6 +1176,12 @@ Private Function DrawOrigin( _
         .Placement = xlMove
         .name = "ORIGIN " & .id
     End With
+    
+    sh.Title = "ORIGIN"
+    Dim s As String
+    s = Join(Array("d:" & w & "," & w & ",0"), Chr(10))
+    s = Join(Array(s, "sc:" & sc), Chr(10))
+    sh.AlternativeText = s
     
     Set DrawOrigin = sh
     Set sh = Nothing
@@ -1171,7 +1250,7 @@ Private Function DrawBoard( _
     Set ns2 = Nothing
     
     'Hole(PTH)
-    If IsDrawParam(8) Then
+    If g_flag(5) Then
         Set ns2 = New Collection
         Set sh = Nothing
         For Each k In dic.Keys
@@ -1375,11 +1454,10 @@ Private Function DrawHole( _
         .name = kw & " " & .id
     End With
     
+    sh.Title = kw
     Dim s As String
-    s = "IDF " & kw
-    s = Join(Array(s, "p:" & tx & "," & ty), Chr(10))
-    s = Join(Array(s, "d:" & tw & "," & tw), Chr(10))
-    s = Join(Array(s, "g:" & sc), Chr(10))
+    s = Join(Array("d:" & tw & "," & tw & ",0"), Chr(10))
+    s = Join(Array(s, "sc:" & sc), Chr(10))
     sh.AlternativeText = s
     
     With sh.ThreeD
@@ -1449,14 +1527,7 @@ Public Function DrawNote( _
     
     kw = arr(r, FID.N_SECTION)
     SetStyleIDF sh, kw
-    
-    Dim s As String
-    s = "IDF " & kw
-    s = Join(Array(s, "p:" & tx & "," & ty), Chr(10))
-    s = Join(Array(s, "d:" & tw & "," & th), Chr(10))
-    s = Join(Array(s, "g:" & sc), Chr(10))
-    sh.AlternativeText = s
-    
+   
     With sh.ThreeD
         .BevelTopType = msoBevelAngle
         .BevelTopInset = 0
@@ -1527,7 +1598,7 @@ Private Function DrawPlace( _
             tx = x0 - sc * x1
             tenv.x0 = tx
         End If
-        Set sh = DrawPart(ws, tenv, tx, ty, arr, r, lib)
+        Set sh = DrawPart(ws, tenv, x1, -y1, arr, r, lib)
     End If
     If sh Is Nothing Then Exit Function
     sh.name = arr(r, FID.N_REFERENCE) & " " & sh.id
@@ -1589,15 +1660,15 @@ Private Function DrawShape( _
     
     Dim sc As Double, scx As Double, scy As Double
     Dim a0 As Double, f0 As Boolean
-    Dim x0 As Double, y0 As Double
+    Dim x0 As Double, y0 As Double, z0 As Double
     a0 = env.angle
     sc = env.sc
     If sc = 0 Then Exit Function
     scx = sc
     If env.flip Then scx = -scx
     scy = -sc
-    x0 = env.x0 + scx * x
-    y0 = env.y0 + scy * y
+    x0 = env.x0 ' + scx * x
+    y0 = env.y0 ' + scy * y
 
     Dim sh As Shape
     Dim fb As FreeformBuilder
@@ -1616,9 +1687,14 @@ Private Function DrawShape( _
     h1 = arr(r, FID.N_HEIGHT)
     r = r + 1
     
+    Dim tx As Double, tx1 As Double, tx2 As Double
+    Dim ty As Double, ty1 As Double, ty2 As Double
+    tx = x + (Cos(a0) * x1 - Sin(a0) * y1): tx1 = tx: tx2 = tx
+    ty = y + (Sin(a0) * x1 + Cos(a0) * y1): ty1 = ty: ty2 = ty
+    
     Dim px As Double, py As Double
-    px = x0 + scx * (Cos(a0) * x1 - Sin(a0) * y1)
-    py = y0 + scy * (Sin(a0) * x1 + Cos(a0) * y1)
+    px = x0 + scx * tx
+    py = y0 + scy * ty
     
     Dim a2 As Double, x2 As Double, y2 As Double
     Dim dx As Double, dy As Double
@@ -1645,6 +1721,10 @@ Private Function DrawShape( _
             dy = y2 - y1
             d = sc * Sqr(dx * dx + dy * dy)
             Set sh = ws.Shapes.AddShape(msoShapeOval, px - d, py - d, 2 * d, 2 * d)
+            tx1 = tx1 - Sqr(dx * dx + dy * dy)
+            tx2 = tx2 + Sqr(dx * dx + dy * dy)
+            ty1 = ty1 - Sqr(dx * dx + dy * dy)
+            ty2 = ty2 + Sqr(dx * dx + dy * dy)
             Set fb = Nothing
             r = r + 1
             Exit Do
@@ -1655,13 +1735,25 @@ Private Function DrawShape( _
             Set fb = ws.Shapes.BuildFreeform(msoEditingAuto, px, py)
         End If
         If CInt(a2) = 0 Then
-            px = x0 + scx * (Cos(a0) * x2 - Sin(a0) * y2)
-            py = y0 + scy * (Sin(a0) * x2 + Cos(a0) * y2)
+            tx = x + (Cos(a0) * x2 - Sin(a0) * y2)
+            ty = y + (Sin(a0) * x2 + Cos(a0) * y2)
+            px = x0 + scx * tx
+            py = y0 + scy * ty
             fb.AddNodes msoSegmentLine, msoEditingAuto, px, py
+            If tx < tx1 Then tx1 = tx
+            If tx > tx2 Then tx2 = tx
+            If ty < ty1 Then ty1 = ty
+            If ty > ty2 Then ty2 = ty
         Else
-            px = x0 + scx * (Cos(a0) * x1 - Sin(a0) * y1)
-            py = y0 + scy * (Sin(a0) * x1 + Cos(a0) * y1)
+            tx = x + (Cos(a0) * x1 - Sin(a0) * y1)
+            ty = y + (Sin(a0) * x1 + Cos(a0) * y1)
+            px = x0 + scx * tx
+            py = y0 + scy * ty
             fb.AddNodes msoSegmentLine, msoEditingAuto, px, py
+            If tx < tx1 Then tx1 = tx
+            If tx > tx2 Then tx2 = tx
+            If ty < ty1 Then ty1 = ty
+            If ty > ty2 Then ty2 = ty
             dx = (x2 - x1) / 2
             dy = (y2 - y1) / 2
             Dim a3 As Double, x3 As Double, y3 As Double
@@ -1677,14 +1769,26 @@ Private Function DrawShape( _
                 Dim x4 As Double, y4 As Double
                 x4 = x3 + Cos(i * aa) * ax - Sin(i * aa) * ay
                 y4 = y3 + Sin(i * aa) * ax + Cos(i * aa) * ay
-                px = x0 + scx * (Cos(a0) * x4 - Sin(a0) * y4)
-                py = y0 + scy * (Sin(a0) * x4 + Cos(a0) * y4)
+                tx = x + (Cos(a0) * x4 - Sin(a0) * y4)
+                ty = y + (Sin(a0) * x4 + Cos(a0) * y4)
+                px = x0 + scx * tx
+                py = y0 + scy * ty
                 fb.AddNodes msoSegmentCurve, msoEditingAuto, px, py
+                If tx < tx1 Then tx1 = tx
+                If tx > tx2 Then tx2 = tx
+                If ty < ty1 Then ty1 = ty
+                If ty > ty2 Then ty2 = ty
             Next i
-            px = x0 + scx * (Cos(a0) * x2 - Sin(a0) * y2)
-            py = y0 + scy * (Sin(a0) * x2 + Cos(a0) * y2)
+            tx = x + (Cos(a0) * x2 - Sin(a0) * y2)
+            ty = y + (Sin(a0) * x2 + Cos(a0) * y2)
+            px = x0 + scx * tx
+            py = y0 + scy * ty
             fb.AddNodes msoSegmentCurve, msoEditingAuto, px, py
             fb.AddNodes msoSegmentLine, msoEditingAuto, px, py
+            If tx < tx1 Then tx1 = tx
+            If tx > tx2 Then tx2 = tx
+            If ty < ty1 Then ty1 = ty
+            If ty > ty2 Then ty2 = ty
         End If
     
         r = r + 1
@@ -1711,21 +1815,24 @@ Private Function DrawShape( _
         .BevelBottomDepth = 0
         .Depth = sc * h1
         If env.scz > 0 Then
-            .z = sc * (env.z0 + h1)
+            z0 = (env.z0 + h1)
         Else
-            .z = sc * env.z0
+            z0 = env.z0
         End If
+        .z = sc * z0
     End With
     
-    px = (sh.Left - x0) / sc
-    py = (sh.Top - y0) / sc
-    dx = sh.Width / sc
-    dy = sh.Height / sc
+    px = (sh.Left - x0) / scx
+    py = (sh.Top - y0) / scy
+    'dx = sh.Width / sc
+    'dy = sh.Height / sc
+    dx = tx2 - tx1
+    dy = ty2 - ty1
     
+    sh.Title = sect
     Dim s As String
-    s = "IDF " & sect
-    s = Join(Array(s, "p:" & px & "," & py), Chr(10))
-    s = Join(Array(s, "d:" & dx & "," & dy), Chr(10))
+    's = Join(Array("p:" & px & "," & py & "," & z0), Chr(10))
+    s = Join(Array("d:" & dx & "," & dy & "," & h1), Chr(10))
     s = Join(Array(s, "sc:" & sc), Chr(10))
     sh.AlternativeText = s
     

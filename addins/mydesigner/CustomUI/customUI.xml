@@ -5,20 +5,24 @@
       <tab id="TabDesigner" label="作図" insertAfterQ="TabAddIns">
         <group id="g1" label="図形操作" imageMso="ComAddInsDialog">
           <button id="b1.1" onAction="Designer1_onAction" label="標準図形設定" imageMso="ObjectFormatDialog" size="large" />
-          <button id="b1.3" onAction="Designer1_onAction" label="図形削除" imageMso="Clear" />
+          <!-- <button id="b1.3" onAction="Designer1_onAction" label="図形削除" imageMso="Clear" /> -->
           <button id="b1.4" onAction="Designer1_onAction" label="絵に変換" imageMso="SelectionPane" />
           <button id="b1.5" onAction="Designer1_onAction" label="テキストボックス基本設定" imageMso="SObjectFormatDialog" />
           <button id="b1.6" onAction="Designer1_onAction" label="塗りつぶし表示ON/OFF" imageMso="SObjectFormatDialog" />
-          <button id="b1.7" onAction="Designer1_onAction" label="3D" imageMso="SelectionPane" />
+          <splitButton id="g11">
+            <button id="b1.7" onAction="Designer1_onAction" label="3D" imageMso="SelectionPane" />
+            <menu id="m11">
+              <control idQ="_3DRotationOptionsDialog" visible="true" />
+            </menu>
+          </splitButton>
           <button id="b1.8" onAction="Designer1_onAction" label="原点" imageMso="SelectionPane" />
-          <button id="b1.9" onAction="Designer1_onAction" label="タイプ" imageMso="SelectionPane" />
-          <!-- <button id="b1.9" onAction="Designer1_onAction" label="上下反転" imageMso="SelectionPane" /> -->
+          <button id="b1.9" onAction="Designer1_onAction" label="図形名更新" imageMso="SelectionPane" />
           <control idQ="ObjectFlipHorizontal" visible="true" />
           <control idQ="ObjectFlipVertical" visible="true" />
           <control idQ="ObjectsSelect" visible="true" />
           <control idQ="SelectionPane" visible="true" />
+          <control idQ="AltTextPaneRibbon" visible="true" />
           <control idQ="ObjectSizeAndPropertiesDialog" visible="true" />
-          <control idQ="_3DRotationOptionsDialog" visible="true" />
         </group>
         <group id="g2" label="図形情報" imageMso="ComAddInsDialog">
           <!-- <box id="g21" boxStyle="vertical"> -->
@@ -50,22 +54,6 @@
           <!-- <button id="b2.29" onAction="Designer2_onAction" label="図形名更新" imageMso="SelectionPane" /> -->
           <!-- </box> -->
         </group>
-        <group id="g3" label="IDF" imageMso="ComAddInsDialog">
-          <splitButton id="g31" size="large">
-            <button id="b3.1" onAction="Designer3_onAction" label="描画" imageMso="ShapesMoreShapes" />
-            <menu id="m31">
-              <button id="b3.2" onAction="Designer3_onAction" label="読み込み" imageMso="GetExternalDataImportClassic" />
-              <button id="b3.3" onAction="Designer3_onAction" label="エクスポート" imageMso="ExportTextFile" />
-            </menu>
-          </splitButton>
-          <editBox id="c3.2" onChange="Designer_onChange" label="比率" getText="Designer_getText" sizeString="wwwww" />
-          <checkBox id="c3.4" onAction="Designer_onAction" label="A面" />
-          <checkBox id="c3.5" onAction="Designer_onAction" label="B面" />
-          <checkBox id="c3.6" onAction="Designer_onAction" label="配線制約" />
-          <checkBox id="c3.7" onAction="Designer_onAction" label="配置制約" />
-          <checkBox id="c3.8" onAction="Designer_onAction" label="PTH" />
-          <checkBox id="c3.9" onAction="Designer_onAction" label="Note" />
-        </group>
         <group id="g4" label="部品" imageMso="ComAddInsDialog">
           <box id="g41" boxStyle="vertical">
             <dropDown id="c41" onAction="Designer4_onActionDropDown" label="名前:" sizeString="aaaaaaaaaaaaaaaaaa"
@@ -84,9 +72,25 @@
                 <button id="b4.7" onAction="Designer4_onAction" label="リスト更新" imageMso="ObjectRotateFree" />
               </menu>
             </buttonGroup>
-            <!-- <dynamicMenu id="A" label="Menu A" imageMso="FormatPainter" getContent="Designer4_getMenuContent" size="large" /> -->
           </box>
         </group>
+        <group id="g5" label="IDF" imageMso="ComAddInsDialog">
+          <splitButton id="g51" size="large">
+            <button id="b5.1" onAction="Designer5_onAction" label="描画" imageMso="ShapesMoreShapes" />
+            <menu id="m51">
+              <button id="b5.2" onAction="Designer5_onAction" label="読み込み" imageMso="GetExternalDataImportClassic" />
+              <button id="b5.3" onAction="Designer5_onAction" label="エクスポート" imageMso="ExportTextFile" />
+            </menu>
+          </splitButton>
+          <editBox id="e5.1" onChange="Designer5_onChange" label="比率" getText="Designer5_getText" sizeString="wwwww" />
+          <checkBox id="c5.1" onAction="Designer5_onActionPressed" label="A面" getPressed="Designer5_getPressed" />
+          <checkBox id="c5.2" onAction="Designer5_onActionPressed" label="B面" getPressed="Designer5_getPressed" />
+          <checkBox id="c5.3" onAction="Designer5_onActionPressed" label="配線制約" getPressed="Designer5_getPressed" />
+          <checkBox id="c5.4" onAction="Designer5_onActionPressed" label="配置制約" getPressed="Designer5_getPressed" />
+          <checkBox id="c5.5" onAction="Designer5_onActionPressed" label="PTH" getPressed="Designer5_getPressed" />
+          <checkBox id="c5.6" onAction="Designer5_onActionPressed" label="Note" getPressed="Designer5_getPressed" />
+        </group>
+        <!-- <dynamicMenu id="A" label="Menu A" imageMso="FormatPainter" getContent="Designer4_getMenuContent" size="large" /> -->
         <!-- <group id="Designer.g4" label="IDF" imageMso="ComAddInsDialog">
           <button id="RD14" onAction="RD58_onAction" label="​ｘｘｘ" imageMso="GetExternalDataFromText" size="large" />
           <button id="RD15" onAction="RD59_onAction" label="​ｘｘｘ" imageMso="ObjectFormatDialog" size="large" />

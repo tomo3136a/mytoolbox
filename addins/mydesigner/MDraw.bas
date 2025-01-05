@@ -39,6 +39,10 @@ Private Enum E_SAID
     N_SCALE
     N_X0
     N_Y0
+    N_Z0
+    N_DX
+    N_DY
+    N_DZ
 End Enum
 
 '----------------------------------------
@@ -60,7 +64,8 @@ Private Const c_ShapeInfoMember As String = "" _
         & ";FillVisible,塗りつぶし表示,3    ;FillColor,塗りつぶし色,4" _
         & ";" _
         & ";Text,テキスト,0     ;AltText,代替えテキスト,0" _
-        & ";Scale,スケール,2    ;X0,原点X,2     ;Y0,原点Y,2     ;Z0,原点Z,2"
+        & ";Scale,スケール,2    ;X0,原点X,2     ;Y0,原点Y,2     ;Z0,原点Z,2" _
+        & ";DX,サイズX,2        ;DY,サイズY,2   ;DZ,サイズZ,2"
 
 '図形リストヘッダ
 Private Const c_ShapeInfoHeader As String = "" _
@@ -73,7 +78,7 @@ Private Const c_ShapeInfoHeader As String = "" _
     & ";塗り,           Name,FillVisible,FillColor" _
     & ";テキスト,       Name,Text" _
     & ";代替えテキスト, Name,AltText" _
-    & ";属性,           Name,Scale,X0,Y0,Z0"
+    & ";属性,           Name,Scale,X0,Y0,Z0,DX,DY,DZ"
 
 '環境パラメータ項目
 Public Enum E_DrawParam
@@ -88,7 +93,7 @@ End Enum
 Private g_mask As String            '検索文字
 Private g_scale As Double           'スケール
 Private g_axes As Double            '軸間隔
-Private g_flag As Integer           'モード
+Private g_flag As Long              'モード
                                     ' 4.A面, 5.B面
                                     ' 6.配置制約, 7.配線制約
                                     ' 8.PTH, 9:Note
@@ -103,16 +108,16 @@ Private pshapetypename As Variant   '図形タイプテーブル
 '----------------------------------------
 
 '描画パラメータ初期化
-Public Sub ResetDrawParam(Optional id As Integer)
+Public Sub Draw_ResetParam(Optional id As Integer)
     If id = 0 Or id = 1 Then g_mask = ""
     If id = 0 Or id = 2 Then g_scale = 0.1
     If id = 0 Or id = 3 Then g_axes = 10
-    If id = 0 Or id = 4 Then g_flag = 0
-    If id = 0 Or id = 10 Then g_part = ""
+    If id = 0 Or id = 4 Then g_part = ""
+    If id = 0 Or id = 5 Then g_flag = 1 + 2
 End Sub
 
 '描画パラメータ設定
-Public Sub SetDrawParam(id As Integer, ByVal val As String)
+Public Sub Draw_SetParam(id As Integer, ByVal val As String)
     Select Case id
     Case 1: g_mask = val
     Case 2
@@ -129,38 +134,40 @@ Public Sub SetDrawParam(id As Integer, ByVal val As String)
             Exit Sub
         End If
         g_axes = val
-    Case 4: g_flag = (g_flag And (65535 - 1)) Or (val * 1)
-    Case 5: g_flag = (g_flag And (65535 - 2)) Or (val * 2)
-    Case 6: g_flag = (g_flag And (65535 - 4)) Or (val * 4)
-    Case 7: g_flag = (g_flag And (65535 - 8)) Or (val * 8)
-    Case 8: g_flag = (g_flag And (65535 - 16)) Or (val * 16)
-    Case 9: g_flag = (g_flag And (65535 - 32)) Or (val * 32)
-    Case 10: g_part = val
+    Case 4: g_part = val
     End Select
 End Sub
 
 '描画パラメータ取得
-Public Function GetDrawParam(id As Integer) As String
+Public Function Draw_GetParam(id As Integer) As String
     Select Case id
-    Case 1: GetDrawParam = g_mask
+    Case 1: Draw_GetParam = g_mask
     Case 2
         If g_scale <= 0 Then
-            ResetDrawParam id
+            Draw_ResetParam id
             MsgBox "比率の設定を初期化しました。(設定値" & g_scale & ")"
         End If
-        GetDrawParam = g_scale
+        Draw_GetParam = g_scale
     Case 3
         If g_axes <= 0 Then
-            MsgBox "目盛りの設定を初期化しました。(設定値" & g_scale & ")"
-            ResetDrawParam id
+            Draw_ResetParam id
+            MsgBox "目盛りの設定を初期化しました。(設定値" & g_axes & ")"
         End If
-        GetDrawParam = g_axes
+        Draw_GetParam = g_axes
+    Case 4
+        Draw_GetParam = g_part
     End Select
 End Function
 
+'描画パラメータフラグ設定
+Public Sub Draw_SetParamFlag(id As Integer, Optional ByVal val As Boolean = True)
+    g_flag = g_flag And Not 2 ^ (id Mod 24)
+    If val Then g_flag = g_flag Or 2 ^ (id Mod 24)
+End Sub
+
 '描画パラメータフラグチェック
-Public Function IsDrawParam(id As Integer) As Boolean
-    IsDrawParam = ((g_flag And (2 ^ (id - 4))) <> 0)
+Public Function Draw_IsParamFlag(id As Integer) As Boolean
+    Draw_IsParamFlag = Not ((g_flag And 2 ^ (id Mod 24)) = 0)
 End Function
 
 '----------------------------------------
@@ -204,15 +211,18 @@ Public Sub SetDefaultShapeStyle()
     Dim ws As Worksheet
     Set ws = ActiveSheet
     Dim sh As Shape
-    Set sh = ws.Shapes.AddShape(msoShapeOval, 10, 10, 10, 10)
-    Call SetShapeSetting(ws.Shapes.Range(sh.name), 1 + 2 + 4 + 256)
-    sh.Delete
-    Set sh = ws.Shapes.AddLine(10, 10, 20, 20)
-    Call SetShapeSetting(ws.Shapes.Range(sh.name), 1 + 2 + 4 + 256)
-    sh.Delete
-    Set sh = ws.Shapes.AddTextbox(msoTextOrientationDownward, 10, 10, 10, 10)
-    Call SetShapeSetting(ws.Shapes.Range(sh.name), 1 + 2 + 4 + 256)
-    sh.Delete
+    With ws.Shapes.AddShape(msoShapeOval, 10, 10, 10, 10)
+        SetShapeSetting ws.Shapes.Range(.name), &H107
+        .Delete
+    End With
+    With ws.Shapes.AddLine(10, 10, 20, 20)
+        SetShapeSetting ws.Shapes.Range(.name), &H107
+        .Delete
+    End With
+    With ws.Shapes.AddTextbox(msoTextOrientationDownward, 10, 10, 10, 10)
+        SetShapeSetting ws.Shapes.Range(.name), &H107
+        .Delete
+    End With
 End Sub
 
 '----------------------------------------
@@ -464,7 +474,7 @@ Sub DrawItemSelect(ByRef index As Integer)
         If i > ws.Shapes.Count Then i = ws.Shapes.Count
         If i > 0 Then s = ws.Shapes(i).name
     End If
-    Call SetDrawParam(10, s)
+    Call Draw_SetParam(4, s)
 
 End Sub
 
@@ -898,9 +908,13 @@ Private Function ShapeValue(sh As Shape, k As String, Optional ts As String) As 
     Case "TEXT": v = sh.TextFrame2.TextRange.text
     Case "ALTTEXT": v = sh.AlternativeText
     
-    Case "SCALE": v = Replace(re_match(sh.AlternativeText, "g:[+-]?[\d.]+"), "g:", "")
-    Case "X0": v = Replace(re_match(sh.AlternativeText, "p:[+-]?[\d.]+,[+-]?[\d.]+"), "p:", "")
-    Case "Y0": v = Replace(re_match(sh.AlternativeText, "d:[+-]?[\d.]+,[+-]?[\d.]+"), "d:", "")
+    Case "SCALE": v = Replace(re_match(sh.AlternativeText, "sc:[+-]?[\d.]+"), "sc:", "")
+    Case "X0": v = re_match(sh.AlternativeText, "p:([+-]?[\d.]+),([+-]?[\d.]+),([+-]?[\d.]+)", 0, 0)
+    Case "Y0": v = re_match(sh.AlternativeText, "p:([+-]?[\d.]+),([+-]?[\d.]+),([+-]?[\d.]+)", 0, 1)
+    Case "Z0": v = re_match(sh.AlternativeText, "p:([+-]?[\d.]+),([+-]?[\d.]+),([+-]?[\d.]+)", 0, 2)
+    Case "DX": v = re_match(sh.AlternativeText, "d:([+-]?[\d.]+),([+-]?[\d.]+),([+-]?[\d.]+)", 0, 0)
+    Case "DY": v = re_match(sh.AlternativeText, "d:([+-]?[\d.]+),([+-]?[\d.]+),([+-]?[\d.]+)", 0, 1)
+    Case "DZ": v = re_match(sh.AlternativeText, "d:([+-]?[\d.]+),([+-]?[\d.]+),([+-]?[\d.]+)", 0, 2)
     
     End Select
     On Error GoTo 0
@@ -942,8 +956,8 @@ Private Sub UpdateShapeValue(sh As Shape, k As String, ByVal v As Variant)
     Case "ALTTEXT": sh.AlternativeText = v
     
     Case "SCALE": sh.AlternativeText = UpdateParamStr(sh.AlternativeText, "sc", CStr(v))
-    Case "X0": sh.AlternativeText = UpdateParamStr(sh.AlternativeText, "x0", CStr(v))
-    Case "Y0": sh.AlternativeText = UpdateParamStr(sh.AlternativeText, "y0", CStr(v))
+    'Case "X0": sh.AlternativeText = UpdateParamStr(sh.AlternativeText, "x0", CStr(v))
+    'Case "Y0": sh.AlternativeText = UpdateParamStr(sh.AlternativeText, "y0", CStr(v))
     
     End Select
     On Error GoTo 0

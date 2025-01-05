@@ -67,23 +67,28 @@ End Function
 '起動時実行
 Private Sub Designer_onLoad(ByVal Ribbon As IRibbonUI)
     Set g_ribbon = Ribbon
-    Call ResetDrawParam
+    Draw_ResetParam
+    IDF_ResetParam
 End Sub
 
 'テキスト入力
 Private Sub Designer_onChange(ByRef control As IRibbonControl, ByRef text As String)
-    Call SetDrawParam(RibbonID(control), text)
+    Call Draw_SetParam(RibbonID(control), text)
 End Sub
 
 Private Sub Designer_getText(ByRef control As IRibbonControl, ByRef text As Variant)
-    text = GetDrawParam(RibbonID(control))
+    text = Draw_GetParam(RibbonID(control))
 End Sub
 
 'チェックボックス
 Private Sub Designer_onAction(ByRef control As IRibbonControl, ByRef pressed As Boolean)
     Dim v As Integer
     If pressed Then v = 1
-    Call SetDrawParam(RibbonID(control), v)
+    Call Draw_SetParam(RibbonID(control), v)
+End Sub
+
+Private Sub Designer_getPressed(control As IRibbonControl, ByRef returnedVal)
+    returnedVal = Draw_IsParamFlag(RibbonID(control))
 End Sub
 
 '----------------------------------------
@@ -108,7 +113,7 @@ Private Sub Designer1_onAction(ByVal control As IRibbonControl)
         Case 7: ToggleVisible 3             '3D表示ON/OFF
         Case 8                              '原点取得
             v = GetShapeProperty(Selection.ShapeRange, "zero")
-        Case 9: MsgBox TypeName(Selection)  'オブジェクトの初期化
+        Case 9: UpdateShapeName ActiveSheet '図形名一括更新
         End Select
     End Select
 End Sub
@@ -132,28 +137,15 @@ Private Sub Designer2_onAction(ByVal control As IRibbonControl)
         Case 1: ListShapeInfo ActiveSheet   'リスト表示
         Case 2: UpdateShapeInfo ActiveCell  '図形リスト反映
         Case 3: UpdateShapeName ActiveSheet '図形名一括更新
+        Case 9: MsgBox TypeName(Selection)  'オブジェクトの初期化
         End Select
     End Select
 End Sub
 
 '----------------------------------------
 ''■機能グループ3
-'作図機能(IDF)
+'
 '----------------------------------------
-
-Private Sub Designer3_onAction(ByVal control As IRibbonControl)
-    Dim ce As Range: Set ce = ActiveCell
-    Dim ws As Worksheet: Set ws = ce.Worksheet
-    
-    Select Case RibbonID(control)
-    Case 1: DrawIDF ws, ce.Left, ce.Top 'IDF作図
-    Case 2: ImportIDF                   'IDFファイル読み込み
-    Case 3: ExportIDF                   'IDFファイル書き出し
-    Case 4: 'ListKeywordIDF             'IDF作図
-    Case 5: ImportIDF                   'IDFファイル読み込み
-    Case 6: ImportIDF                   'IDFファイル読み込み
-    End Select
-End Sub
 
 '----------------------------------------
 ''■機能グループ4
@@ -205,6 +197,37 @@ Private Sub Designer4_onActionDropDown(control As IRibbonControl, id As String, 
     g_select = index
     DrawItemSelect g_select
     If Not g_ribbon Is Nothing Then g_ribbon.InvalidateControl control.id
+End Sub
+
+'----------------------------------------
+''■機能グループ5
+'作図機能(IDF)
+'----------------------------------------
+
+Private Sub Designer5_onAction(ByVal control As IRibbonControl)
+    Select Case RibbonID(control)
+    Case 1: DrawIDF                     'IDF作図
+    Case 2: ImportIDF                   'IDFファイル読み込み
+    Case 3: ExportIDF                   'IDFファイル書き出し
+    End Select
+End Sub
+
+'テキスト入力
+Private Sub Designer5_onChange(ByRef control As IRibbonControl, ByRef text As String)
+    Call IDF_SetParam(RibbonID(control), text)
+End Sub
+
+Private Sub Designer5_getText(ByRef control As IRibbonControl, ByRef text As Variant)
+    text = IDF_GetParam(RibbonID(control))
+End Sub
+
+'チェックボックス
+Private Sub Designer5_onActionPressed(ByRef control As IRibbonControl, ByRef pressed As Boolean)
+    Call IDF_SetFlag(RibbonID(control), pressed)
+End Sub
+
+Private Sub Designer5_getPressed(control As IRibbonControl, ByRef returnedVal)
+    returnedVal = IDF_IsFlag(RibbonID(control))
 End Sub
 
 '----------------------------------------
