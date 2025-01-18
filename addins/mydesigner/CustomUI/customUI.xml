@@ -25,12 +25,17 @@
           <control idQ="ObjectSizeAndPropertiesDialog" visible="true" />
         </group>
         <group id="g2" label="図形情報" imageMso="ComAddInsDialog">
-          <!-- <box id="g21" boxStyle="vertical"> -->
-          <editBox id="c2.1" onChange="Designer_onChange" getText="Designer_getText" sizeString="wwwwwwwww" />
-          <splitButton id="g211">
-            <button id="b2.21" onAction="Designer2_onAction" label="リスト" imageMso="PlayMacro" />
-            <menu id="m21">
+          <box id="g21" boxStyle="vertical">
+            <editBox id="c2.1" onChange="Designer_onChange" label="名前:" getText="Designer_getText" sizeString="wwwwwwwwwww" />
+            <buttonGroup id="g22">
+              <button id="b2.21" onAction="Designer2_onAction" label="データ取得" imageMso="CreateTableInDesignView" />
+              <button id="b2.23" onAction="Designer2_onAction" label="更新" imageMso="Refresh" />
+            </buttonGroup>
+            <buttonGroup id="g23">
+              <button id="b2.24" onAction="Designer2_onAction" label="選択" imageMso="SelectionPane" />
               <menu id="m211" label="項目追加">
+                <button id="b2.22" onAction="Designer2_onAction" label="名前" imageMso="PlayMacro" />
+                <menuSeparator id="s21" />
                 <button id="b2.11" onAction="Designer2_onAction" label="形状" imageMso="PlayMacro" />
                 <button id="b2.12" onAction="Designer2_onAction" label="位置" imageMso="PlayMacro" />
                 <button id="b2.13" onAction="Designer2_onAction" label="サイズ" imageMso="PlayMacro" />
@@ -40,19 +45,9 @@
                 <button id="b2.17" onAction="Designer2_onAction" label="テキスト" imageMso="PlayMacro" />
                 <button id="b2.18" onAction="Designer2_onAction" label="代替え" imageMso="PlayMacro" />
                 <button id="b2.19" onAction="Designer2_onAction" label="属性" imageMso="PlayMacro" />
-                <menuSeparator id="s21" />
               </menu>
-            </menu>
-          </splitButton>
-          <button id="b2.22" onAction="Designer2_onAction" label="更新" imageMso="ObjectFormatDialog" />
-          <button id="b2.23" onAction="Designer2_onAction" label="図形名更新" imageMso="SelectionPane" />
-          <button id="b2.24" onAction="Designer2_onAction" label="図形設定1" imageMso="ObjectFormatDialog" />
-          <button id="b2.25" onAction="Designer2_onAction" label="図形設定2" imageMso="ObjectFormatDialog" />
-          <button id="b2.26" onAction="Designer2_onAction" label="テキストボックス設定" imageMso="SelectionPane" />
-          <button id="b2.27" onAction="Designer2_onAction" label="塗りつぶしON/OFF" imageMso="SelectionPane" />
-          <!-- <button id="b2.28" onAction="Designer2_onAction" label="装飾②" imageMso="SelectionPane" size="large" /> -->
-          <!-- <button id="b2.29" onAction="Designer2_onAction" label="図形名更新" imageMso="SelectionPane" /> -->
-          <!-- </box> -->
+            </buttonGroup>
+          </box>
         </group>
         <group id="g4" label="部品" imageMso="ComAddInsDialog">
           <box id="g41" boxStyle="vertical">
@@ -82,13 +77,13 @@
               <button id="b5.3" onAction="Designer5_onAction" label="エクスポート" imageMso="ExportTextFile" />
             </menu>
           </splitButton>
-          <editBox id="e5.1" onChange="Designer5_onChange" label="比率" getText="Designer5_getText" sizeString="wwwww" />
+          <!-- <editBox id="e5.1" onChange="Designer5_onChange" label="比率" getText="Designer5_getText" sizeString="wwwww" />
           <checkBox id="c5.1" onAction="Designer5_onActionPressed" label="A面" getPressed="Designer5_getPressed" />
           <checkBox id="c5.2" onAction="Designer5_onActionPressed" label="B面" getPressed="Designer5_getPressed" />
           <checkBox id="c5.3" onAction="Designer5_onActionPressed" label="配線制約" getPressed="Designer5_getPressed" />
           <checkBox id="c5.4" onAction="Designer5_onActionPressed" label="配置制約" getPressed="Designer5_getPressed" />
           <checkBox id="c5.5" onAction="Designer5_onActionPressed" label="PTH" getPressed="Designer5_getPressed" />
-          <checkBox id="c5.6" onAction="Designer5_onActionPressed" label="Note" getPressed="Designer5_getPressed" />
+          <checkBox id="c5.6" onAction="Designer5_onActionPressed" label="Note" getPressed="Designer5_getPressed" /> -->
         </group>
         <!-- <dynamicMenu id="A" label="Menu A" imageMso="FormatPainter" getContent="Designer4_getMenuContent" size="large" /> -->
         <!-- <group id="Designer.g4" label="IDF" imageMso="ComAddInsDialog">

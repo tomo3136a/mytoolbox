@@ -791,6 +791,8 @@ End Function
 
 'IDF•`‰æ
 Public Sub DrawIDF()
+    IDFModeForm.Show
+
     Dim ce As Range: Set ce = ActiveCell
     Dim ws As Worksheet: Set ws = ce.Worksheet
     DrawIDF_1 ws, ce.Left, ce.Top

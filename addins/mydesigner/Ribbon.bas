@@ -129,14 +129,14 @@ Private Sub Designer2_onAction(ByVal control As IRibbonControl)
     Dim id As Integer: id = RibbonID(control)
     Dim no As Integer: no = id Mod 10
     Dim v As Variant
-    
     Select Case id \ 10
     Case 1: AddListShapeHeader ActiveCell, no   'ヘッダ項目追加
     Case 2
         Select Case no
-        Case 1: ListShapeInfo ActiveSheet   'リスト表示
-        Case 2: UpdateShapeInfo ActiveCell  '図形リスト反映
-        Case 3: UpdateShapeName ActiveSheet '図形名一括更新
+        Case 1: ListShapeInfo               'リスト表示
+        Case 2: AddShapeListName            '名前追加
+        Case 3: UpdateShapeInfo ActiveCell  '図形リスト反映
+        Case 4: SelectShapeName             '図形名選択
         Case 9: MsgBox TypeName(Selection)  'オブジェクトの初期化
         End Select
     End Select

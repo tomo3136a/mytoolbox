@@ -69,10 +69,10 @@ Private Const c_ShapeInfoMember As String = "" _
 
 '図形リストヘッダ
 Private Const c_ShapeInfoHeader As String = "" _
-    & ";名称,           Name,Title" _
+    & ";名称,           Name" _
     & ";形状,           Name,ID,Type,Style,Title" _
-    & ";位置,           Name,Top,Left,Back,Rotation" _
-    & ";サイズ,         Name,Height,Width,Depth" _
+    & ";位置,           Name,Left,Top,Back,Rotation" _
+    & ";サイズ,         Name,Width,Height,Depth" _
     & ";表示,           Name,Visible,Transparency" _
     & ";枠線,           Name,LineVisible,LineColor" _
     & ";塗り,           Name,FillVisible,FillColor" _
@@ -183,6 +183,63 @@ End Function
 Sub SetShapeProperty(sr As ShapeRange, k As String, v As String)
     sr.AlternativeText = UpdateParamStr(sr.AlternativeText, k, v)
 End Sub
+
+'----------------------------------------
+'色操作
+'----------------------------------------
+
+Private Function FormatRGB(v As ColorFormat) As String
+    Dim s As String
+    s = v.Brightness
+    s = v.SchemeColor
+    s = v.Type
+    s = Right("00000000" & Hex(v), 8)
+    s = "#" & Mid(s, 1, 2) & Mid(s, 7, 2) & Mid(s, 5, 2) & Mid(s, 3, 2)
+    FormatRGB = s & " " & v.Type & " " & v.SchemeColor & " " & v.Brightness
+End Function
+
+Private Function ToRGB(v As Variant) As Long
+    Dim s As String
+    s = Split(v, " ")(0)
+    s = Right("00000000" & Replace(Replace(s, "#", ""), "&H", ""), 6)
+    
+    ToRGB = RGB(CLng("&H" & Mid(s, 1, 2)), CLng("&H" & Mid(s, 3, 2)), CLng("&H" & Mid(s, 5, 2)))
+End Function
+
+'塗りつぶし色表示取得
+Private Function FormatInterior(v As Interior) As String
+    If v.ThemeColor < 0 Then Exit Function
+    Dim s As String
+    s = Right("00000000" & Hex(v.Color), 6)
+    s = "#" & Mid(s, 5, 2) & Mid(s, 3, 2) & Mid(s, 1, 2)
+    If v.ThemeColor > 0 Then s = s & " " & v.ThemeColor & Format(v.TintAndShade, "+0%;-0%;"""";@")
+    FormatInterior = s
+End Function
+
+'塗りつぶし色からフォント色設定
+Private Sub SetFontColorFromInterior(ra As Range)
+    
+    If ra.Interior.ColorIndex <= 0 Then Exit Sub
+    Dim s As String
+    s = Right("00000000" & Hex(ra.Interior.Color), 6)
+    Dim r As Long, g As Long, b As Long, a As Long
+    r = CLng("&H0" & Mid(s, 5, 2))
+    g = CLng("&H0" & Mid(s, 3, 2))
+    b = CLng("&H0" & Mid(s, 1, 2))
+    a = r * 0.3 + g * 0.6 + b * 0.1
+    ra.Font.ColorIndex = IIf(a > 100, 1, 2)
+
+End Sub
+
+'色表示取得
+Private Function FormatColor(v As ColorFormat) As String
+    Dim s As String
+    s = Right("00000000" & Hex(v), 6)
+    s = "#" & Mid(s, 5, 2) & Mid(s, 3, 2) & Mid(s, 1, 2)
+    'FormatColor = s & " " & v.Type & " " & v.SchemeColor & " " & v.ObjectThemeColor & " " & v.Brightness
+    If v.ObjectThemeColor > 0 Then s = s & " " & v.ObjectThemeColor & Format(v.Brightness, "+0%;-0%;"""";@")
+    FormatColor = s
+End Function
 
 '----------------------------------------
 '図形基本設定
@@ -434,6 +491,16 @@ Public Sub ConvertToPicture()
 
 End Sub
 
+Public Sub PasteShapeNameList()
+
+    If TypeName(Selection) = "Range" Then Exit Sub
+    Dim sr As ShapeRange
+    Set sr = Selection.ShapeRange
+    If sr Is Nothing Then Exit Sub
+    
+
+End Sub
+
 '----------------------------------------
 '部品描画
 '----------------------------------------
@@ -588,7 +655,7 @@ End Sub
 '部品シート取込
 Sub ImportDrawItemSheet()
     
-    Dim ws As Worksheet
+     Dim ws As Worksheet
     Set ws = SearchName(ThisWorkbook.Worksheets, "#shapes")
     
     If Not ws Is Nothing Then ws.Delete
@@ -601,7 +668,7 @@ End Sub
 '図形情報
 '----------------------------------------
 
-'エントリ追加
+'ヘッダ追加
 Public Sub AddListShapeHeader(ByVal ce As Range, Optional mode As Integer)
     
     'テーブル項目取得
@@ -610,20 +677,29 @@ Public Sub AddListShapeHeader(ByVal ce As Range, Optional mode As Integer)
     
     'ヘッダ取得
     Dim ra As Range
-    Set ra = TableHeaderRange(TableLeftTop(ce, 0))
+    Set ra = TableHeaderRange(TableLeftTop(ce))
     
-    '存在するヘッダ項目取得
+    '存在する項目取得
     Dim hdr_dic As Dictionary
     Set hdr_dic = New Dictionary
     Dim s As String
     Dim v As Variant
-    For Each v In Union(ra, ra.Offset(, 1)).Value
-        s = Trim(UCase(v))
+    If ra.Count > 1 Then
+        For Each v In ra.Value
+            s = UCase(Trim(v))
+            If s <> "" Then
+                If dic.Exists(s) Then s = dic(s)(0)
+                If Not hdr_dic.Exists(s) Then hdr_dic.Add s, 1
+            End If
+        Next v
+    Else
+        v = ra.Value
+        s = UCase(Trim(v))
         If s <> "" Then
             If dic.Exists(s) Then s = dic(s)(0)
             If Not hdr_dic.Exists(s) Then hdr_dic.Add s, 1
         End If
-    Next v
+    End If
     
     '追加ヘッダ項目取得
     Dim hdr() As String
@@ -652,109 +728,241 @@ Public Sub AddListShapeHeader(ByVal ce As Range, Optional mode As Integer)
     End If
     Set ra = ra.Resize(1, hdr_col.Count)
     
-    '画面更新停止
-    ScreenUpdateOff
-    
     'ヘッダ追加
+    ScreenUpdateOff
     ra.Value = v
-    
-    '画面更新再開
     ScreenUpdateOn
 
 End Sub
 
-
-'図形情報リストアップ
-Public Sub ListShapeInfo(ByVal ws As Worksheet, Optional mode As Integer)
+'名前追加
+Public Sub AddShapeListName()
     
-    Dim sr2 As ShapeRange
-    Dim s As String
+    If TypeName(Selection) = "Range" Then Exit Sub
     
     '出力先セル/図形リスト取得
-    Dim ce As Range
     Dim sr As Variant
-    If TypeName(Selection) = "Range" Then
-        Set ce = TableLeftTop(Selection)
-        If ce.Row > 2 Then LinkedSheet ws, ce.Offset(-2).Value
-        Set sr = ws.Shapes
+    Set sr = Selection.ShapeRange
+    Dim ce As Range
+    Set ce = GetCell("リスト出力位置を指定してください", "図形リスト出力")
+    If ce Is Nothing Then Exit Sub
+    
+    Dim ws As Worksheet
+    Set ws = sr.Parent
+    
+    'テーブル開始取得
+    Set ce = TableLeftTop(ce)
+    If ce.Value = "" Then ce.Value = "名前"
+    
+    'テーブル最終行取得
+    Dim ce2 As Range
+    Set ce2 = ce
+    If ce2.Offset(1).Value <> "" Then Set ce2 = ce2.End(xlDown)
+    
+    '除外辞書作成
+    Dim r_dic As Dictionary
+    Set r_dic = New Dictionary
+    
+    'テーブルの項目は除外リストに追加
+    Dim v As Variant
+    Dim s As String
+    If ce.Parent.Range(ce, ce2).Count > 1 Then
+        For Each v In ce.Parent.Range(ce, ce2).Value
+            s = UCase(Trim(v))
+            If Not r_dic.Exists(s) Then r_dic.Add s, v
+        Next v
     Else
-        Set ce = GetCell("リスト出力位置を指定してください", "図形リスト出力")
-        Set sr = Selection.ShapeRange
+        v = ce.Value
+        s = UCase(Trim(v))
+        If Not r_dic.Exists(s) Then r_dic.Add s, v
     End If
-    If ce Is Nothing Or sr Is Nothing Then Exit Sub
-    If ce.Value = "" Then
-        If ce.Parent.name <> sr.Parent.name Then
-            ce.Value = sr.Parent.name & "[" & sr.Parent.Parent.name & "]"
-            Set ce = ce.Offset(1)
-            ce.Clear
-            Set ce = ce.Offset(1)
+    
+    '除外対象でなければテーブルに項目追加
+    Dim sh As Shape, sh2 As Shape
+    For Each sh In sr
+        v = sh.name
+        s = UCase(Trim(v))
+        If Not r_dic.Exists(s) Then
+            If s <> "" Then
+                Set ce2 = ce2.Offset(1)
+                ce2.Value = v
+                r_dic.Add s, v
+            End If
+        End If
+        If sh.Type = msoGroup Then
+            For Each sh2 In sh.GroupItems
+                v = sh2.name
+                s = UCase(Trim(v))
+                If Not r_dic.Exists(s) Then
+                    If s <> "" Then
+                        Set ce2 = ce2.Offset(1)
+                        ce2.Value = "  " & v
+                        r_dic.Add s, v
+                    End If
+                End If
+            Next sh2
+        End If
+    Next sh
+    
+    '除外辞書削除
+    r_dic.RemoveAll
+    Set r_dic = Nothing
+    
+End Sub
+
+'名前リストから図形選択
+Public Sub SelectShapeName()
+
+    If TypeName(Selection) <> "Range" Then Exit Sub
+    
+    '名前マスク設定
+    Dim match_ptn As String
+    Dim match_flg As Boolean
+    match_ptn = g_mask
+    match_flg = True
+    If Left(match_ptn, 1) = "!" Then
+        match_ptn = Mid(match_ptn, 2)
+        match_flg = False
+    End If
+    If match_ptn = "" Then match_ptn = ".*"
+    
+    'テーブル開始・最終行取得
+    Dim ce As Range, ce2 As Range
+    Set ce = TableLeftTop(Selection)
+    Set ce2 = ce
+    If ce2.Value <> "" Then
+        If ce2.Offset(1).Value <> "" Then
+            Set ce2 = ce2.End(xlDown)
         End If
     End If
     
-    'テーブル項目取得
-    Dim dic As Dictionary
-    ArrStrToDict dic, c_ShapeInfoMember, 1
-    
-    'ヘッダ取得
-    Dim hdr() As String
-    StringToRow hdr, c_ShapeInfoHeader, mode
-    If mode < 1 And ce.Value <> "" Then
-        hdr = GetHeaderArray(ce, dic)
-    End If
-    
-    'データ配列作成
-    Dim rcnt As Long
-    rcnt = 1 + sr.Count
-    Dim sh As Shape
-    For Each sh In sr
-        If sh.Type = msoGroup Then rcnt = rcnt + sh.GroupItems.Count
-    Next sh
     Dim arr As Variant
-    ReDim arr(rcnt, UBound(hdr))
+    Dim cnt As Long
+    Dim v As Variant
+    Dim s As String
+    Dim sh As Shape
     
-    'ヘッダ行設定
-    Dim r As Long
-    Dim c As Long
-    For c = 0 To UBound(hdr)
-        s = UCase(hdr(c))
-        If dic.Exists(s) Then
-            arr(r, c) = dic(s)(1)
-        Else
-            arr(r, c) = hdr(c)
-        End If
-    Next c
-    r = r + 1
-    
-    '図形名マスク設定
-    Dim ptn As String
-    Dim flg As Boolean
-    ptn = g_mask
-    flg = True
-    If Left(ptn, 1) = "!" Then
-        ptn = Mid(ptn, 2)
-        flg = False
+    '名前リスト作成
+    Dim s_arr() As String
+    cnt = 0
+    If ce.Parent.Range(ce, ce2).Count > 1 Then
+        arr = ce.Parent.Range(ce, ce2).Value
+        ReDim s_arr(1 To UBound(arr))
+        On Error Resume Next
+        For Each v In arr
+            Set sh = Nothing
+            Set sh = ce.Parent.Shapes(Trim(v))
+            If Not sh Is Nothing Then
+                s = sh.name
+                If re_test(s, match_ptn) = match_flg Then
+                    cnt = cnt + 1
+                    s_arr(cnt) = s
+                End If
+            End If
+        Next v
+        On Error GoTo 0
+    Else
+        'テーブルに名前が無い場合
+        ReDim s_arr(1 To ce.Parent.Shapes.Count)
+        For Each sh In ce.Parent.Shapes
+            s = sh.name
+            If re_test(s, match_ptn) = match_flg Then
+                cnt = cnt + 1
+                s_arr(cnt) = s
+            End If
+        Next sh
     End If
-    If ptn = "" Then ptn = ".*"
+    If cnt = 0 Then Exit Sub
+    ReDim Preserve s_arr(1 To cnt)
+        
+    '選択
+    ScreenUpdateOff
+    ce.Parent.Shapes.Range(s_arr).Select
+    ScreenUpdateOn
     
-    'レコード作成
-    For Each sh In sr
-        AddShapeRecord arr, r, sh, hdr, ptn, flg
-    Next sh
-    rcnt = r
+End Sub
+
+'図形情報リストアップ
+Public Sub ListShapeInfo()
+    
+    If TypeName(Selection) <> "Range" Then Exit Sub
+    
+    Dim ce As Range, ce2 As Range
+    Dim r As Long, c As Long, rcnt As Long, ccnt As Long
+    Dim v As Variant
+    Dim s As String
+    Dim sh As Shape, sh2 As Shape
+    
+    'テーブル開始位置取得
+    Set ce = TableLeftTop(Selection)
+    
+    'テーブルヘッダ取得
+    Dim hdr() As String
+    Dim hdr_ra As Range
+    Dim hdr_dic As Dictionary
+    Set hdr_ra = TableHeaderRange(ce)
+    ccnt = hdr_ra.Count
+    If ccnt < 2 Then Exit Sub
+    ReDim hdr(1 To ccnt)
+    ArrStrToDict hdr_dic, c_ShapeInfoMember, 1
+    c = 0
+    For Each v In hdr_ra.Value
+        c = c + 1
+        s = UCase(Trim(v))
+        If hdr_dic.Exists(s) Then
+            hdr(c) = hdr_dic(UCase(Trim(v)))(0)
+        Else
+            hdr(c) = ""
+        End If
+    Next v
+    
+    '名前マスク設定
+    Dim match_ptn As String
+    Dim match_flg As Boolean
+    match_ptn = g_mask
+    match_flg = True
+    If Left(match_ptn, 1) = "!" Then
+        match_ptn = Mid(match_ptn, 2)
+        match_flg = False
+    End If
+    If match_ptn = "" Then match_ptn = ".*"
+    
+    'テーブルデータ取得
+    Dim tbl_arr As Variant
+    tbl_arr = TableRange(hdr_ra).Value
+    rcnt = UBound(tbl_arr, 1)
+    For r = 2 To rcnt
+        Set sh = Nothing
+        On Error Resume Next
+        s = Trim(tbl_arr(r, 1))
+        Set sh = ce.Parent.Shapes(s)
+        On Error GoTo 0
+        If Not sh Is Nothing Then
+            If re_test(sh.name, match_ptn) = match_flg Then
+                For c = 2 To ccnt
+                    s = hdr(c)
+                    If s <> "" Then
+                        tbl_arr(r, c) = ShapeValue(sh, s, "")
+                    End If
+                Next c
+            End If
+        Else
+            For c = 2 To ccnt
+                tbl_arr(r, c) = Empty
+            Next c
+        End If
+    Next r
     
     '画面更新停止
     ScreenUpdateOff
     
-    'テーブルデータクリア
-    TableDataRange(ce).Clear
-    
     '表示形式設定
     Dim ra As Range
-    For c = 0 To UBound(hdr)
-        Set ra = ce.Parent.Range(ce.Cells(2, c + 1), ce.Cells(rcnt, c + 1))
+    For c = 1 To ccnt
+        Set ra = ce.Parent.Range(ce.Cells(2, c), ce.Cells(rcnt, c))
         s = UCase(hdr(c))
-        If dic.Exists(s) Then
-            Select Case CInt(dic(s)(2))
+        If hdr_dic.Exists(s) Then
+            Select Case CInt(hdr_dic(s)(2))
             Case 1: ra.NumberFormatLocal = "0"
             Case 2: ra.NumberFormatLocal = "0.0##"
             Case Else: ra.NumberFormatLocal = "@"
@@ -762,31 +970,32 @@ Public Sub ListShapeInfo(ByVal ws As Worksheet, Optional mode As Integer)
         End If
     Next c
     
-    'レコード書き込み
-    ce.Resize(1 + rcnt, 1 + UBound(hdr)).Value = arr
-    WakuBorder TableRange(TableHeaderRange(ce))
-    SetHeaderColor ce
+    'テーブルデータ反映
+    ce.Resize(rcnt, ccnt).Value = tbl_arr
     
     '配色
-    For c = 0 To UBound(hdr)
-        Set ra = ce.Parent.Range(ce.Cells(2, c + 1), ce.Cells(rcnt, c + 1))
+    For c = 1 To ccnt
+        Set ra = ce.Parent.Range(ce.Cells(2, c), ce.Cells(rcnt, c))
         s = UCase(hdr(c))
-        If dic.Exists(s) Then
-            Select Case CInt(dic(s)(2))
+        If hdr_dic.Exists(s) Then
+            Select Case CInt(hdr_dic(s)(2))
             Case 4  '色
                 For r = 2 To rcnt
-                    s = ce.Cells(r, c + 1)
+                    s = ce.Cells(r, c)
                     If s <> "" Then
-                        ce.Cells(r, c + 1).Interior.color = val("&H" & s)
+                        ce.Cells(r, c).Interior.Color = ToRGB(s)
+                        SetFontColorFromInterior ce.Cells(r, c)
                     Else
-                        ce.Cells(r, c + 1).ClearFormats
+                        ce.Cells(r, c).ClearFormats
                     End If
                 Next r
             End Select
         End If
     Next c
     
-    'テーブルサイズ調整
+    'テーブル調整
+    WakuBorder TableRange(TableHeaderRange(ce))
+    SetHeaderColor ce
     HeaderAutoFit ce
     
     '画面更新再開
@@ -899,10 +1108,12 @@ Private Function ShapeValue(sh As Shape, k As String, Optional ts As String) As 
     Case "VISIBLE": v = CBool(sh.Visible)
     
     Case "LINEVISIBLE": v = CBool(sh.line.Visible)
-    Case "LINECOLOR": v = Right("000000" & Hex(sh.line.ForeColor), 6)
+    'Case "LINECOLOR": v = FormatRGB(sh.line.ForeColor)
+    Case "LINECOLOR": v = FormatColor(sh.line.ForeColor)
     
     Case "FILLVISIBLE": v = CBool(sh.Fill.Visible)
-    Case "FILLCOLOR": v = Right("000000" & Hex(sh.Fill.ForeColor), 6)
+    'Case "FILLCOLOR": v = FormatRGB(sh.Fill.ForeColor)
+    Case "FILLCOLOR": v = FormatColor(sh.Fill.ForeColor)
     Case "TRANSPARENCY": v = sh.Fill.Transparency
     
     Case "TEXT": v = sh.TextFrame2.TextRange.text
@@ -946,10 +1157,10 @@ Private Sub UpdateShapeValue(sh As Shape, k As String, ByVal v As Variant)
     Case "VISIBLE": sh.Visible = CBool(v)
     
     Case "LINEVISIBLE": sh.line.Visible = CBool(v)
-    Case "LINECOLOR": sh.line.ForeColor = v
+    Case "LINECOLOR": sh.line.ForeColor.RGB = ToRGB(v)
     
     Case "FILLVISIBLE": sh.Fill.Visible = CBool(v)
-    Case "FILLCOLOR": sh.Fill.ForeColor = v
+    Case "FILLCOLOR": sh.Fill.ForeColor.RGB = ToRGB(v)
     Case "TRANSPARENCY": sh.Fill.Transparency = v
     
     Case "TEXT": sh.TextFrame2.TextRange.text = v

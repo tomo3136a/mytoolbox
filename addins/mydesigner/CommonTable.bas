@@ -70,7 +70,7 @@ End Function
 '----------------------------------------
 
 'テーブル先頭取得
-Function TableLeftTop(ByVal ra As Range, Optional n As Long = 5) As Range
+Function TableLeftTop(ByVal ra As Range, Optional n As Long = 0) As Range
     Dim ce As Range
     Set ra = ra.Cells(1, 1)
     Do
@@ -333,20 +333,20 @@ End Sub
 'テーブルヘッダ色設定
 Sub HeaderColor(ra As Range)
     Dim old As Range
-    Set old = Selection
+    If TypeName(Selection) = "Range" Then Set old = Selection
     '
     TableHeaderRange(ra).Select
     Application.ScreenUpdating = True
     If Application.Dialogs(xlDialogPatterns).Show Then
-        g_header_color = Selection.Interior.color
+        g_header_color = Selection.Interior.Color
     End If
     '
-    old.Select
+    If TypeName(old) = "Range" Then old.Select
 End Sub
 
 Sub SetHeaderColor(ra As Range)
     If g_header_color = 0 Then HeaderColor ra
-    TableHeaderRange(ra).Interior.color = g_header_color
+    TableHeaderRange(ra).Interior.Color = g_header_color
 End Sub
 
 Function GetHeaderColor() As Long
@@ -364,6 +364,7 @@ Function GetHeaderArray(ce As Range, dic As Dictionary) As String()
         If Not dic.Exists(k) Then Exit For
         hdr(c) = dic(k)(0)
     Next c
+    If c = 0 Then Exit Function
     ReDim Preserve hdr(c - 1)
     GetHeaderArray = hdr
 End Function
