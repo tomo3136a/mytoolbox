@@ -28,11 +28,12 @@
           <box id="g21" boxStyle="vertical">
             <editBox id="c2.1" onChange="Designer_onChange" label="名前:" getText="Designer_getText" sizeString="wwwwwwwwwww" />
             <buttonGroup id="g22">
-              <button id="b2.21" onAction="Designer2_onAction" label="データ取得" imageMso="CreateTableInDesignView" />
+              <button id="b2.21" onAction="Designer2_onAction" label="一覧" imageMso="CreateTableInDesignView" />
               <button id="b2.23" onAction="Designer2_onAction" label="更新" imageMso="Refresh" />
+              <button id="b2.24" onAction="Designer2_onAction" label="選択" imageMso="SelectionPane" />
             </buttonGroup>
             <buttonGroup id="g23">
-              <button id="b2.24" onAction="Designer2_onAction" label="選択" imageMso="SelectionPane" />
+              <button id="b2.25" onAction="Designer2_onAction" label="データ取得" imageMso="CreateTableInDesignView" />
               <menu id="m211" label="項目追加">
                 <button id="b2.22" onAction="Designer2_onAction" label="名前" imageMso="PlayMacro" />
                 <menuSeparator id="s21" />

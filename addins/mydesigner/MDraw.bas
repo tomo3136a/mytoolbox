@@ -668,6 +668,21 @@ End Sub
 '図形情報
 '----------------------------------------
 
+'図形情報リストアップ
+Public Sub ListShapeInfo()
+
+    If TypeName(Selection) <> "Range" Then
+        Call AddShapeListName
+        Call AddListShapeHeader(ActiveCell, 2)
+    End If
+    
+    Call UpdateShapeInfo
+
+End Sub
+
+
+'----------------------------------------
+
 'ヘッダ追加
 Public Sub AddListShapeHeader(ByVal ce As Range, Optional mode As Integer)
     
@@ -734,6 +749,8 @@ Public Sub AddListShapeHeader(ByVal ce As Range, Optional mode As Integer)
     ScreenUpdateOn
 
 End Sub
+
+'----------------------------------------
 
 '名前追加
 Public Sub AddShapeListName()
@@ -808,7 +825,11 @@ Public Sub AddShapeListName()
     r_dic.RemoveAll
     Set r_dic = Nothing
     
+    ce.Select
+    
 End Sub
+
+'----------------------------------------
 
 '名前リストから図形選択
 Public Sub SelectShapeName()
@@ -882,8 +903,10 @@ Public Sub SelectShapeName()
     
 End Sub
 
-'図形情報リストアップ
-Public Sub ListShapeInfo()
+'----------------------------------------
+
+'図形情報更新
+Public Sub UpdateShapeInfo()
     
     If TypeName(Selection) <> "Range" Then Exit Sub
     
@@ -1043,7 +1066,6 @@ Sub StringToRow(arr() As String, info As String, Optional mode As Integer = 0)
 End Sub
 
 '図形レコードを配列に追加
-
 Private Sub AddShapeRecord(arr As Variant, r As Long, sh As Shape, hdr As Variant, ptn As String, flg As Boolean)
         
     Dim c As Long
@@ -1079,6 +1101,81 @@ Private Sub AddShapeRecord(arr As Variant, r As Long, sh As Shape, hdr As Varian
     End If
 
 End Sub
+
+'----------------------------------------
+
+'図形情報の適用
+Public Sub ApplyShapeInfo(ByVal ra As Range, Optional ByVal ws As Worksheet)
+    
+    If Not TypeName(Selection) = "Range" Then Exit Sub
+    If ws Is Nothing Then Set ws = ActiveSheet
+    If ra Is Nothing Then Set ra = ActiveCell
+    
+    'テーブル開始位置を取得
+    Dim ce As Range
+    Set ce = TableLeftTop(ra)
+    
+    'テーブル項目取得
+    Dim hdr_dic As Dictionary
+    ArrStrToDict hdr_dic, c_ShapeInfoMember, 1
+    
+    'ヘッダ取得
+    Dim hdr() As String
+    hdr = GetHeaderArray(ce, hdr_dic)
+    
+    '図形リスト作成
+    Dim dic As Dictionary
+    Set dic = New Dictionary
+    Dim sh As Shape, sh2 As Shape
+    For Each sh In ws.Shapes
+        If Not dic.Exists(sh.name) Then dic.Add sh.name, 1
+        If sh.Type = msoGroup Then
+            For Each sh2 In sh.GroupItems
+                If Not dic.Exists(sh2.name) Then dic.Add sh2.name, 1
+            Next sh2
+        End If
+    Next sh
+    Set sh = Nothing
+    Set sh2 = Nothing
+    
+    '画面更新停止
+    ScreenUpdateOn
+    
+    Dim s As String
+    s = Trim(ce.Value)
+    Do Until s = ""
+        If dic.Exists(s) Then
+            Set sh = ws.Shapes(s)
+            If sh.Type = msoGroup Then
+                Dim f As Boolean
+                f = sh.ThreeD.Visible
+                If f Then sh.ThreeD.Visible = msoFalse
+            End If
+            Dim c As Integer
+            For c = 1 To UBound(hdr)
+                Dim h As String
+                h = hdr(c)
+                Dim v1 As Variant, v2 As Variant
+                v1 = ShapeValue(sh, h)
+                v2 = ce.Offset(, c).Value
+                If v1 <> v2 Then
+                      ApplyShapeValue sh, h, v2
+                End If
+            Next c
+        End If
+        If f Then sh.ThreeD.Visible = msoTrue
+        Set ce = ce.Offset(1)
+        s = Trim(ce.Value)
+    Loop
+    Set dic = Nothing
+    '
+    '画面更新再開
+    ScreenUpdateOn
+
+End Sub
+
+
+'----------------------------------------
 
 '図形情報取得
 Private Function ShapeValue(sh As Shape, k As String, Optional ts As String) As Variant
@@ -1134,7 +1231,7 @@ Private Function ShapeValue(sh As Shape, k As String, Optional ts As String) As 
 End Function
 
 '図形情報設定
-Private Sub UpdateShapeValue(sh As Shape, k As String, ByVal v As Variant)
+Private Sub ApplyShapeValue(sh As Shape, k As String, ByVal v As Variant)
     
     On Error Resume Next
     Select Case UCase(k)
@@ -1172,78 +1269,6 @@ Private Sub UpdateShapeValue(sh As Shape, k As String, ByVal v As Variant)
     
     End Select
     On Error GoTo 0
-
-End Sub
-
-'----------------------------------------
-
-'図形情報リストの反映
-Public Sub UpdateShapeInfo(ByVal ra As Range, Optional ByVal ws As Worksheet)
-    
-    If Not TypeName(Selection) = "Range" Then Exit Sub
-    If ws Is Nothing Then Set ws = ActiveSheet
-    If ra Is Nothing Then Set ra = ActiveCell
-    
-    'テーブル開始位置を取得
-    Dim ce As Range
-    Set ce = TableLeftTop(ra)
-    
-    'テーブル項目取得
-    Dim hdr_dic As Dictionary
-    ArrStrToDict hdr_dic, c_ShapeInfoMember, 1
-    
-    'ヘッダ取得
-    Dim hdr() As String
-    hdr = GetHeaderArray(ce, hdr_dic)
-    
-    '図形リスト作成
-    Dim dic As Dictionary
-    Set dic = New Dictionary
-    Dim sh As Shape, sh2 As Shape
-    For Each sh In ws.Shapes
-        If Not dic.Exists(sh.name) Then dic.Add sh.name, 1
-        If sh.Type = msoGroup Then
-            For Each sh2 In sh.GroupItems
-                If Not dic.Exists(sh2.name) Then dic.Add sh2.name, 1
-            Next sh2
-        End If
-    Next sh
-    Set sh = Nothing
-    Set sh2 = Nothing
-    
-    '画面更新停止
-    'ScreenUpdateOn
-    
-    Dim s As String
-    s = Trim(ce.Value)
-    Do Until s = ""
-        If dic.Exists(s) Then
-            Set sh = ws.Shapes(s)
-            If sh.Type = msoGroup Then
-                Dim f As Boolean
-                f = sh.ThreeD.Visible
-                If f Then sh.ThreeD.Visible = msoFalse
-            End If
-            Dim c As Integer
-            For c = 1 To UBound(hdr)
-                Dim h As String
-                h = hdr(c)
-                Dim v1 As Variant, v2 As Variant
-                v1 = ShapeValue(sh, h)
-                v2 = ce.Offset(, c).Value
-                If v1 <> v2 Then
-                      UpdateShapeValue sh, h, v2
-                End If
-            Next c
-        End If
-        If f Then sh.ThreeD.Visible = msoTrue
-        Set ce = ce.Offset(1)
-        s = Trim(ce.Value)
-    Loop
-    Set dic = Nothing
-    '
-    '画面更新再開
-    ScreenUpdateOn
 
 End Sub
 

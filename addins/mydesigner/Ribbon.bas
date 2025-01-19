@@ -133,11 +133,11 @@ Private Sub Designer2_onAction(ByVal control As IRibbonControl)
     Case 1: AddListShapeHeader ActiveCell, no   'ヘッダ項目追加
     Case 2
         Select Case no
-        Case 1: ListShapeInfo               'リスト表示
+        Case 1: ListShapeInfo               '一覧取得
         Case 2: AddShapeListName            '名前追加
-        Case 3: UpdateShapeInfo ActiveCell  '図形リスト反映
+        Case 3: ApplyShapeInfo ActiveCell   '図形情報適用
         Case 4: SelectShapeName             '図形名選択
-        Case 9: MsgBox TypeName(Selection)  'オブジェクトの初期化
+        Case 5: UpdateShapeInfo             'データ取得
         End Select
     End Select
 End Sub
