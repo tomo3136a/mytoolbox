@@ -209,6 +209,7 @@ Private Sub Designer5_onAction(ByVal control As IRibbonControl)
     Case 1: DrawIDF                     'IDF作図
     Case 2: ImportIDF                   'IDFファイル読み込み
     Case 3: ExportIDF                   'IDFファイル書き出し
+    Case 4: AddRecordIDF                'IDF行追加
     End Select
 End Sub
 

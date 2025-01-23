@@ -71,8 +71,9 @@
           </box>
         </group>
         <group id="g5" label="IDF" imageMso="ComAddInsDialog">
+          <button id="b5.1" onAction="Designer5_onAction" label="描画" imageMso="ShapesMoreShapes" size="large" />
           <splitButton id="g51" size="large">
-            <button id="b5.1" onAction="Designer5_onAction" label="描画" imageMso="ShapesMoreShapes" />
+            <button id="b5.4" onAction="Designer5_onAction" label="追加" imageMso="ShapesMoreShapes" />
             <menu id="m51">
               <button id="b5.2" onAction="Designer5_onAction" label="読み込み" imageMso="GetExternalDataImportClassic" />
               <button id="b5.3" onAction="Designer5_onAction" label="エクスポート" imageMso="ExportTextFile" />

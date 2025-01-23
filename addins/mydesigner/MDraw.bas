@@ -680,11 +680,77 @@ Public Sub ListShapeInfo()
 
 End Sub
 
-
 '----------------------------------------
 
 'ヘッダ追加
 Public Sub AddListShapeHeader(ByVal ce As Range, Optional mode As Integer)
+    
+    'テーブル項目取得
+    Dim dic As Dictionary
+    ArrStrToDict dic, c_ShapeInfoMember, 1
+    
+    'ヘッダ取得
+    Dim ra As Range
+    Set ra = TableHeaderRange(TableLeftTop(ce))
+    
+    '存在する項目取得
+    Dim hdr_dic As Dictionary
+    Set hdr_dic = New Dictionary
+    Dim s As String
+    Dim v As Variant
+    If ra.Count > 1 Then
+        For Each v In ra.Value
+            s = UCase(Trim(v))
+            If s <> "" Then
+                If dic.Exists(s) Then s = dic(s)(0)
+                If Not hdr_dic.Exists(s) Then hdr_dic.Add s, 1
+            End If
+        Next v
+    Else
+        v = ra.Value
+        s = UCase(Trim(v))
+        If s <> "" Then
+            If dic.Exists(s) Then s = dic(s)(0)
+            If Not hdr_dic.Exists(s) Then hdr_dic.Add s, 1
+        End If
+    End If
+    
+    '追加ヘッダ項目取得
+    Dim hdr() As String
+    StringToRow hdr, c_ShapeInfoHeader, mode
+    Dim hdr_col As Collection
+    Set hdr_col = New Collection
+    For Each v In hdr
+        s = UCase(v)
+        If dic.Exists(s) Then
+            v = dic(s)(1)
+            s = dic(s)(0)
+        End If
+        If Not hdr_dic.Exists(s) Then
+            hdr_dic.Add s, 1
+            hdr_col.Add v
+        End If
+    Next v
+    If hdr_col.Count < 1 Then Exit Sub
+    ReDim v(1 To 1, 1 To hdr_col.Count)
+    Dim i As Long
+    For i = 1 To hdr_col.Count
+        v(1, i) = hdr_col(i)
+    Next i
+    If ra.Cells(1, 1).Value <> "" Then
+        Set ra = ra.Offset(, ra.Columns.Count)
+    End If
+    Set ra = ra.Resize(1, hdr_col.Count)
+    
+    'ヘッダ追加
+    ScreenUpdateOff
+    ra.Value = v
+    ScreenUpdateOn
+
+End Sub
+
+'ヘッダ追加
+Public Sub AddShapeHeader(ByVal ce As Range, Optional mode As Integer)
     
     'テーブル項目取得
     Dim dic As Dictionary

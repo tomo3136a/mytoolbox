@@ -102,7 +102,7 @@ End Enum
 
 '環境パラメータ
 Private g_scale As Double           'スケール
-Private g_flag(1 To 10) As Boolean  'モードフラグ
+Private g_flag(0 To 10) As Boolean  'モードフラグ
                                     ' 1.A面, 2.B面
                                     ' 3.配置制約, 4.配線制約
                                     ' 5.PTH, 6:Note
@@ -150,14 +150,11 @@ End Function
 'IDFフラグ設定
 Sub IDF_SetFlag(id As Integer, Optional ByVal val As Boolean = True)
     g_flag(id) = val
-    'g_flag = g_flag And Not 2 ^ (id Mod 24)
-    'If val Then g_flag = g_flag Or 2 ^ (id Mod 24)
 End Sub
 
 'IDFフラグチェック
 Function IDF_IsFlag(id As Integer) As Boolean
     IDF_IsFlag = g_flag(id)
-    'IDF_IsFlag = Not ((g_flag And 2 ^ (id Mod 24)) = 0)
 End Function
 
 '----------------------------------------
@@ -786,12 +783,22 @@ Private Function SL(s As Variant, Optional n As Integer = 16)
 End Function
 
 '-------------------------------------
+'IDFレコード追加
+'-------------------------------------
+
+Public Sub AddRecordIDF()
+    IDF_PartForm.Show
+    Unload IDF_PartForm
+End Sub
+
+'-------------------------------------
 'IDF描画
 '-------------------------------------
 
 'IDF描画
 Public Sub DrawIDF()
-    IDFModeForm.Show
+    IDF_ModeForm.Show
+    If Not IDF_IsFlag(0) Then Exit Sub
 
     Dim ce As Range: Set ce = ActiveCell
     Dim ws As Worksheet: Set ws = ce.Worksheet
