@@ -75,6 +75,30 @@ Function re_split(s As String, ptn As String) As String()
     re_split = Split(regex(ptn).Replace(s, Chr(7)), Chr(7))
 End Function
 
+'配列からマッチした文字列を抽出
+Function re_extract(col As Variant, ptn As String) As Variant
+    Dim re As Object
+    Set re = regex(ptn)
+    
+    Dim arr As Variant
+    ReDim arr(50)
+    
+    Dim s As String
+    Dim i As Integer
+    Dim v As Variant
+    For Each v In col
+        s = v
+        If re.Test(s) Then
+            If i > UBound(arr) Then ReDim Preserve arr(UBound(arr) + 50)
+            arr(i) = s
+            i = i + 1
+        End If
+    Next v
+    If i < 1 Then Exit Function
+    ReDim Preserve arr(i - 1)
+    re_extract = arr
+End Function
+
 '----------------------------------------
 '検索
 '----------------------------------------
@@ -280,7 +304,7 @@ Sub ArrToDict(dic As Dictionary, arr As Variant, Optional n As Integer)
     Dim i As Integer
     For i = LBound(arr, 1) To UBound(arr, 1)
         If Not dic.Exists(arr(i, n + LBound(arr, 2))) Then
-            dic.Add arr(i, n + LBound(arr, 2)), arr = wsf.index(arr, i, Array(2, 4))
+            dic.Add arr(i, n + LBound(arr, 2)), arr = wsf.Index(arr, i, Array(2, 4))
         End If
     Next i
     

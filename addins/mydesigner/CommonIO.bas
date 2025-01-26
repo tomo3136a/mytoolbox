@@ -256,7 +256,7 @@ Function SelectCell(Optional ra As Range, Optional s As String, Optional ptn As 
     SelectForm.AddValues ra
     SelectForm.Show
     Dim i As Integer
-    i = SelectForm.index
+    i = SelectForm.Index
     Dim v As Variant
     For Each v In ra
         If i = 0 Then Exit For

@@ -174,13 +174,13 @@ Private Sub Designer4_getItemCount(control As IRibbonControl, ByRef returnedVal)
     returnedVal = cnt
 End Sub
 
-Private Sub Designer4_getItemID(control As IRibbonControl, index As Integer, ByRef returnedVal)
-    returnedVal = index
+Private Sub Designer4_getItemID(control As IRibbonControl, Index As Integer, ByRef returnedVal)
+    returnedVal = Index
 End Sub
 
-Private Sub Designer4_getItemLabel(control As IRibbonControl, index As Integer, ByRef returnedVal)
+Private Sub Designer4_getItemLabel(control As IRibbonControl, Index As Integer, ByRef returnedVal)
     Dim s As String
-    DrawItemName index, s
+    DrawItemName Index, s
     returnedVal = s
 End Sub
 
@@ -193,8 +193,8 @@ Private Sub Designer4_getSelectedItemID(control As IRibbonControl, ByRef returne
     returnedVal = g_select
 End Sub
 
-Private Sub Designer4_onActionDropDown(control As IRibbonControl, id As String, index As Integer)
-    g_select = index
+Private Sub Designer4_onActionDropDown(control As IRibbonControl, id As String, Index As Integer)
+    g_select = Index
     DrawItemSelect g_select
     If Not g_ribbon Is Nothing Then g_ribbon.InvalidateControl control.id
 End Sub
@@ -210,6 +210,7 @@ Private Sub Designer5_onAction(ByVal control As IRibbonControl)
     Case 2: ImportIDF                   'IDFファイル読み込み
     Case 3: ExportIDF                   'IDFファイル書き出し
     Case 4: AddRecordIDF                'IDF行追加
+    Case 5: AddRecordIDF 1                'IDF行追加
     End Select
 End Sub
 

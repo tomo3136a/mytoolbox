@@ -7,16 +7,17 @@ Option Private Module
 '---------------------------------------------
 
 'セルにカラーマーカを設定
-Public Sub AddMarker(ra As Range, id As Integer, Optional name As String)
-    If name = "" Then name = Replace(Mid(Date, 5), "/", "")
-    If InStr(1, name, "_") = 0 Then name = name & "_" & id
-    '
+Public Sub AddMarker(ra As Range, id As Integer, Optional ByVal kw As String)
+    
+    If kw = "" Then kw = Replace(Mid(Date, 5), "/", "")
+    If InStr(1, kw, "_") = 0 Then kw = kw & "_" & (id Mod 10)
+    
     Dim wb As Workbook
     Set wb = ra.Parent.Parent
-    '
+    
     On Error Resume Next
-    If wb.Styles(name) Is Nothing Then
-        With wb.Styles.Add(name)
+    If wb.Styles(kw) Is Nothing Then
+        With wb.Styles.Add(kw)
             .IncludeNumber = False
             .IncludeFont = False
             .IncludeAlignment = False
@@ -26,109 +27,58 @@ Public Sub AddMarker(ra As Range, id As Integer, Optional name As String)
             With .Interior
                 .Pattern = xlSolid
                 .PatternColorIndex = xlAutomatic
-                Select Case id
-                Case 1  '赤
-                    .ColorIndex = 22
-                Case 2  '青
-                    .ColorIndex = 33
-                Case 3  '黄緑
-                    .ColorIndex = 43
-                Case 4  '灰色
-                    .ColorIndex = 15
-                Case 5  '橙
-                    .ColorIndex = 45
-                Case 6  '青緑
-                    .ColorIndex = 42
-                Case 7  '茶
-                    .ColorIndex = 40
-                Case 8  '紫
-                    .ColorIndex = 39
-                Case 9  '緑
-                    .ColorIndex = 10
-                Case 10 '黄
-                    .ColorIndex = 6
-                Case Else
+                Select Case id Mod 10
+                Case 0: .color = RGB(255, 241, 0)   '黄
+                Case 1: .color = RGB(240, 125, 136) '赤
+                Case 2: .color = RGB(85, 171, 229)  '青
+                Case 3: .color = RGB(95, 190, 125)  '薄緑
+                Case 4: .color = RGB(185, 192, 203) '灰色
+                Case 5: .color = RGB(255, 140, 0)   '橙
+                Case 6: .color = RGB(51, 186, 177)  '青緑
+                Case 7: .color = RGB(163, 179, 103) '茶
+                Case 8: .color = RGB(168, 149, 226) '紫
+                Case 9: .color = RGB(2, 104, 2)     '緑
                 End Select
                 .TintAndShade = 0
             End With
         End With
     End If
     On Error GoTo 0
-    '
-    ra.Style = name
+    ra.Style = kw
+
 End Sub
 
 'カラーマーカ削除
-Sub DelMarker(s As String)
-    Dim wb As Workbook
-    Set wb = ActiveWorkbook
-    '
-    On Error Resume Next
+Sub DelMarker(kw As String, Optional ByVal wb As Workbook)
+    
+    If wb Is Nothing Then Set wb = ActiveWorkbook
+    
     Dim v As Variant
     For Each v In wb.Styles
-        
-        Dim name As String
-        name = v
-        
-        If name = s Then
-            wb.Styles(name).Delete
-        End If
+        If CStr(v) Like kw Then wb.Styles(CStr(v)).Delete
     Next v
-    On Error GoTo 0
-End Sub
 
-'カラーマーカ全削除
-Sub DelMarkerAll()
-    Dim re As Object
-    Set re = regex("^\d{4}_\d{1,2}$")
-    '
-    Dim res As Integer
-    res = MsgBox("全て削除しますか？(" & ActiveWorkbook.Styles.Count & ")", vbYesNo, "マーカ削除")
-    Dim wb As Workbook
-    Set wb = ActiveWorkbook
-    On Error Resume Next
-    Dim v As Variant
-    For Each v In wb.Styles
-        Dim name As String
-        name = v
-        If re.Test(name) Then
-            wb.Styles(name).Delete
-        End If
-    Next v
-    On Error GoTo 0
 End Sub
 
 'カラーマーカリスト取得
-Sub ListMarker(ra As Range)
-    Dim re As Object
-    Set re = regex("^\d{4}_\d{1,2}$")
-    '
-    Dim ce As Range
-    Set ce = ra.Cells(1, 1)
-    '
+Sub ListMarker(ByVal ra As Range)
+    
+    Set ra = ra.Cells(1, 1)
+    Dim wb As Workbook
+    Set wb = ra.Parent.Parent
+    
+    Dim arr As Variant
+    arr = re_extract(wb.Styles, "^\d{4}_\d{1,2}$")
+    arr = wsf.Transpose(arr)
+    If Not TypeName(arr) = "Variant()" Then Exit Sub
+    ra.Resize(UBound(arr, 1), 1).Value = arr
+    
     ScreenUpdateOff
-    On Error Resume Next
     Dim v As Variant
-    For Each v In ActiveWorkbook.Styles
-        Dim name As String
-        name = v
-        If re.Test(name) Then
-            ce.Value = name
-            ce.Style = v
-            Set ce = ce.Offset(1)
-        End If
+    For Each v In arr
+        ra.Style = v
+        Set ra = ra.Offset(1)
     Next v
-    On Error GoTo 0
     ScreenUpdateOn
+    
 End Sub
-
-Sub PickupFillColor()
-    Dim ra As Range
-    Set ra = Selection
-    Dim ce As Range
-    On Error Resume Next
-    Set ce = Application.InputBox("対象のセル", Type:=8)
-    On Error GoTo 0
-    ra.Value = ce.Interior.color
-End Sub
-

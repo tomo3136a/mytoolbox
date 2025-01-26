@@ -75,6 +75,46 @@ Function re_split(s As String, ptn As String) As String()
     re_split = Split(regex(ptn).Replace(s, Chr(7)), Chr(7))
 End Function
 
+'配列からマッチした文字列を抽出
+Function re_extract(col As Variant, ptn As String) As Variant
+    Dim re As Object
+    Set re = regex(ptn)
+    
+    Dim arr As Variant
+    ReDim arr(50)
+    
+    Dim s As String
+    Dim i As Integer
+    Dim v As Variant
+    For Each v In col
+        s = v
+        If re.Test(s) Then
+            If i > UBound(arr) Then ReDim Preserve arr(UBound(arr) + 50)
+            arr(i) = s
+            i = i + 1
+        End If
+    Next v
+    If i < 1 Then Exit Function
+    ReDim Preserve arr(i - 1)
+    re_extract = arr
+End Function
+
+'----------------------------------------
+'検索
+'----------------------------------------
+
+'コレクションから名前を指定して検索(配列は除く)
+Function SearchName(col As Object, name As String) As Object
+    Dim v As Object
+    For Each v In col
+        If v.name = name Then
+            Set SearchName = v
+            Exit Function
+        End If
+    Next v
+    Set SearchName = Nothing
+End Function
+
 '----------------------------------------
 'パラメータ文字列
 '  <text> = [ <line> \n ] <line>
@@ -670,3 +710,55 @@ Private Function ProgressBar(p As Double) As String
         ProgressBar = "■■■■■"
     End If
 End Function
+
+'----------------------------------------
+'アドインブック
+'----------------------------------------
+
+'アドインブック表示トグル
+Sub ToggleAddinBook()
+    If ThisWorkbook.IsAddin Then
+        ThisWorkbook.IsAddin = False
+        ThisWorkbook.Activate
+    Else
+        ThisWorkbook.IsAddin = True
+        ThisWorkbook.Save
+    End If
+End Sub
+
+'アドインブックからテンプレートシートを複製
+Sub CopyAddinSheet()
+    Dim ws As Worksheet
+    Set ws = SelectSheet(ThisWorkbook, "^[^#]")
+    If ws Is Nothing Then Exit Sub
+    ws.Copy After:=ActiveSheet
+End Sub
+
+'アドインブックのテンプレートシート更新
+Function UpdateAddinSheet(ws As Worksheet)
+    Dim asu As Boolean
+    asu = Application.ScreenUpdating
+    Application.ScreenUpdating = False
+    '
+    Dim ws2 As Worksheet
+    For Each ws2 In ThisWorkbook.Sheets
+        If ws2.name = ws.name Then Exit For
+    Next ws2
+    If ws2 Is Nothing Then
+        ThisWorkbook.IsAddin = False
+        ws.Copy After:=ThisWorkbook.Sheets(1)
+        ThisWorkbook.IsAddin = True
+    Else
+        Dim old As Range
+        Set old = Selection
+        ws.Cells.Select
+        Selection.Copy
+        Set ws2 = ThisWorkbook.Sheets(ws.name)
+        ws2.Paste ws2.Cells(1, 1)
+        Application.CutCopyMode = False
+        old.Select
+    End If
+    '
+    Application.ScreenUpdating = asu
+End Function
+

@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} IDF_PartForm 
    Caption         =   "部品追加"
-   ClientHeight    =   3810
-   ClientLeft      =   30
-   ClientTop       =   150
-   ClientWidth     =   3360
+   ClientHeight    =   4065
+   ClientLeft      =   -45
+   ClientTop       =   -150
+   ClientWidth     =   3525
    OleObjectBlob   =   "IDF_PartForm.frx":0000
    StartUpPosition =   1  'オーナー フォームの中央
 End
@@ -13,6 +13,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
 
 Option Explicit
 
@@ -24,6 +25,10 @@ Private iVer As Long
 Private Sub UserForm_Initialize()
     Call ComboBoxUnit.AddItem("MM")
     Call ComboBoxUnit.AddItem("THOU")
+    sFileName = "-"
+    sTool = "-"
+    sDate = "10/22/96.16:41:37"
+    iVer = 1
 End Sub
 
 Private Sub CancelButton_Click()
@@ -31,27 +36,17 @@ Private Sub CancelButton_Click()
 End Sub
 
 Private Sub OkButton_Click()
-    sFileName = "-"
-    sTool = "-"
-    sDate = "10/22/96.16:41:37"
-    iVer = 1
-    
     Dim ce As Range
-    Set ce = ActiveCell
+    Set ce = TableLeftTop(ActiveCell)
     If ce.Value = "" Then
-        Set ce = TableLeftTop(ce)
-        If ce.Value = "" Then
-            Set ce = ce.Parent.Cells(1, 1)
-        End If
+        Set ce = ce.Parent.Cells(1, 1)
         Call AddHeader(ce)
     End If
-    Set ce = LeftBottom(TableDataRange(ce))
-    
-    Call WriteCell(ce)
+    Call WriteData(LeftBottom(TableRange(ce)))
     Unload Me
 End Sub
 
-Private Sub WriteCell(ce As Range)
+Private Sub WriteData(ce As Range)
 
     Dim s As String
     Dim w As Double, l As Double
@@ -62,8 +57,8 @@ Private Sub WriteCell(ce As Range)
     If s = "" Then Exit Sub
     l = s
     
-    If Trim(TextBoxName.Value) = "" Then Exit Sub
-    If Trim(TextBoxNumber.Value) = "" Then Exit Sub
+    If Trim(TextBoxGeo.Value) = "" Then Exit Sub
+    If Trim(TextBoxNum.Value) = "" Then Exit Sub
     
     Call AddRecord(ce, 0, -w / 2, -l / 2)
     Call AddRecord(ce, 1, w / 2, -l / 2)
@@ -115,8 +110,8 @@ Private Sub AddRecord(ce As Range, i As Long, x As Double, y As Double)
     ce.Offset(, 8).Value = ""
     ce.Offset(, 9).Value = "ELECTRICAL"
     If CheckBoxMecanical.Value = True Then ce.Offset(, 9).Value = "MECANICAL"
-    ce.Offset(, 10).Value = Trim(TextBoxName.Value)
-    ce.Offset(, 11).Value = Trim(TextBoxNumber.Value)
+    ce.Offset(, 10).Value = Trim(TextBoxGeo.Value)
+    ce.Offset(, 11).Value = Trim(TextBoxNum.Value)
     ce.Offset(, 12).Value = val(TextBoxH.Value)
     ce.Offset(, 13).Value = ""
     ce.Offset(, 14).Value = ""
@@ -130,5 +125,17 @@ Private Sub AddRecord(ce As Range, i As Long, x As Double, y As Double)
     ce.Offset(, 22).Value = ""
     ce.Offset(, 23).Value = ""
     
+End Sub
+
+Private Sub TextBoxL_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger)
+   If Not Chr(KeyAscii) Like "[0-9.]" Then KeyAscii = 0
+End Sub
+
+Private Sub TextBoxW_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger)
+   If Not Chr(KeyAscii) Like "[0-9.]" Then KeyAscii = 0
+End Sub
+
+Private Sub TextBoxH_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger)
+   If Not Chr(KeyAscii) Like "[0-9.]" Then KeyAscii = 0
 End Sub
 

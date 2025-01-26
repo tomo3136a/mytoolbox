@@ -235,18 +235,17 @@ Public Function SelectSheetCB(Optional wb As Workbook) As Worksheet
 End Function
 
 'ÉVÅ[ÉgéÊìæ
-Function GetSheet(s As String) As Worksheet
+Function GetSheet(s As String, Optional ByVal wb As Workbook, Optional bNew As Boolean) As Worksheet
     Dim v As Variant
     Dim ws As Worksheet
-    For Each v In ActiveWorkbook.Worksheets
-        If v.name = s Then Set ws = v
-    Next v
-    If ws Is Nothing Then
-        For Each v In ThisWorkbook.Worksheets
-            If v.name = s Then ws = v
-        Next v
+    If Not wb Is Nothing Then Set ws = SearchName(wb.Worksheets, s)
+    If ws Is Nothing Then Set ws = SearchName(ActiveWorkbook.Worksheets, s)
+    If ws Is Nothing Then Set ws = SearchName(ThisWorkbook.Worksheets, s)
+    If ws Is Nothing And bNew Then
+        If wb Is Nothing Then Exit Function
+        Set ws = wb.Worksheets.Add
+        ws.name = s
     End If
-    If ws Is Nothing Then Exit Function
     Set GetSheet = ws
 End Function
 

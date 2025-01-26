@@ -1,7 +1,7 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} SelectForm 
    Caption         =   "‘I‘ð"
-   ClientHeight    =   4680
+   ClientHeight    =   4800
    ClientLeft      =   105
    ClientTop       =   450
    ClientWidth     =   3630
@@ -13,7 +13,6 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-
 
 
 Option Explicit
@@ -41,8 +40,8 @@ Public Function Result() As String
     Result = sValue
 End Function
 
-Public Function index() As Integer
-    index = ListBox1.ListIndex
+Public Function Index() As Integer
+    Index = ListBox1.ListIndex
 End Function
 
 Public Sub AddItem(s As String)

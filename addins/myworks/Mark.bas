@@ -2,7 +2,7 @@ Attribute VB_Name = "Mark"
 Option Explicit
 Option Private Module
 
-Private Const mark_dx As Integer = 32
+Private Const mark_dx As Integer = 8
 Private Const mark_dy As Integer = 20
 
 '---------------------------------------------
@@ -33,14 +33,14 @@ End Sub
 Sub AddRevMark(ra As Range)
     Dim s As String
     s = GetRtParam("rev", "text")
+    If s = "" Then Exit Sub
     Dim i As Integer
     i = 1 + LastRevIndex(s)
     Call DrawRevMark(Selection, s, i)
 End Sub
 
+'指定した版数の最大個別図形番号取得
 Private Function LastRevIndex(text As String) As Integer
-    'AddRevMarkの内部処理
-    '指定した版数の最大個別図形番号取得
     Dim re As Object
     Set re = regex("^rev:" & text & "\b")
     '
@@ -64,16 +64,15 @@ Private Function LastRevIndex(text As String) As Integer
     LastRevIndex = id
 End Function
 
+'版数マークの図形配置
 Private Sub DrawRevMark(ra As Range, rev As String, id As Integer)
-    'AddRevMarkの内部処理
-    '版数マークの図形配置
     If id < 1 Then id = 1
     '
     Dim ce As Range
     Set ce = ra.Cells(1, 1)
     '
     Dim dx As Integer, dy As Integer
-    dx = mark_dx
+    dx = mark_dx * (1 + Len(rev))
     dy = mark_dy
     Dim x As Long, y As Long
     Call RevMarkPos(ce, x, y, dx + 2, dy + 2)

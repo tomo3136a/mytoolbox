@@ -516,27 +516,27 @@ Sub DrawItemCount(ByRef cnt As Long)
 End Sub
 
 '“o˜^•”•i–¼Žæ“¾
-Sub DrawItemName(index As Integer, ByRef name As String)
+Sub DrawItemName(Index As Integer, ByRef name As String)
     
-    If index < 0 Then Exit Sub
+    If Index < 0 Then Exit Sub
     Dim ws As Worksheet
     Set ws = GetSheet("#shapes")
     If ws Is Nothing Then Exit Sub
-    If index < ws.Shapes.Count Then
-        name = ws.Shapes(1 + index).name
+    If Index < ws.Shapes.Count Then
+        name = ws.Shapes(1 + Index).name
     End If
 
 End Sub
 
 '“o˜^•”•i‘I‘ð
-Sub DrawItemSelect(ByRef index As Integer)
+Sub DrawItemSelect(ByRef Index As Integer)
     
     Dim s As String
     Dim ws As Worksheet
     Set ws = GetSheet("#shapes")
     If Not ws Is Nothing Then
         Dim i As Integer
-        i = 1 + index
+        i = 1 + Index
         If i < 1 Then i = 1
         If i > ws.Shapes.Count Then i = ws.Shapes.Count
         If i > 0 Then s = ws.Shapes(i).name

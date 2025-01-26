@@ -29,6 +29,13 @@ Option Private Module
 '
 '----------------------------------------
 
+Public Sub eof()
+    ScreenUpdateOn
+End Sub
+
+
+
+
 '-------------------------------------
 
 Private Sub SetDefaultShapeStyle(sh As Shape)
@@ -68,11 +75,4 @@ Private Function ArrayToCollection( _
     Set ArrayToCollection = col
 
 End Function
-
-
-Public Sub eof()
-            ScreenUpdateOn
-End Sub
-
-
 

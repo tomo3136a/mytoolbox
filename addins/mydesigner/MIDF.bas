@@ -328,7 +328,7 @@ Private Sub ReadIDF(col As Collection, path As String)
     Dim mode1 As Integer
     Dim mode2 As Integer
     Dim seq As Long
-    Dim index As Long
+    Dim Index As Long
     
     'ファイルを読み込み、行ごとに処理
     Dim st As Object
@@ -386,7 +386,7 @@ Private Sub ReadIDF(col As Collection, path As String)
                 Case 1
                     wa(FID.N_SECTION) = sect
                     wa(FID.N_OWNER) = owner
-                    index = 0
+                    Index = 0
                     If mode2 = EM2.N_VIA_KEEPOUT Then seq = seq + 1
                 Case 2
                     Select Case mode2
@@ -406,9 +406,9 @@ Private Sub ReadIDF(col As Collection, path As String)
                         wa(FID.N_REFERENCE) = va(1)
                     End Select
                 Case Else
-                    If wa(FID.N_LABEL) = s Then index = index + 1 Else index = 0
+                    If wa(FID.N_LABEL) = s Then Index = Index + 1 Else Index = 0
                     wa(FID.N_LABEL) = s
-                    wa(FID.N_INDEX) = index
+                    wa(FID.N_INDEX) = Index
                     wa(FID.N_XPOS) = va(1)
                     wa(FID.N_YPOS) = va(2)
                     wa(FID.N_ANGLE) = va(3)
@@ -474,14 +474,14 @@ Private Sub ReadIDF(col As Collection, path As String)
                 Case 1
                     wa(FID.N_SECTION) = sect
                     wa(FID.N_OWNER) = ""
-                    index = 0
+                    Index = 0
                 Case 2
                     wa(FID.N_GEOMETORY) = s
                     wa(FID.N_NUMBER) = va(1)
                     wa(FID.N_UNITS) = va(2)
                     wa(FID.N_HEIGHT) = va(3)
                 Case Else
-                    If wa(FID.N_LABEL) = s Then index = index + 1 Else index = 0
+                    If wa(FID.N_LABEL) = s Then Index = Index + 1 Else Index = 0
                     s = UCase(s)
                     wa(FID.N_LABEL) = s
                     If s = "PROP" Then
@@ -494,7 +494,7 @@ Private Sub ReadIDF(col As Collection, path As String)
                     Else
                         wa(FID.N_ATTRIBUTE) = ""
                         wa(FID.N_VAL) = ""
-                        wa(FID.N_INDEX) = index
+                        wa(FID.N_INDEX) = Index
                         wa(FID.N_XPOS) = va(1)
                         wa(FID.N_YPOS) = va(2)
                         wa(FID.N_ANGLE) = va(3)
@@ -786,9 +786,15 @@ End Function
 'IDFレコード追加
 '-------------------------------------
 
-Public Sub AddRecordIDF()
-    IDF_PartForm.Show
-    Unload IDF_PartForm
+Public Sub AddRecordIDF(Optional mode As Long)
+    Select Case mode
+    Case 0
+        IDF_PartForm.Show
+        Unload IDF_PartForm
+    Case 1
+        IDF_PlaceForm.Show
+        Unload IDF_PlaceForm
+    End Select
 End Sub
 
 '-------------------------------------
@@ -1685,11 +1691,11 @@ Private Function DrawShape( _
     '開始点
     Dim sect As String
     Dim label As Integer
-    Dim index As Integer
+    Dim Index As Integer
     Dim a1 As Double, x1 As Double, y1 As Double, h1 As Double
     sect = arr(r, FID.N_SECTION)
     label = arr(r, FID.N_LABEL)
-    index = arr(r, FID.N_INDEX)
+    Index = arr(r, FID.N_INDEX)
     a1 = arr(r, FID.N_ANGLE)
     x1 = arr(r, FID.N_XPOS)
     y1 = arr(r, FID.N_YPOS)
@@ -1717,9 +1723,9 @@ Private Function DrawShape( _
     Do While r <= UBound(arr)
         If sect <> arr(r, FID.N_SECTION) Then Exit Do
         If label <> arr(r, FID.N_LABEL) Then Exit Do
-        If index > arr(r, FID.N_INDEX) Then Exit Do
+        If Index > arr(r, FID.N_INDEX) Then Exit Do
         label = arr(r, FID.N_LABEL)
-        index = arr(r, FID.N_INDEX)
+        Index = arr(r, FID.N_INDEX)
         a2 = arr(r, FID.N_ANGLE)
         x2 = arr(r, FID.N_XPOS)
         y2 = arr(r, FID.N_YPOS)

@@ -16,11 +16,11 @@ Sub SelectTable(mode As Integer, ra As Range)
     Case 1
         TableRow(ra).Select
     Case 2
-        Intersect(TableRange(TableHeaderRange(FarLeftTop(ra))), TableColumn(ra)).Select
+        Intersect(TableRange(TableHeaderRange(TableLeftTop(ra))), TableColumn(ra)).Select
     Case 3
-        TableRange(TableHeaderRange(FarLeftTop(ra))).Select
+        TableRange(TableHeaderRange(TableLeftTop(ra))).Select
     Case Else
-         FarLeftTop(ra).Select
+         TableLeftTop(ra).Select
     End Select
 End Sub
 
@@ -40,13 +40,13 @@ Sub TableWaku(mode As Integer, ra As Range)
     Case 6
         HeaderColor ra
     Case 7
-        WakuClear FarLeftTop(ra)
+        WakuClear TableLeftTop(ra)
     Case 8
-        TableRange(TableHeaderRange(FarLeftTop(ra)).Offset(1)).Clear
+        TableRange(TableHeaderRange(TableLeftTop(ra)).Offset(1)).Clear
     Case 9
-        TableRange(TableHeaderRange(FarLeftTop(ra))).Clear
+        TableRange(TableHeaderRange(TableLeftTop(ra))).Clear
     Case Else
-        Waku FarLeftTop(ra), fit:=True
+        Waku TableLeftTop(ra), fit:=True
     End Select
 End Sub
 

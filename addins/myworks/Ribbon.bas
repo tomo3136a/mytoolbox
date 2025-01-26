@@ -79,12 +79,13 @@ Private Sub works_onLoad(ByVal Ribbon As IRibbonUI)
     SetRtParam "path", 2, True      'フォルダあり
     SetRtParam "path", 3, True      '再帰あり
     SetRtParam "info", 1, True      'シート追加
-    SetRtParam "mark", "color", 10  'マーカカラーは黄色
+    SetRtParam "mark", "color", 0   'マーカカラーは黄色
 End Sub
 
 Private Sub works_ShortcutKey1()
     'worksタブに移動
-    If Not g_ribbon Is Nothing Then g_ribbon.ActivateTab "TabWorks"
+    If g_ribbon Is Nothing Then Exit Sub
+    g_ribbon.ActivateTab "TabWorks"
 End Sub
 
 Private Sub works_ShortcutKey2()
@@ -102,40 +103,40 @@ End Sub
 'レポートサイン
 Private Sub works11_onAction(ByVal control As IRibbonControl)
     If TypeName(Selection) <> "Range" Then Exit Sub
-    Call ReportSign(Selection)
+    ReportSign Selection
 End Sub
 
 'ページフォーマット
 Private Sub works12_onAction(ByVal control As IRibbonControl)
-    Call PagePreview
+    PagePreview
 End Sub
 
 'テキスト変換
 Private Sub works13_onAction(ByVal control As IRibbonControl)
     If TypeName(Selection) <> "Range" Then Exit Sub
-    Call MenuTextConv(RibbonID(control), Selection)
+    MenuTextConv RibbonID(control), Selection
 End Sub
 
 '拡張書式
 Private Sub works14_onAction(ByVal control As IRibbonControl)
     If TypeName(Selection) <> "Range" Then Exit Sub
-    Call MenuUserFormat(RibbonID(control), Selection)
+    MenuUserFormat RibbonID(control), Selection
 End Sub
 
 '定型式挿入
 Private Sub works15_onAction(ByVal control As IRibbonControl)
     If TypeName(Selection) <> "Range" Then Exit Sub
-    Call MenuUserFormula(RibbonID(control), Selection)
+    MenuUserFormula RibbonID(control), Selection
 End Sub
 
 '表示・非表示
 Private Sub works16_onAction(ByVal control As IRibbonControl)
-    Call ShowHide(RibbonID(control))
+    ShowHide RibbonID(control)
 End Sub
 
 'パス名
 Private Sub works17_onAction(ByVal control As IRibbonControl)
-    Call PathMenu(RibbonID(control), Selection)
+    PathMenu RibbonID(control), Selection
 End Sub
 
 Private Sub works17_onChecked(ByRef control As IRibbonControl, ByRef pressed As Boolean)
@@ -148,7 +149,7 @@ End Sub
 
 '情報取得
 Private Sub works18_onAction(ByVal control As IRibbonControl)
-    Call AddInfoSheet(RibbonID(control))
+    AddInfoSheet RibbonID(control)
 End Sub
 
 Private Sub works18_onChecked(ByRef control As IRibbonControl, ByRef pressed As Boolean)
@@ -162,7 +163,7 @@ End Sub
 'エクスポート
 Private Sub works19_onAction(ByVal control As IRibbonControl)
     If TypeName(Selection) <> "Range" Then Exit Sub
-    Call MenuExport(Selection, RibbonID(control))
+    MenuExport Selection, RibbonID(control)
 End Sub
 
 Private Sub works19_onChecked(ByRef control As IRibbonControl, ByRef pressed As Boolean)
@@ -267,37 +268,38 @@ End Sub
 '----------------------------------------
 
 Private Sub works4_getLabel(control As IRibbonControl, ByRef label As Variant)
-    Dim name() As Variant
-    name = Array("-", "赤", "青", "緑", "灰色", "橙", "青緑", "淡い橙", "紫", "緑", "黄色")
+    Dim name() As String
+    name = Split("黄色,赤,青,薄緑,灰色,橙,青緑,淡い橙,紫,緑", ",")
     label = name(Val(GetRtParam("mark", "color")))
 End Sub
 
 Private Sub works4_onGetImage(control As IRibbonControl, ByRef bitmap As Variant)
-    bitmap = "AppointmentColor" & Val(GetRtParam("mark", "color"))
+    Dim id As Integer
+    id = ((Val(GetRtParam("mark", "color")) + 9) Mod 10) + 1
+    bitmap = "AppointmentColor" & id
 End Sub
 
 Private Sub works4_onAction(control As IRibbonControl)
+    If TypeName(Selection) <> "Range" Then Exit Sub
+    
     Select Case RibbonID(control)
     Case 1
-        If TypeName(Selection) <> "Range" Then Exit Sub
         Call AddMarker(Selection, Val(GetRtParam("mark", "color")))
     Case 2
-        If TypeName(Selection) <> "Range" Then Exit Sub
         Call ListMarker(Selection)
     Case 3
-        If TypeName(Selection) <> "Range" Then Exit Sub
+        ScreenUpdateOff
         Dim ce As Range
         For Each ce In Selection.Cells
             Call DelMarker(ce.Value)
             ce.Clear
         Next ce
-    Case 4
-        Call DelMarkerAll
+        ScreenUpdateOn
     End Select
 End Sub
 
 Private Sub works41_onAction(control As IRibbonControl, selectedId As String, selectedIndex As Integer)
-    Call SetRtParam("mark", "color", Mid(selectedId, InStr(1, selectedId, ".") + 1))
+    Call SetRtParam("mark", "color", Mid(selectedId, 1 + InStr(1, selectedId, ".")))
     If Not g_ribbon Is Nothing Then g_ribbon.Invalidate
     DoEvents
     If TypeName(Selection) <> "Range" Then Exit Sub

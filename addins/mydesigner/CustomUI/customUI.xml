@@ -72,13 +72,12 @@
         </group>
         <group id="g5" label="IDF" imageMso="ComAddInsDialog">
           <button id="b5.1" onAction="Designer5_onAction" label="描画" imageMso="ShapesMoreShapes" size="large" />
-          <splitButton id="g51" size="large">
-            <button id="b5.4" onAction="Designer5_onAction" label="追加" imageMso="ShapesMoreShapes" />
-            <menu id="m51">
-              <button id="b5.2" onAction="Designer5_onAction" label="読み込み" imageMso="GetExternalDataImportClassic" />
-              <button id="b5.3" onAction="Designer5_onAction" label="エクスポート" imageMso="ExportTextFile" />
-            </menu>
-          </splitButton>
+          <menu id="m51" label="その他" >
+            <button id="b5.4" onAction="Designer5_onAction" label="部品追加" imageMso="ShapesMoreShapes" />
+            <button id="b5.5" onAction="Designer5_onAction" label="部品配置" imageMso="ShapesMoreShapes" />
+            <button id="b5.2" onAction="Designer5_onAction" label="読み込み" imageMso="GetExternalDataImportClassic" />
+            <button id="b5.3" onAction="Designer5_onAction" label="エクスポート" imageMso="ExportTextFile" />
+          </menu>
           <!-- <editBox id="e5.1" onChange="Designer5_onChange" label="比率" getText="Designer5_getText" sizeString="wwwww" />
           <checkBox id="c5.1" onAction="Designer5_onActionPressed" label="A面" getPressed="Designer5_getPressed" />
           <checkBox id="c5.2" onAction="Designer5_onActionPressed" label="B面" getPressed="Designer5_getPressed" />
