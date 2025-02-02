@@ -195,6 +195,14 @@ Private Sub works22_onAction(ByVal control As IRibbonControl)
     Application.ScreenUpdating = True
 End Sub
 
+'列追加
+Private Sub works23_onAction(ByVal control As IRibbonControl)
+    If TypeName(Selection) <> "Range" Then Exit Sub
+    Application.ScreenUpdating = False
+    Call AddColumn(RibbonID(control), Selection)
+    Application.ScreenUpdating = True
+End Sub
+
 '囲いクリア
 Private Sub works27_onAction(ByVal control As IRibbonControl)
     If TypeName(Selection) <> "Range" Then Exit Sub
@@ -317,27 +325,11 @@ End Sub
 
 Private Sub works5_onAction(control As IRibbonControl)
     If TypeName(Selection) <> "Range" Then Exit Sub
-    '
-    Dim rev As String
-    Select Case RibbonID(control)
-    Case 1
-        '版数マーク追加
-        Call AddRevMark(Selection)
-    Case 2
-        '版数設定
-        Call GetRevMark(rev)
-        rev = InputBox("版数を入力してください。", "版数マーク設定", rev)
-        If rev = "" Then Exit Sub
-        Call SetRevMark(rev)
-        If Not g_ribbon Is Nothing Then g_ribbon.Invalidate
-        DoEvents
-        Call AddRevMark(Selection)
-    Case 3
-        '版数リスト作成
-        Call GetRevMark(rev)
-        rev = InputBox("版数を入力してください。", "版数マークリスト", rev)
-        If rev = "" Then Exit Sub
-        Call ListRevMark(Selection, rev)
-    End Select
+    Dim res As Long
+    Call RevProc(RibbonID(control), Selection, res)
+    If res Then
+        RefreshRibbon
+        Call RevProc(1, Selection)
+    End If
 End Sub
 

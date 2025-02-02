@@ -1,48 +1,78 @@
 Attribute VB_Name = "Mark"
+'==================================
+'版数マーク
+'==================================
+
 Option Explicit
 Option Private Module
 
-Private Const mark_dx As Integer = 8
+Private Const mark_dx As Integer = 10
 Private Const mark_dy As Integer = 20
+Private rev_comment As String
 
-'---------------------------------------------
-'版数マーク
+'----------------------------------------
+'機能呼び出し
+'----------------------------------------
+
+Public Sub RevProc(id As Long, ra As Range, Optional ByRef res As Long)
+    Dim v As Variant
+    Dim rev As String
+    Select Case id
+    Case 1
+        '版数マーク追加
+        v = InputBox("変更説明を入力してください。", "版数マーク", rev_comment)
+        If StrPtr(v) = 0 Then Exit Sub
+        rev_comment = Trim(v)
+        Call AddRevMark(ra, rev_comment)
+    Case 2
+        '版数設定
+        Call GetRevMark(rev)
+        v = InputBox("版数を入力してください。", "版数マーク", rev)
+        If StrPtr(v) = 0 Then Exit Sub
+        rev = Trim(v)
+        If rev = "" Then Exit Sub
+        Call SetRevMark(rev)
+        res = 1
+    Case 3
+        '版数リスト作成
+        Call GetRevMark(rev)
+        v = InputBox("リストする版数を入力してください。", "版数マーク", rev)
+        If StrPtr(v) = 0 Then Exit Sub
+        rev = Trim(v)
+        If rev = "" Then Exit Sub
+        Call ListRevMark(ra, rev)
+    End Select
+End Sub
+
 '---------------------------------------------
 
 '版数設定値取得
-Sub GetRevMark(ByRef text As Variant)
-    Dim s As String
-    s = GetRtParam("rev", "text")
-    If s = "" Then
-        s = "1"
-        Call SetRtParam("rev", "text", s)
-    End If
-    text = s
+Public Sub GetRevMark(ByRef v As Variant)
+    If Not ExistsRtParam("rev", "text") Then Call SetRtParam("rev", "text", "1")
+    v = GetRtParam("rev", "text")
 End Sub
 
 '版数設定値設定
-Sub SetRevMark(ByRef text As String, Optional id As Integer)
+Private Sub SetRevMark(v As String, Optional id As Integer)
     Dim s As String
-    s = Trim(text)
+    s = Trim(v)
     If s = "" Then Exit Sub
     Call SetRtParam("rev", "text", s)
-    Call SetRtParam("rev", "id", CStr(id))
+    Call SetRtParam("rev", "index", CStr(id))
 End Sub
 
 '版数マーク追加
-Sub AddRevMark(ra As Range)
+Private Sub AddRevMark(ra As Range, comment As String)
     Dim s As String
     s = GetRtParam("rev", "text")
     If s = "" Then Exit Sub
-    Dim i As Integer
-    i = 1 + LastRevIndex(s)
-    Call DrawRevMark(Selection, s, i)
+    Call DrawRevMark(Selection, s, 1 + LastRevIndex(s), comment)
 End Sub
 
 '指定した版数の最大個別図形番号取得
-Private Function LastRevIndex(text As String) As Integer
-    Dim re As Object
-    Set re = regex("^rev:" & text & "\b")
+Private Function LastRevIndex(s As String) As Integer
+    Dim re As Object, re2 As Object
+    Set re = regex("\brev:" & s & "\b")
     '
     Dim id As Integer
     id = 0
@@ -50,12 +80,14 @@ Private Function LastRevIndex(text As String) As Integer
     For Each ws In ActiveWorkbook.Sheets
         Dim sp As Shape
         For Each sp In ws.Shapes
-            If re.Test(sp.AlternativeText) Then
-                Dim s As String
-                s = re_match(sp.AlternativeText, "[/_-](\d+)", 0, 0)
-                If s <> "" Then
+            Dim s2 As String
+            s2 = sp.AlternativeText
+            If re.Test(s2) Then
+                Dim s3 As String
+                s3 = re_match(s2, "\bidx:(\d+)\b", 0, 0)
+                If s3 <> "" Then
                     Dim i As Integer
-                    i = Val(s)
+                    i = Val(s3)
                     If i > id Then id = i
                 End If
             End If
@@ -65,7 +97,7 @@ Private Function LastRevIndex(text As String) As Integer
 End Function
 
 '版数マークの図形配置
-Private Sub DrawRevMark(ra As Range, rev As String, id As Integer)
+Private Sub DrawRevMark(ra As Range, rev As String, id As Integer, comment As String)
     If id < 1 Then id = 1
     '
     Dim ce As Range
@@ -79,13 +111,17 @@ Private Sub DrawRevMark(ra As Range, rev As String, id As Integer)
     '
     Dim ws As Worksheet
     Set ws = ra.Parent
-    Dim sp As Shape
-    Set sp = ws.Shapes.AddShape(msoShapeIsoscelesTriangle, x, y, dx, dy)
+    Dim sh As Shape
+    Set sh = ws.Shapes.AddShape(msoShapeIsoscelesTriangle, x, y, dx, dy)
     
     Dim a As String
-    a = "rev:" & rev & "-" & id
+    a = Trim(comment)
+    a = UpdateParamStr(a, "rev", rev)
+    a = UpdateParamStr(a, "idx", CStr(id))
     
-    With ws.Shapes.Range(Array(ws.Shapes.Count))
+    Dim sr As ShapeRange
+    Set sr = ws.Shapes.Range(Array(ws.Shapes.Count))
+    With sr
         .ShapeStyle = msoShapeStylePreset1
         With .line
             .Visible = msoTrue
@@ -129,8 +165,24 @@ Private Sub DrawRevMark(ra As Range, rev As String, id As Integer)
         End With
         .Fill.Visible = msoFalse
         .AlternativeText = a
+        .name = "改版"
     End With
-    sp.Placement = xlMove
+    sh.Placement = xlMove
+    
+    If False Then
+        Dim s As String
+        s = sr.name
+        x = sr.Left
+        y = sr.Top
+        sr.Select
+        Selection.Cut
+        Selection.Worksheet.PasteSpecial 0
+        Selection.name = s
+        Selection.Left = x
+        Selection.Top = y
+        Application.CutCopyMode = 0
+    End If
+    
 End Sub
 
 Private Sub RevMarkPos(ce As Range, ByRef x As Long, ByRef y As Long, dx As Integer, dy As Integer)
@@ -193,7 +245,7 @@ Private Function TestRevMarkPos(x As Long, y As Long, dx As Integer, dy As Integ
 End Function
 
 '版数マークリスト
-Sub ListRevMark(ra As Range, Optional rev As String)
+Private Sub ListRevMark(ra As Range, Optional rev As String)
     If rev = "" Then Call GetRevMark(rev)
     '
     Dim ce As Range
@@ -209,31 +261,46 @@ Sub ListRevMark(ra As Range, Optional rev As String)
     End If
     '
     ScreenUpdateOff
+    Dim s As String
+    Dim ss As Variant
+    s = "版数,シート,座標,説明"
+    ss = Split(s, ",")
+    ce.Resize(1, UBound(ss) - LBound(ss) + 1).Value = ss
+    Set ce = ce.Offset(1)
+    
     Dim ws As Worksheet
     For Each ws In ce.Parent.Parent.Sheets
         Dim sp As Shape
         For Each sp In ws.Shapes
             If sp.AutoShapeType = msoShapeIsoscelesTriangle Then
                 If sp.TextFrame2.TextRange.text = rev Then
-                    Dim s As String
+                    s = sp.AlternativeText
+                    ce.Value = ParamStrVal(s, "rev")
+                    Set ce = ce.Offset(, 1)
+                    ce.Value = ws.name
+                    Set ce = ce.Offset(, 1)
+                    
                     s = sp.TopLeftCell.Address(False, False)
-                    ce.Offset.Value = ws.name
                     If bLink Then
                         ce.Parent.Hyperlinks.Add _
-                            Anchor:=ce.Offset(, 1), _
+                            Anchor:=ce, _
                             Address:="", _
                             SubAddress:=(ws.name & "!" & s), _
                             TextToDisplay:=s, _
                             ScreenTip:=rev & " 版"
                     Else
                         'TODO:簡易クリア
-                        ce.Offset(, 1).Value = ""
-                        ce.Offset(, 1).Font.ColorIndex = 0
-                        ce.Offset(, 1).Font.Underline = False
-                        ce.Offset(, 1).Value = s
+                        ce.Value = ""
+                        ce.Font.ColorIndex = 0
+                        ce.Font.Underline = False
+                        ce.Value = s
                     End If
-                    ce.Offset(, 2).Value = re_replace(sp.AlternativeText, "\s+", " ")
-                    Set ce = ce.Offset(1)
+                    Set ce = ce.Offset(, 1)
+                    ce.Value = Trim(RemoveParamStrAll(sp.AlternativeText))
+                    s = sp.AlternativeText
+                    s = re_replace(s, "\s*\w+:[^$\r\n]*[$\r\n]?", "")
+                    ce.Value = Trim(s)
+                    Set ce = ce.Offset(1, -3)
                 End If
             End If
         Next sp

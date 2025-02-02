@@ -48,19 +48,22 @@ End Function
 'セル範囲
 '----------------------------------------
 
-'領域の角取得
+'領域の左上取得
 Function LeftTop(ra As Range) As Range
     Set LeftTop = ra(1, 1)
 End Function
 
+'領域の右上取得
 Function RightTop(ra As Range) As Range
     Set RightTop = ra(1, ra.Columns.Count)
 End Function
 
+'領域の左下取得
 Function LeftBottom(ra As Range) As Range
     Set LeftBottom = ra(ra.Rows.Count, 1)
 End Function
 
+'領域の右下取得
 Function RightBottom(ra As Range) As Range
     Set RightBottom = ra(ra.Rows.Count, ra.Columns.Count)
 End Function
@@ -90,7 +93,7 @@ Function TableLeftTop(ByVal ra As Range, Optional n As Long = 0) As Range
     If ce <> "" Then Set TableLeftTop = ce
 End Function
 
-'上端取得
+'テーブル上端取得
 Function FarTop(ByVal ra As Range) As Range
      Dim ce As Range
     Set ce = ra.Cells(1, 1)
@@ -113,7 +116,7 @@ Function FarTop(ByVal ra As Range) As Range
     Set FarTop = rs
 End Function
 
-'左端取得
+'テーブル左端取得
 Function FarLeft(ByVal ra As Range) As Range
     Dim ce As Range
     Set ce = ra.Cells(1, 1)
@@ -136,7 +139,7 @@ Function FarLeft(ByVal ra As Range) As Range
     Set FarLeft = rs
 End Function
 
-'右端取得
+'テーブル右端取得
 Function FarRight(ByVal ra As Range) As Range
     Dim ce As Range
     Set ce = ra.Cells(1, 1)
@@ -160,7 +163,7 @@ Function FarRight(ByVal ra As Range) As Range
     Set FarRight = re
 End Function
 
-'下端取得
+'テーブル下端取得
 Function FarBottom(ra As Range) As Range
     Dim ce As Range
     Set ce = ra.Cells(1, 1)

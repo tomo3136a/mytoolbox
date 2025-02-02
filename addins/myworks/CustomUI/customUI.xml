@@ -131,23 +131,26 @@
             </menu>
           </splitButton>
         </group>
-        <group id="g2" label="罫線枠" imageMso="ReviewAllowUsersToEditRanges">
+        <group id="g2" label="表操作" imageMso="ReviewAllowUsersToEditRanges">
           <splitButton id="s21" size="large">
             <button id="b22" onAction="works22_onAction" label="囲い" imageMso="DataFormSource"
               screentip="罫線枠を描く" supertip="表の範囲を選択し、罫線枠を描く" />
             <menu id="m21">
               <button id="b21" onAction="works21_onAction" label="移動" imageMso="TableSelectCell"
                 screentip="表の左上に移動" />
+              <button id="b21.1" onAction="works21_onAction" label="移動(次の行)" imageMso="TableSelectCell"
+                screentip="表の左下に移動" />
               <menuSeparator id="z21a" />
-              <button id="b21.1" onAction="works21_onAction" label="選択(行)" imageMso="TableStyleRowHeaders"
+              <button id="b21.2" onAction="works21_onAction" label="選択(行)" imageMso="TableStyleRowHeaders"
                 screentip="行選択" supertip="セルの左右を調査し、テーブルの行範囲を選択する" />
-              <button id="b21.2" onAction="works21_onAction" label="選択(列)" imageMso="TableStyleFirstColumn"
+              <button id="b21.3" onAction="works21_onAction" label="選択(列)" imageMso="TableStyleFirstColumn"
                 screentip="列選択" supertip="セルの上下を調査し、テーブルの列範囲を選択する" />
-              <button id="b21.3" onAction="works21_onAction" label="選択(テーブル)" imageMso="TableSelect"
+              <button id="b21.4" onAction="works21_onAction" label="選択(テーブル)" imageMso="TableSelect"
                 screentip="テーブル選択" supertip="テーブルを選択する" />
               <menuSeparator id="z21b" />
               <button id="b22.1" onAction="works22_onAction" label="囲いのみ" imageMso="DataFormSource" />
-              <button id="b22.2" onAction="works22_onAction" label="囲い(行番号付き)" />
+              <button id="b23.1" onAction="works23_onAction" label="番号列追加" />
+              <button id="b23.2" onAction="works23_onAction" label="ランク列追加" />
             </menu>
           </splitButton>
           <button id="b22.3" onAction="works22_onAction" label="フィルタ" imageMso="Filter" />

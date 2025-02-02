@@ -100,14 +100,14 @@ Function re_extract(col As Variant, ptn As String) As Variant
 End Function
 
 '----------------------------------------
-'検索
+'コレクション操作
 '----------------------------------------
 
 'コレクションから名前を指定して検索(配列は除く)
-Function SearchName(col As Object, name As String) As Object
+Function SearchName(col As Object, sName As String) As Object
     Dim v As Object
     For Each v In col
-        If v.name = name Then
+        If v.name = sName Then
             Set SearchName = v
             Exit Function
         End If
@@ -152,7 +152,7 @@ Function ParamStrVal(s As String, k As String) As String
         kv = Split(line, ":", 2, vbTextCompare)
         If UBound(kv) > 0 Then
             If UCase(k) = UCase(Trim(kv(0))) Then
-                ParamStrVal = Trim(kv(1))
+                ParamStrVal = Trim(Replace(kv(1), Chr(13), ""))
                 Exit Function
             End If
         End If
@@ -208,6 +208,17 @@ Function RemoveParamStr(s As String, k As String) As String
     Next i
     ReDim Preserve res(j)
     RemoveParamStr = Join(res, Chr(10))
+End Function
+
+'パラメータ文字列からパラメータ以外取得
+Function RemoveParamStrAll(s As String) As String
+    Dim sa As String
+    Dim v As Variant
+    sa = s
+    For Each v In ParamStrKeys(sa)
+        sa = RemoveParamStr(sa, CStr(v))
+    Next v
+    RemoveParamStrAll = sa
 End Function
 
 'パラメータ文字列からディクショナリ作成
@@ -548,6 +559,15 @@ Sub SetRtParam(grp As String, k As String, Optional v As String)
     If dic.Exists(kw) Then dic.Remove kw
     If v <> "" Then dic.Add kw, v
 End Sub
+
+'パラメータ有無確認
+Function ExistsRtParam(grp As String, k As String) As Boolean
+    Dim dic As Dictionary
+    Set dic = rt_param_dict
+    Dim kw As String
+    kw = grp & "_" & k
+    ExistsRtParam = dic.Exists(kw)
+End Function
 
 'パラメータ取得
 Function GetRtParam(grp As String, k As String, Optional v As String) As String

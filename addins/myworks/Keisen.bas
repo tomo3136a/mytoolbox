@@ -12,43 +12,40 @@ Option Private Module
 
 'ÉeÅ[ÉuÉãëIë
 Sub SelectTable(mode As Integer, ra As Range)
+    On Error Resume Next
     Select Case mode
-    Case 1
-        TableRow(ra).Select
-    Case 2
-        Intersect(TableRange(TableHeaderRange(TableLeftTop(ra))), TableColumn(ra)).Select
-    Case 3
-        TableRange(TableHeaderRange(TableLeftTop(ra))).Select
-    Case Else
-         TableLeftTop(ra).Select
+    Case 0: TableLeftTop(ra).Select
+    Case 1: LeftBottom(TableRange(TableHeaderRange(TableLeftTop(ra)))).Offset(1).Select
+    Case 2: Intersect(TableRange(TableHeaderRange(TableLeftTop(ra))), ra.EntireRow).Select
+    Case 3: Intersect(TableRange(TableHeaderRange(TableLeftTop(ra))), ra.EntireColumn).Select
+    Case 4: TableRange(TableHeaderRange(TableLeftTop(ra))).Select
+    Case 5: TableHeaderRange(ra).Select
     End Select
+    On Error GoTo 0
 End Sub
 
 'årê¸òg
 Sub TableWaku(mode As Integer, ra As Range)
     Select Case mode
-    Case 1
-        Waku ra
-    Case 2
-        AddLineNo ra
-    Case 3
-        HeaderFilter ra
-    Case 4
-        HeaderAutoFit ra
-    Case 5
-        HeaderFixed ra
-    Case 6
-        HeaderColor ra
-    Case 7
-        WakuClear TableLeftTop(ra)
-    Case 8
-        TableRange(TableHeaderRange(TableLeftTop(ra)).Offset(1)).Clear
-    Case 9
-        TableRange(TableHeaderRange(TableLeftTop(ra))).Clear
-    Case Else
-        Waku TableLeftTop(ra), fit:=True
+    Case 0: Waku TableLeftTop(ra), fit:=True
+    Case 1: Waku ra
+    Case 3: HeaderFilter ra
+    Case 4: HeaderAutoFit ra
+    Case 5: HeaderFixed ra
+    Case 6: HeaderColor ra
+    Case 7: WakuClear TableLeftTop(ra)
+    Case 8: TableRange(TableHeaderRange(TableLeftTop(ra)).Offset(1)).Clear
+    Case 9: TableRange(TableHeaderRange(TableLeftTop(ra))).Clear
     End Select
 End Sub
+
+'óÒí«â¡
+Sub AddColumn(mode As Integer, ra As Range)
+    Select Case mode
+    Case 1: AddLineNo ra
+    End Select
+End Sub
+
 
 '----------------------------------------
 'API
@@ -90,28 +87,19 @@ End Function
 
 Sub AddLineNo(ra As Range)
     Dim rs As Range
-    Set rs = FarLeft(ra)
-    If IsLineNo(rs) Then
-        Set rs = rs.Offset(1, 1)
-        Set rs = Range(rs, FarBottom(rs))
-    Else
-        Set rs = TableRange(rs)
-        rs.EntireColumn.Insert shift:=xlShiftToRight
-        rs(1, 1).Offset(0, -1).Value = "No."
-        Set rs = rs.Offset(1)
-        Set rs = Range(rs, FarBottom(rs))
-    End If
-    '
+    Set rs = TableRange(ra)
+    rs.EntireColumn.Insert shift:=xlShiftToRight
+    Set rs = rs.Offset(0, -1)
+    rs(1, 1).Value = "No."
+    Set rs = Intersect(rs, rs.Offset(1))
+    
     Dim i As Integer
     Dim ce As Range
     For Each ce In rs
-        If ce.Value <> "" Then
-            i = i + 1
-            ce.Offset(0, -1).Value = i
-        Else
-            ce.Offset(0, -1).Value = ""
-        End If
+        i = i + 1
+        ce.Value = i
     Next ce
+    rs.EntireColumn.Columns.AutoFit
     Call Waku(ra)
 End Sub
 

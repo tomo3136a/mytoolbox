@@ -196,7 +196,7 @@ Private Sub NameList(ByRef ra As Range, wb As Workbook)
         End If
         ra.Offset(0, 5).Value = TypeName(nm.Parent)
         ra.Offset(0, 6).Value = nm.Parent.name
-        ra.Offset(0, 7).Value = nm.Comment
+        ra.Offset(0, 7).Value = nm.comment
         If sts <> "" Then ra.Offset(0, 2).Value = sts
         Set ra = ra.Offset(1)
     Next nm
@@ -342,7 +342,7 @@ End Sub
 'ƒRƒƒ“ƒgˆê——
 Private Sub CommentList(ByRef ra As Range, wb As Workbook)
     Dim no As Integer
-    Dim cm As Comment
+    Dim cm As comment
     On Error Resume Next
     '
     Dim ws As Worksheet
