@@ -10,23 +10,6 @@ Private g_ribbon As IRibbonUI
 Private g_select As Integer
 
 '----------------------------------------
-'common
-'----------------------------------------
-
-Private Function SelectRange() As Range
-    Dim ra As Range
-    If TypeName(Selection) = "Range" Then
-        Dim s As String
-        s = TypeName(Selection)
-        Set ra = Selection
-    Else
-        Set ra = Range(Selection.TopLeftCell, Selection.BottomRightCell)
-        ra.Select
-    End If
-    Set SelectRange = ra
-End Function
-
-'----------------------------------------
 'ribbon helper
 '----------------------------------------
 
