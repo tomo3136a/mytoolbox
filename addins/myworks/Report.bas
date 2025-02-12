@@ -78,9 +78,19 @@ End Sub
 
 '----------------------------------
 'テキスト変換
+' mode=1: トリム(冗長なスペース削除)
+'      2: シングルライン(冗長なスペース削除かつ1行化)
+'      3: スペース削除
+'      4: 文字列変更(大文字に変換)
+'      5: 文字列変更(小文字に変換)
+'      6: 文字列変更(各単語の先頭の文字を大文字に変換)
+'      7: 文字列変更(半角文字を全角文字に変換)
+'      8: 文字列変更(全角文字を半角文字に変換)
+'      9: 文字列変更(ASCII文字のみ半角化)
+'      *: 文字列変更(ASCII文字のみ半角化、冗長なスペース削除)
 '----------------------------------
 
-Sub MenuTextConv(mode As Integer, ra As Range)
+Sub MenuTextConv(ra As Range, mode As Integer)
     Dim rb As Range
     Set rb = ra.Parent.UsedRange
     Set rb = Intersect(ra, rb)
@@ -132,8 +142,8 @@ Private Sub Cells_RemoveSpace( _
         Optional sep As String = " ")
     Dim re1 As Object, re2 As Object, re3 As Object
     Set re1 = regex("\s+")
-    Set re2 = regex("[ 　\t]+")
-    Set re3 = regex(" (\r?\n)")
+    Set re2 = regex("[ " & Chr(160) & "　\t]+")
+    Set re3 = regex(sep & "(\r?\n)")
     '
     Dim ce As Range
     For Each ce In ra.Cells
@@ -193,6 +203,12 @@ End Sub
 
 '---------------------------------------------
 '表示/非表示操作
+'mode=1: 非表示行削除・非表示列削除
+'     2: 非表示列削除
+'     3: 非表示行削除
+'     4: 非表示シート削除
+'     8: 非表示シート表示
+'     9: 非表示名前表示
 '---------------------------------------------
 
 Sub ShowHide(mode As Integer)
@@ -325,30 +341,25 @@ End Sub
 
 '---------------------------------------------
 '書式操作
+' mode=1: 数式に条件付き書式を追加
+'      2: 0に条件付き書式を追加
+'      3: 空白に条件付き書式を追加
+'      4: 参照に色を付ける
+'      8: 参照スタイル削除
 '---------------------------------------------
 
-Sub MenuUserFormat(mode As Integer, ra As Range)
+Sub MenuUserFormat(ra As Range, mode As Integer)
     Dim rb As Range
     Set rb = ra.Parent.UsedRange
     Set rb = Intersect(ra, rb)
     If rb Is Nothing Then Set rb = ra
     '
     Select Case mode
-    Case 1
-        '数式に条件付き書式を追加
-        Call AddFormulaConditionColor(rb)
-    Case 2
-        '0に条件付き書式を追加
-        Call AddZeroConditionColor(rb)
-    Case 3
-        '空白に条件付き書式を追加
-        Call AddBlankConditionColor(rb)
-    Case 4
-        '参照に色を付ける
-        Call MarkRef(rb)
-    Case 8
-        '参照スタイル削除
-        Call ClearMarkRef
+    Case 1: Call AddFormulaConditionColor(rb)
+    Case 2: Call AddZeroConditionColor(rb)
+    Case 3: Call AddBlankConditionColor(rb)
+    Case 4: Call MarkRef(rb)
+    Case 8: Call ClearMarkRef
     End Select
 End Sub
 
@@ -364,7 +375,7 @@ Private Sub AddFormulaConditionColor(ra As Range)
 
     With ra.FormatConditions(1).Interior
         .PatternColorIndex = xlAutomatic
-        .color = i
+        .Color = i
         .TintAndShade = 0
     End With
     ra.FormatConditions(1).StopIfTrue = False
@@ -382,7 +393,7 @@ Private Sub AddZeroConditionColor(ra As Range)
 
     With ra.FormatConditions(1).Interior
         .PatternColorIndex = xlAutomatic
-        .color = i
+        .Color = i
         .TintAndShade = 0
     End With
     ra.FormatConditions(1).StopIfTrue = False
@@ -399,7 +410,7 @@ Private Sub AddBlankConditionColor(ra As Range)
 
     With ra.FormatConditions(1).Interior
         .PatternColorIndex = xlAutomatic
-        .color = i
+        .Color = i
         .TintAndShade = 0
     End With
     ra.FormatConditions(1).StopIfTrue = False
@@ -479,9 +490,12 @@ End Sub
 
 '---------------------------------------------
 '定型式挿入
+'mode=1: 文字列分割(英字・数値)
+'     2: 文字列分割(数値・英字・数値)
+'     3: 差分マーカー
 '---------------------------------------------
 
-Sub MenuUserFormula(mode As Integer, ra As Range)
+Sub MenuUserFormula(ra As Range, mode As Integer)
     Dim v1 As Integer, v2 As Integer, v3 As Integer
     Dim r0 As Range, r1 As Range, r2 As Range, r3 As Range
     Select Case mode

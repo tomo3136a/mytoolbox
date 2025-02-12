@@ -405,12 +405,10 @@ Sub WakuBorder(ra As Range)
 End Sub
 
 'ˆÍ‚¢ƒNƒŠƒA
-Sub WakuClear(ra As Range)
-    Dim rb As Range
-    Set rb = TableRange(TableHeaderRange(ra))
-    '
-    rb.Interior.ColorIndex = xlColorIndexNone
-    rb.Borders.LineStyle = xlNone
+Sub WakuClear(ByVal ra As Range)
+    If ra.Count = 1 Then Set ra = ra.CurrentRegion
+    ra.Interior.ColorIndex = xlColorIndexNone
+    ra.Borders.LineStyle = xlNone
     If ActiveSheet.AutoFilterMode Then
         ActiveSheet.AutoFilterMode = False
     End If

@@ -45,7 +45,7 @@
             <button id="b15.2" onAction="works15_onAction" label="文字列分割(数値+英字+数値)"
               screentip="数値+英字+数値 の文字列分割" supertip="数値+英字+数値のセルの値を分解して右側の3つのセルに反映する" />
             <menuSeparator id="z15b" title="評価ツール" />
-            <button id="b15.3" onAction="works15_onAction" label="差分マーカ" 
+            <button id="b15.3" onAction="works15_onAction" label="差分マーカ"
               screentip="差分マーカを挿入" supertip="右隣2つのセルの値が同じなら「〇」を表示する" />
           </menu>
           <splitButton id="s16">
@@ -136,32 +136,39 @@
             <button id="b22" onAction="works22_onAction" label="囲い" imageMso="DataFormSource"
               screentip="罫線枠を描く" supertip="表の範囲を選択し、罫線枠を描く" />
             <menu id="m21">
-              <button id="b21" onAction="works21_onAction" label="移動" imageMso="TableSelectCell"
-                screentip="表の左上に移動" />
-              <button id="b21.1" onAction="works21_onAction" label="移動(次の行)" imageMso="TableSelectCell"
-                screentip="表の左下に移動" />
-              <menuSeparator id="z21a" />
-              <button id="b21.2" onAction="works21_onAction" label="選択(行)" imageMso="TableStyleRowHeaders"
-                screentip="行選択" supertip="セルの左右を調査し、テーブルの行範囲を選択する" />
-              <button id="b21.3" onAction="works21_onAction" label="選択(列)" imageMso="TableStyleFirstColumn"
-                screentip="列選択" supertip="セルの上下を調査し、テーブルの列範囲を選択する" />
-              <button id="b21.4" onAction="works21_onAction" label="選択(テーブル)" imageMso="TableSelect"
-                screentip="テーブル選択" supertip="テーブルを選択する" />
-              <menuSeparator id="z21b" />
               <button id="b22.1" onAction="works22_onAction" label="囲いのみ" imageMso="DataFormSource" />
-              <button id="b23.1" onAction="works23_onAction" label="番号列追加" />
-              <button id="b23.2" onAction="works23_onAction" label="ランク列追加" />
+              <button id="b22.2" onAction="works22_onAction" label="階層構造" imageMso="GroupTableSize" />
+              <menuSeparator id="z21b" />
+              <button id="b22.7" onAction="works22_onAction" label="囲いクリア" imageMso="Clear" />
             </menu>
           </splitButton>
+          <menu id="m22" label="移動。選択" imageMso="TableSelectCell" size="large">
+            <button id="b21.1" onAction="works21_onAction" label="先頭へ移動" imageMso="TableSelectCell"
+              screentip="表の左上に移動" />
+            <button id="b21.2" onAction="works21_onAction" label="末尾へ移動" imageMso="TableSelectCell"
+              screentip="表の左下に移動" />
+            <menuSeparator id="z21a" />
+            <button id="b21.3" onAction="works21_onAction" label="選択(行)" imageMso="TableStyleRowHeaders"
+              screentip="行選択" supertip="セルの左右を調査し、テーブルの行範囲を選択する" />
+            <button id="b21.4" onAction="works21_onAction" label="選択(列)" imageMso="TableStyleFirstColumn"
+              screentip="列選択" supertip="セルの上下を調査し、テーブルの列範囲を選択する" />
+            <button id="b21.5" onAction="works21_onAction" label="選択(ヘッダ)" imageMso="TableSelect"
+              screentip="テーブルヘッダ選択" supertip="テーブルのヘッダを選択する" />
+            <button id="b21" onAction="works21_onAction" label="選択(テーブル)" imageMso="TableSelect"
+              screentip="テーブル選択" supertip="テーブルを選択する" />
+          </menu>
+          <menu id="m23" label="列挿入" imageMso="TableColumnsInsertLeftExcel" size="large">
+            <button id="b23.1" onAction="works23_onAction" label="番号列追加" imageMso="TableColumnsInsertLeftExcel" />
+            <button id="b23.2" onAction="works23_onAction" label="ランク列追加" imageMso="TableColumnsInsertLeftExcel" />
+          </menu>
           <button id="b22.3" onAction="works22_onAction" label="フィルタ" imageMso="Filter" />
           <button id="b22.4" onAction="works22_onAction" label="幅調整" imageMso="TableAutoFitContents" />
           <button id="b22.5" onAction="works22_onAction" label="枠固定" imageMso="FreezePanes" />
           <button id="b22.6" onAction="works22_onAction" label="見出し色" imageMso="FontColorCycle" />
           <!-- <control idMso="CellFillColorPicker" label="見出し色" showLabel="true" /> -->
           <splitButton id="s27">
-            <button id="b27.1" onAction="works27_onAction" label="囲いクリア" imageMso="Clear" />
+            <button id="b27.2" onAction="works27_onAction" label="データクリア" imageMso="PivotClearCustomOrdering" />
             <menu id="m27">
-              <button id="b27.2" onAction="works27_onAction" label="データクリア" imageMso="PivotClearCustomOrdering" />
               <button id="b27.3" onAction="works27_onAction" label="表クリア" imageMso="TableStyleClear" />
               <button id="b27.4" onAction="works27_onAction" label="囲い・データクリア" imageMso="PivotClearCustomOrdering" />
             </menu>

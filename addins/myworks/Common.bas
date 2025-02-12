@@ -104,10 +104,10 @@ End Function
 '----------------------------------------
 
 'コレクションから名前を指定して検索(配列は除く)
-Function SearchName(col As Object, sName As String) As Object
+Function SearchName(col As Object, sname As String) As Object
     Dim v As Object
     For Each v In col
-        If v.name = sName Then
+        If v.name = sname Then
             Set SearchName = v
             Exit Function
         End If

@@ -9,23 +9,6 @@ Option Private Module
 Private g_ribbon As IRibbonUI
 
 '----------------------------------------
-'common
-'----------------------------------------
-
-Private Function SelectRange() As Range
-    Dim ra As Range
-    If TypeName(Selection) = "Range" Then
-        Dim s As String
-        s = TypeName(Selection)
-        Set ra = Selection
-    Else
-        Set ra = Range(Selection.TopLeftCell, Selection.BottomRightCell)
-        ra.Select
-    End If
-    Set SelectRange = ra
-End Function
-
-'----------------------------------------
 'ribbon helper
 '----------------------------------------
 
@@ -45,17 +28,15 @@ Private Function RibbonID(control As IRibbonControl) As Integer
     Dim s As String
     s = control.Tag
     If s = "" Then s = control.id
-    Dim vs As Variant
-    vs = Split(s, ".")
-    If UBound(vs) >= 0 Then
-        RibbonID = Val("0" & vs(UBound(vs)))
-        Exit Function
-    End If
-    vs = Split(s, "_")
-    If UBound(vs) >= 0 Then
-        RibbonID = Val("0" & vs(UBound(vs)))
-        Exit Function
-    End If
+    Dim v As Variant
+    For Each v In Array(".", "_")
+        Dim ss() As String
+        ss = Split(s, v)
+        If UBound(ss) >= 0 Then
+            RibbonID = Val("0" & ss(UBound(ss)))
+            Exit Function
+        End If
+    Next v
     RibbonID = Val(s)
 End Function
 
@@ -68,11 +49,13 @@ Private Sub works_onLoad(ByVal Ribbon As IRibbonUI)
     Set g_ribbon = Ribbon
     '
     'ショートカットキー設定
+    On Error Resume Next
     Application.OnKey "{F1}"
     Application.OnKey "{F1}", "works_ShortcutKey1"
     '
     Application.OnKey "+{F1}"
     Application.OnKey "+{F1}", "works_ShortcutKey2"
+    On Error GoTo 0
     '
     '初期化
     SetRtParam "path", 1, True      'リンクあり
@@ -114,19 +97,19 @@ End Sub
 'テキスト変換
 Private Sub works13_onAction(ByVal control As IRibbonControl)
     If TypeName(Selection) <> "Range" Then Exit Sub
-    MenuTextConv RibbonID(control), Selection
+    MenuTextConv Selection, RibbonID(control)
 End Sub
 
 '拡張書式
 Private Sub works14_onAction(ByVal control As IRibbonControl)
     If TypeName(Selection) <> "Range" Then Exit Sub
-    MenuUserFormat RibbonID(control), Selection
+    MenuUserFormat Selection, RibbonID(control)
 End Sub
 
 '定型式挿入
 Private Sub works15_onAction(ByVal control As IRibbonControl)
     If TypeName(Selection) <> "Range" Then Exit Sub
-    MenuUserFormula RibbonID(control), Selection
+    MenuUserFormula Selection, RibbonID(control)
 End Sub
 
 '表示・非表示
@@ -136,7 +119,7 @@ End Sub
 
 'パス名
 Private Sub works17_onAction(ByVal control As IRibbonControl)
-    PathMenu RibbonID(control), Selection
+    PathMenu Selection, RibbonID(control)
 End Sub
 
 Private Sub works17_onChecked(ByRef control As IRibbonControl, ByRef pressed As Boolean)
@@ -182,16 +165,14 @@ End Sub
 '移動・選択
 Private Sub works21_onAction(ByVal control As IRibbonControl)
     If TypeName(Selection) <> "Range" Then Exit Sub
-    Application.ScreenUpdating = False
-    SelectTable RibbonID(control), Selection
-    Application.ScreenUpdating = True
+    TableSelect Selection, RibbonID(control)
 End Sub
 
 '枠設定
 Private Sub works22_onAction(ByVal control As IRibbonControl)
     If TypeName(Selection) <> "Range" Then Exit Sub
     Application.ScreenUpdating = False
-    Call TableWaku(RibbonID(control), Selection)
+    Call TableWaku(Selection, RibbonID(control))
     Application.ScreenUpdating = True
 End Sub
 
@@ -199,7 +180,7 @@ End Sub
 Private Sub works23_onAction(ByVal control As IRibbonControl)
     If TypeName(Selection) <> "Range" Then Exit Sub
     Application.ScreenUpdating = False
-    Call AddColumn(RibbonID(control), Selection)
+    Call AddColumn(Selection, RibbonID(control))
     Application.ScreenUpdating = True
 End Sub
 
@@ -210,17 +191,17 @@ Private Sub works27_onAction(ByVal control As IRibbonControl)
     Select Case RibbonID(control)
     Case 1
         '囲いクリア
-        Call TableWaku(7, Selection)
+        Call TableWaku(Selection, 7)
     Case 2
         'データクリア
-        Call TableWaku(8, Selection)
+        Call TableWaku(Selection, 8)
     Case 3
         '表クリア
-        Call TableWaku(9, Selection)
+        Call TableWaku(Selection, 9)
     Case Else
         '囲い・データクリア
-        Call TableWaku(7, Selection)
-        Call TableWaku(9, Selection)
+        Call TableWaku(Selection, 7)
+        Call TableWaku(Selection, 9)
     End Select
     Application.ScreenUpdating = True
 End Sub
@@ -229,7 +210,7 @@ End Sub
 Private Sub works28_onAction(ByVal control As IRibbonControl)
     SetTableMargin xlRows
     SetTableMargin xlColumns
-    g_ribbon.InvalidateControl control.id
+    RefreshRibbon control.id
 End Sub
 
 Private Sub works28_getLabel(ByRef control As Office.IRibbonControl, ByRef label As Variant)

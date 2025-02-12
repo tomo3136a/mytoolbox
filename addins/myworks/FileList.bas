@@ -11,37 +11,28 @@ Option Private Module
 '----------------------------------------
 
 'パス取得
-Sub PathMenu(mode As Integer, ra As Range)
+'mode=1: ファイルリスト取得
+'     2: フォルダーパス取得
+'     3: ファイルパス取得
+'     4: パス名変換
+'     5: パス区切り変更
+'     6: 絶対パス化
+'     7: 相対パス化
+'     8: ベースパス化
+'     9: パスセグメント化
+Sub PathMenu(ra As Range, mode As Integer)
     Application.ScreenUpdating = False
     '
     Select Case mode
-    Case 1
-        'ファイルリスト取得
-        Call GetFileList(ra)
-    Case 2
-        'フォルダーパス取得
-        Call GetFolderPath(ra, GetRtParamBool("path", 1))
-    Case 3
-        'ファイルパス取得
-        Call GetFilePath(ra, GetRtParamBool("path", 1))
-    Case 4
-        'パス名変換
-        Call ChangePath(ra)
-    Case 5
-        'パス区切り変更
-        Call ChangePathSepalater(ra)
-    Case 6
-        '絶対パス化
-        Call ToAbustoractPath(ra)
-    Case 7
-        '相対パス化
-        Call ToRelatedPath(ra)
-    Case 8
-        'ベースパス化
-        Call ToGetBasePath2(ra)
-    Case 9
-        'パスセグメント化
-        Call ToPathSegment(ra)
+    Case 1: Call GetFileList(ra)
+    Case 2: Call GetFolderPath(ra, GetRtParamBool("path", 1))
+    Case 3: Call GetFilePath(ra, GetRtParamBool("path", 1))
+    Case 4: Call ChangePath(ra)
+    Case 5: Call ChangePathSepalater(ra)
+    Case 6: Call ToAbustoractPath(ra)
+    Case 7: Call ToRelatedPath(ra)
+    Case 8: Call ToGetBasePath2(ra)
+    Case 9: Call ToPathSegment(ra)
     End Select
     '
     Application.ScreenUpdating = True

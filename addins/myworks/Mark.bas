@@ -244,12 +244,37 @@ Private Function TestRevMarkPos(x As Long, y As Long, dx As Integer, dy As Integ
     TestRevMarkPos = False
 End Function
 
+Function NextRecord(ce As Range, Optional hdr As String) As Range
+Dim ra As Range
+    Set ra = ce.CurrentRegion
+    ra.Select
+    Set ra = TableLeftTop(ra)
+    ra.Select
+    Set ra = TableHeaderRange(ra)
+    ra.Select
+    Set ra = TableRange(ra)
+    ra.Select
+    Set ra = LeftBottom(ra)
+    ra.Select
+    If ra.Value = "" Then
+        If hdr <> "" Then
+            Dim ss As Variant
+            ss = Split(hdr, ",")
+            ra.Resize(1, UBound(ss) - LBound(ss) + 1).Value = ss
+        End If
+    End If
+    If ra.Value <> "" Then Set ra = ra.Offset(1)
+    ra.Select
+    Set NextRecord = ra
+End Function
+
 '版数マークリスト
 Private Sub ListRevMark(ra As Range, Optional rev As String)
     If rev = "" Then Call GetRevMark(rev)
     '
     Dim ce As Range
     Set ce = ra.Cells(1, 1)
+    Set ce = NextRecord(ce, "版数,シート,座標,説明")
     '
     Dim bLink As Boolean
     Dim res As Integer
@@ -257,16 +282,21 @@ Private Sub ListRevMark(ra As Range, Optional rev As String)
     If res = vbYes Then
         bLink = True
     ElseIf res = vbCancel Then
-        Exit Sub
+        bLink = False
     End If
     '
     ScreenUpdateOff
     Dim s As String
-    Dim ss As Variant
-    s = "版数,シート,座標,説明"
-    ss = Split(s, ",")
-    ce.Resize(1, UBound(ss) - LBound(ss) + 1).Value = ss
-    Set ce = ce.Offset(1)
+    'Dim ss As Variant
+    'If ce = "" Then
+    '    s = "版数,シート,座標,説明"
+    '    ss = Split(s, ",")
+    '    ce.Resize(1, UBound(ss) - LBound(ss) + 1).Value = ss
+    '    Set ce = ce.Offset(1)
+    'Else
+    '    Set ce = NextRecord(ce)
+    'End If
+    ce.Select
     
     Dim ws As Worksheet
     For Each ws In ce.Parent.Parent.Sheets

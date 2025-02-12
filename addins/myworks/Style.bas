@@ -28,16 +28,16 @@ Public Sub AddMarker(ra As Range, id As Integer, Optional ByVal kw As String)
                 .Pattern = xlSolid
                 .PatternColorIndex = xlAutomatic
                 Select Case id Mod 10
-                Case 0: .color = RGB(255, 241, 0)   'â©
-                Case 1: .color = RGB(240, 125, 136) 'ê‘
-                Case 2: .color = RGB(85, 171, 229)  'ê¬
-                Case 3: .color = RGB(95, 190, 125)  'îñóŒ
-                Case 4: .color = RGB(185, 192, 203) 'äDêF
-                Case 5: .color = RGB(255, 140, 0)   'ûÚ
-                Case 6: .color = RGB(51, 186, 177)  'ê¬óŒ
-                Case 7: .color = RGB(163, 179, 103) 'íÉ
-                Case 8: .color = RGB(168, 149, 226) 'éá
-                Case 9: .color = RGB(2, 104, 2)     'óŒ
+                Case 0: .Color = RGB(255, 241, 0)   'â©
+                Case 1: .Color = RGB(240, 125, 136) 'ê‘
+                Case 2: .Color = RGB(85, 171, 229)  'ê¬
+                Case 3: .Color = RGB(95, 190, 125)  'îñóŒ
+                Case 4: .Color = RGB(185, 192, 203) 'äDêF
+                Case 5: .Color = RGB(255, 140, 0)   'ûÚ
+                Case 6: .Color = RGB(51, 186, 177)  'ê¬óŒ
+                Case 7: .Color = RGB(163, 179, 103) 'íÉ
+                Case 8: .Color = RGB(168, 149, 226) 'éá
+                Case 9: .Color = RGB(2, 104, 2)     'óŒ
                 End Select
                 .TintAndShade = 0
             End With
