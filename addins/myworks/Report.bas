@@ -99,35 +99,16 @@ Sub MenuTextConv(ra As Range, mode As Integer)
     ScreenUpdateOff
     '
     Select Case mode
-    Case 1
-        'トリム(冗長なスペース削除)
-        Call Cells_RemoveSpace(rb)
-    Case 2
-        'シングルライン(冗長なスペース削除かつ1行化)
-        Call Cells_RemoveSpace(rb, SingleLine:=True)
-    Case 3
-        'スペース削除
-        Call Cells_RemoveSpace(rb, sep:="")
-    Case 4
-        '文字列変更(大文字に変換)
-        Call Cells_StrConv(rb, vbUpperCase)
-    Case 5
-        '文字列変更(小文字に変換)
-        Call Cells_StrConv(rb, vbLowerCase)
-    Case 6
-        '文字列変更(各単語の先頭の文字を大文字に変換)
-        Call Cells_StrConv(rb, vbProperCase)
-    Case 7
-        '文字列変更(半角文字を全角文字に変換)
-        Call Cells_StrConv(rb, vbWide)
-    Case 8
-        '文字列変更(全角文字を半角文字に変換)
-        Call Cells_StrConv(rb, vbNarrow)
-    Case 9
-        '文字列変更(ASCII文字のみ半角化)
-        Call Cells_StrConvNarrow(rb)
+    Case 1: Call Cells_RemoveSpace(rb)
+    Case 2: Call Cells_RemoveSpace(rb, SingleLine:=True)
+    Case 3: Call Cells_RemoveSpace(rb, sep:="")
+    Case 4: Call Cells_StrConv(rb, vbUpperCase)
+    Case 5: Call Cells_StrConv(rb, vbLowerCase)
+    Case 6: Call Cells_StrConv(rb, vbProperCase)
+    Case 7: Call Cells_StrConv(rb, vbWide)
+    Case 8: Call Cells_StrConv(rb, vbNarrow)
+    Case 9: Call Cells_StrConvNarrow(rb)
     Case Else
-        '文字列変更(ASCII文字のみ半角化、冗長なスペース削除)
         Call Cells_StrConvNarrow(rb)
         Call Cells_RemoveSpace(rb)
     End Select
@@ -141,8 +122,40 @@ Private Sub Cells_RemoveSpace( _
         Optional SingleLine As Boolean = False, _
         Optional sep As String = " ")
     Dim re1 As Object, re2 As Object, re3 As Object
-    Set re1 = regex("\s+")
-    Set re2 = regex("[ " & Chr(160) & "　\t]+")
+    Set re1 = regex("[\s\u00A0\u3000]+")
+    Set re2 = regex("[ \t\v\f\u00A0^u3000]+")
+    Set re3 = regex(sep & "(\r?\n)")
+    '
+    Dim va As Variant, v As Variant
+    va = ra.Formula2
+    '
+    Dim r As Long, c As Long
+    For r = LBound(va, 1) To UBound(va, 1)
+        For c = LBound(va, 2) To UBound(va, 2)
+            Dim s As String
+            s = va(r, c)
+            If s <> "" Then
+                If SingleLine Then
+                    s = re1.Replace(s, sep)
+                Else
+                    s = re2.Replace(s, sep)
+                    s = re3.Replace(s, "$1")
+                End If
+                va(r, c) = Trim(s)
+            End If
+        Next c
+    Next r
+    '
+    ra.Value = va
+End Sub
+
+Private Sub Cells_RemoveSpace_old( _
+        ra As Range, _
+        Optional SingleLine As Boolean = False, _
+        Optional sep As String = " ")
+    Dim re1 As Object, re2 As Object, re3 As Object
+    Set re1 = regex("[\s\u00A0\u3000]+")
+    Set re2 = regex("[ \t\v\f\u00A0^u3000]+")
     Set re3 = regex(sep & "(\r?\n)")
     '
     Dim ce As Range
@@ -215,25 +228,12 @@ Sub ShowHide(mode As Integer)
     ScreenUpdateOff
     '
     Select Case mode
-    Case 1
-        '非表示行削除・非表示列削除
-        DeleteHideColumn
-        DeleteHideRow
-    Case 2
-        '非表示列削除
-        DeleteHideColumn
-    Case 3
-        '非表示行削除
-        DeleteHideRow
-    Case 4
-        '非表示シート削除
-        Call DeleteHideSheet
-    Case 8
-        '非表示シート表示
-        Call VisibleHideSheet
-    Case 9
-        '非表示名前表示
-        Call VisibleHideName
+    Case 1: DeleteHideColumn: DeleteHideRow
+    Case 2: DeleteHideColumn
+    Case 3: DeleteHideRow
+    Case 4: DeleteHideSheet
+    Case 8: VisibleHideSheet
+    Case 9: VisibleHideName
     Case Else
     End Select
     '

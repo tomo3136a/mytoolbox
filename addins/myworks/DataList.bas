@@ -354,7 +354,7 @@ Private Sub CommentList(ByRef ra As Range, wb As Workbook)
             If TypeName(cm.Parent) = "Range" Then
                 ra.Offset(0, 3).Value = cm.Parent.Address
             End If
-            ra.Offset(0, 4).Value = cm.text
+            ra.Offset(0, 4).Value = cm.Text
             If cm.Visible Then
                 ra.Offset(0, 5).Value = "•\Ž¦"
             End If
