@@ -38,42 +38,38 @@ End Sub
 '----------------------------------------
 
 Sub PagePreview()
-    Application.ScreenUpdating = False
+    ScreenUpdateOff
     '
     Dim ws As Worksheet
     For Each ws In ActiveWindow.SelectedSheets
-        Call SheetPagePreview(ws)
+        Dim wnd As Window
+        Set wnd = ws.Application.ActiveWindow
+        wnd.Zoom = 100
+        ws.PageSetup.PrintArea = ""
+        Application.PrintCommunication = False
+        With ws.PageSetup
+            .Orientation = xlPortrait
+            .LeftMargin = Application.InchesToPoints(0.25)
+            .RightMargin = Application.InchesToPoints(0.25)
+            .TopMargin = Application.InchesToPoints(0.75)
+            .BottomMargin = Application.InchesToPoints(0.75)
+            .HeaderMargin = Application.InchesToPoints(0.3)
+            .FooterMargin = Application.InchesToPoints(0.3)
+            .CenterHorizontally = True
+            .CenterVertically = False
+            .Zoom = False
+            .FitToPagesWide = 1
+            .FitToPagesTall = 0
+        End With
+        Application.PrintCommunication = True
+        wnd.ActiveSheet.Cells(1, 1).Select
+        wnd.ScrollColumn = 1
+        wnd.ScrollRow = 1
+        wnd.View = xlPageBreakPreview
+        wnd.Zoom = 100
     Next ws
     '
-    Application.ScreenUpdating = True
-End Sub
-
-Private Sub SheetPagePreview(ws As Worksheet)
-    Dim wnd As Window
-    Set wnd = ws.Application.ActiveWindow
-    wnd.Zoom = 100
-    ws.PageSetup.PrintArea = ""
-    Application.PrintCommunication = False
-    With ws.PageSetup
-        .Orientation = xlPortrait
-        .LeftMargin = Application.InchesToPoints(0.25)
-        .RightMargin = Application.InchesToPoints(0.25)
-        .TopMargin = Application.InchesToPoints(0.75)
-        .BottomMargin = Application.InchesToPoints(0.75)
-        .HeaderMargin = Application.InchesToPoints(0.3)
-        .FooterMargin = Application.InchesToPoints(0.3)
-        .CenterHorizontally = True
-        .CenterVertically = False
-        .Zoom = False
-        .FitToPagesWide = 1
-        .FitToPagesTall = 0
-    End With
-    Application.PrintCommunication = True
-    wnd.ActiveSheet.Cells(1, 1).Select
-    wnd.ScrollColumn = 1
-    wnd.ScrollRow = 1
-    wnd.View = xlPageBreakPreview
-    wnd.Zoom = 100
+    ScreenUpdateOn
 End Sub
 
 '----------------------------------

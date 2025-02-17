@@ -93,10 +93,10 @@
             <toggleButton id="c18.1" onAction="works18_onChecked" getPressed="works18_getPressed" label="シート追加" />
           </menu>
           <menu id="m19" label="エクスポート" imageMso="TableExportMenu" >
-            <button id="b19.1" onAction="works19_onAction" label="エクスポート(スープレットシート)" imageMso="TableExportMenu"
+            <button id="b19.1" onAction="works19_onAction" label="エクスポート(表)" imageMso="TableExportMenu"
               screentip="スープレットシートにエクスポート"
               supertip="表示されている選択範囲をスープレットシートにエクスポートする&#10;* Excelブック&#10;* CSVファイル&#10;* テキストファイル&#10;* XMLファイル" />
-            <button id="b19.2" onAction="works19_onAction" label="エクスポート(テキスト)" imageMso="ExportTextFile"
+            <button id="b19.2" onAction="works19_onAction" label="エクスポート(リスト)" imageMso="ExportTextFile"
               screentip="テキストファイルにエクスポート"
               supertip="表示されている選択範囲をテキストファイルにエクスポートする&#10;(空白行は削除)" />
             <!-- <button id="b19.3" onAction="works19_onAction" label="エクスポート(XML)" imageMso="ExportXmlFile" /> -->
