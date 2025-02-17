@@ -127,7 +127,7 @@ Function GetTextArray(ra As Range) As Variant
     For Each ce In ra
         If ce <> "" Then
             ReDim Preserve dic(cnt)
-            dic(cnt) = ce.text
+            dic(cnt) = ce.Text
             cnt = cnt + 1
         End If
     Next ce

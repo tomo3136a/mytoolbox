@@ -307,10 +307,9 @@ End Sub
 Private Sub works5_onAction(control As IRibbonControl)
     If TypeName(Selection) <> "Range" Then Exit Sub
     Dim res As Long
-    Call RevProc(RibbonID(control), Selection, res)
-    If res Then
-        RefreshRibbon
-        Call RevProc(1, Selection)
-    End If
+    Call RevProc(Selection, RibbonID(control), res)
+    If Not res Then Exit Sub
+    RefreshRibbon
+    Call RevProc(Selection, 1)
 End Sub
 

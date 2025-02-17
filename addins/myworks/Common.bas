@@ -116,6 +116,18 @@ Function SearchName(col As Object, sname As String) As Object
 End Function
 
 '----------------------------------------
+'共通文字列変換
+'----------------------------------------
+
+'キーワード文字列
+Function StrConvWord(ByVal s As String, Optional sp As String = "_")
+    s = Trim(re_replace(s, "[\s\u00A0\u3000]+", " "))
+    s = re_replace(s, "[ _]+", sp)
+    s = StrConv(s, vbUpperCase + vbNarrow)
+    StrConvWord = s
+End Function
+
+'----------------------------------------
 'パラメータ文字列
 '  <text> = [ <line> \n ] <line>
 '  <line> = \s* <key> \s* : \s* <val> \s* | .+

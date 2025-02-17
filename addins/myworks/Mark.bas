@@ -14,7 +14,7 @@ Private rev_comment As String
 '機能呼び出し
 '----------------------------------------
 
-Public Sub RevProc(id As Long, ra As Range, Optional ByRef res As Long)
+Public Sub RevProc(ra As Range, id As Long, Optional ByRef res As Long)
     Dim v As Variant
     Dim rev As String
     Select Case id
@@ -137,7 +137,7 @@ Private Sub DrawRevMark(ra As Range, rev As String, id As Integer, comment As St
             .MarginRight = 0
             .MarginTop = 0
             .MarginBottom = 0
-            .TextRange.Characters.text = rev
+            .TextRange.Characters.Text = rev
             With .TextRange.Characters(1, Len(rev))
                 With .Font.Fill
                     .Visible = msoTrue
@@ -269,8 +269,10 @@ Dim ra As Range
 End Function
 
 '版数マークリスト
-Private Sub ListRevMark(ra As Range, Optional rev As String)
+Private Sub ListRevMark(ra As Range, Optional ByVal rev As String)
     If rev = "" Then Call GetRevMark(rev)
+    rev = StrConvWord(rev)
+    If rev = "" Then Exit Sub
     '
     Dim ce As Range
     Set ce = ra.Cells(1, 1)
@@ -279,23 +281,11 @@ Private Sub ListRevMark(ra As Range, Optional rev As String)
     Dim bLink As Boolean
     Dim res As Integer
     res = MsgBox("配置セルへリンクしますか。", vbYesNoCancel + vbDefaultButton2, "版数マークリスト")
-    If res = vbYes Then
-        bLink = True
-    ElseIf res = vbCancel Then
-        bLink = False
-    End If
+    If res = vbCancel Then Exit Sub
+    bLink = (res = vbYes)
     '
     ScreenUpdateOff
     Dim s As String
-    'Dim ss As Variant
-    'If ce = "" Then
-    '    s = "版数,シート,座標,説明"
-    '    ss = Split(s, ",")
-    '    ce.Resize(1, UBound(ss) - LBound(ss) + 1).Value = ss
-    '    Set ce = ce.Offset(1)
-    'Else
-    '    Set ce = NextRecord(ce)
-    'End If
     ce.Select
     
     Dim ws As Worksheet
@@ -303,7 +293,7 @@ Private Sub ListRevMark(ra As Range, Optional rev As String)
         Dim sp As Shape
         For Each sp In ws.Shapes
             If sp.AutoShapeType = msoShapeIsoscelesTriangle Then
-                If sp.TextFrame2.TextRange.text = rev Then
+                If StrConvWord(sp.TextFrame2.TextRange.Text) Like rev Then
                     s = sp.AlternativeText
                     ce.Value = ParamStrVal(s, "rev")
                     Set ce = ce.Offset(, 1)
