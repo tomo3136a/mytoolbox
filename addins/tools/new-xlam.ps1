@@ -1,5 +1,7 @@
 ﻿param([string]$path = "")
 
+##############################################################################
+#
 $addins_path = "${env:APPDATA}/Microsoft/Addins"
 $name = ""
 $root = ""
@@ -17,12 +19,15 @@ if ($name -eq "") {
 }
 if ($root -eq "") { $root = Join-Path (Get-Location).Path $name }
 if (-not (Test-Path $root)) { [void](mkdir $root) }
-Write-Host "name: ${name}" -ForegroundColor Yellow
-Write-Host "root: ${root}" -ForegroundColor Yellow
 
 $xlam_file = $name + ".xlam"
 $xlam = Join-Path $addins_path $xlam_file
+Write-Host "name: ${name}" -ForegroundColor Yellow
+Write-Host "root: ${root}" -ForegroundColor Yellow
+Write-Host "xlam: ${xlam}" -ForegroundColor Yellow
 
+##############################################################################
+#
 if (-not (Test-Path $xlam)) {
   Write-Host "# Create ${xlam}" -ForegroundColor Yellow
   $app = New-Object -ComObject Excel.Application
@@ -32,6 +37,7 @@ if (-not (Test-Path $xlam)) {
     $app.DisplayAlerts = $false
     $wb = $app.Workbooks.Add()
 
+    #sheet data
     $dts = @()
     for ($i=0; $i -lt 255; $i++) { $dts += 2 }
     Get-ChildItem $root -Filter *.csv | %{
@@ -59,6 +65,22 @@ if (-not (Test-Path $xlam)) {
         }
       }
     }
+
+    # references
+    try {
+      $col = $wb.VBProject.References
+      $s = $col.AddFromGuid("{420B2830-E718-11CF-893D-00A0C9054228}", 1, 0)
+      $s = $s.Name
+      Write-Host "reference ${s}"
+    } catch {}
+    try {
+      $col = $wb.VBProject.References
+      $s = $col.AddFromGuid("{3F4DACA7-160D-11D2-A8E9-00104B365C9F}", 5, 5)
+      $s = $s.Name
+      Write-Host "reference ${s}"
+    } catch {}
+
+    # sources
     try {
       $col = $wb.VBProject.VBComponents
       Get-ChildItem $root -Filter *.bas | %{
@@ -77,6 +99,7 @@ if (-not (Test-Path $xlam)) {
         Write-Host "load ${s}"
       }
     } catch {}
+
     [void]$wb.SaveAs($xlam, 55)
   } finally {
     # release workbook
@@ -90,7 +113,7 @@ if (-not (Test-Path $xlam)) {
   }
 }
 
-Write-Host "open ${xlam_file}." -ForegroundColor Yellow
-. $xlam
+#Write-Host "open ${xlam_file}." -ForegroundColor Yellow
+#. $xlam
 
 Start-Sleep 10

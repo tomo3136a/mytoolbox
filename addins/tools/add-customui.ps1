@@ -1,9 +1,15 @@
 ﻿param([string]$path = "")
 
+Set-Item env:Path "${env:ProgramFiles}\7-Zip\;${env:Path}"
+$arc = "7z.exe"
+
+##############################################################################
+#
 $addins_path = "${env:APPDATA}/Microsoft/Addins"
 $name = ""
 $root = ""
 if ($path -ne "") {
+  $path = Resolve-Path $path
   if ((Test-Path -PathType Container $path) -eq $True) {
     $name = (Split-Path -Leaf $path)
     $root = $path
@@ -17,17 +23,19 @@ if ($name -eq "") {
 }
 if ($root -eq "") { $root = Join-Path (Get-Location).Path $name }
 if (-not (Test-Path $root)) { [void](mkdir $root) }
-Write-Host "name: ${name}" -ForegroundColor Yellow
-Write-Host "root: ${root}" -ForegroundColor Yellow
 
 $xlam_file = $name + ".xlam"
 $xlam = Join-Path $addins_path $xlam_file
-
+Write-Host "name: ${name}" -ForegroundColor Yellow
+Write-Host "root: ${root}" -ForegroundColor Yellow
+Write-Host "xlam: ${xlam}" -ForegroundColor Yellow
 Push-Location $root
 
+##############################################################################
 #
 $zip_file = $name + ".zip"
 $zip = Join-Path $root $zip_file
+Write-Host "zip: ${zip}" -ForegroundColor Yellow
 if (-not (Test-Path $zip)) {
   if (-not (Test-Path $xlam)) {
     Write-Host "# Create ${name}" -ForegroundColor Yellow
@@ -53,10 +61,13 @@ if (-not (Test-Path $zip)) {
   Copy-Item $xlam $zip
 }
 
+##############################################################################
+#
 $path = Join-Path $root "_rels\.rels"
+Write-Host "path: ${path}" -ForegroundColor Yellow
 if (-not (Test-Path $path)) {
   Write-Host "# Create _rels/.rels" -ForegroundColor Yellow
-  7za.exe x -y $zip "_rels/.rels" | Out-Null
+  . $arc x -y $zip "_rels/.rels" | Out-Null
   $xml=[xml](Get-Content $path)
   $tags=$xml.GetElementsByTagName("Relationship")
   $id='customUI'
@@ -71,9 +82,11 @@ if (-not (Test-Path $path)) {
 }
 if (Test-Path $path) {
     Write-Host "# Add _rels/.rels" -ForegroundColor Yellow
-    7za.exe u -ux2 -y $zip "_rels/.rels" | Out-Null
+    . $arc u -ux2 -y $zip "_rels/.rels" | Out-Null
 }
 
+##############################################################################
+#
 $path = Join-Path $root "customUI\customUI.xml"
 if (-not (Test-Path $path)) {
     Write-Host "# Creeate customUI/customUI.xml" -ForegroundColor Yellow
@@ -95,15 +108,17 @@ if (-not (Test-Path $path)) {
     mkdir -Force ($root + "\customUI") | Out-Null
     $xml.Save($path)
 }
-
 if (Test-Path $path) {
   Write-Host "# Add customUI/customUI.xml" -ForegroundColor Yellow
-  7za.exe u -ux2 -y $zip "customUI/customUI.xml" | Out-Null
+  . $arc u -ux2 -y $zip "customUI/customUI.xml" | Out-Null
 }
 
+##############################################################################
+#
 if (Test-Path $zip) {
   Write-Host "# Save ${name}" -ForegroundColor Yellow
   Copy-Item $zip $xlam
+  Remove-Item $zip
 }
 
 Pop-Location
