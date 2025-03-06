@@ -21,7 +21,7 @@ Option Private Module
 '     8: ベースパス化
 '     9: パスセグメント化
 Sub PathMenu(ra As Range, mode As Integer)
-    Application.ScreenUpdating = False
+    ScreenUpdateOff
     '
     Select Case mode
     Case 1: Call GetFileList(ra)
@@ -35,7 +35,7 @@ Sub PathMenu(ra As Range, mode As Integer)
     Case 9: Call ToPathSegment(ra)
     End Select
     '
-    Application.ScreenUpdating = True
+    ScreenUpdateOn
 End Sub
 
 '基準のパス取得(ツリー)
@@ -192,10 +192,8 @@ End Sub
 Private Function GetFolder(ra As Range) As String
     Dim path As String
     path = GetBasePath(ra)
-    If path = "" Then
-        path = SelectFolder(ActiveWorkbook.path)
-        If path = "" Then path = ActiveWorkbook.path
-    End If
+    If path = "" Then path = SelectFolder(ActiveWorkbook.path)
+    If path = "" Then Exit Function
     GetFolder = GetAbstructPath(path, ra.Parent.Parent.path & "\")
 End Function
 
@@ -231,12 +229,14 @@ End Sub
 Private Sub GetFileList(ra As Range)
     Dim ce As Range
     Set ce = ra.Cells(1, 1)
+    '
     Dim path As String
-    Dim p As String
     path = ce.Value
     If path = "" Then path = GetFolder(ra)
     If path = "" Then Exit Sub
     If Right(path, 1) <> "\" Then path = path & "\"
+    '
+    Dim p As String
     p = GetShortPath(path)
     If path <> p Then ce.Value = p
     path = GetAbstructPath(p, ra.Parent.Parent.path & "\")
@@ -244,7 +244,7 @@ Private Sub GetFileList(ra As Range)
     Set ce = ce.Offset(2)
     Call GetFileListSubFolder(ce, path, 1, "")
     '
-    Dim h
+    Dim h As Variant
     h = Array("番号", "名前", "階層", "種別", "サイズ", "編集日")
     Set ce = ra.Cells(1, 1).Offset(1)
     Range(ce, ce.Offset(0, UBound(h))) = h

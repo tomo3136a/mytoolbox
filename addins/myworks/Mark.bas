@@ -62,11 +62,11 @@ Private Sub SetRevMark(v As String, Optional id As Integer)
 End Sub
 
 '版数マーク追加
-Private Sub AddRevMark(ra As Range, comment As String)
+Private Sub AddRevMark(ra As Range, Comment As String)
     Dim s As String
     s = GetRtParam("rev", "text")
     If s = "" Then Exit Sub
-    Call DrawRevMark(Selection, s, 1 + LastRevIndex(s), comment)
+    Call DrawRevMark(Selection, s, 1 + LastRevIndex(s), Comment)
 End Sub
 
 '指定した版数の最大個別図形番号取得
@@ -97,7 +97,7 @@ Private Function LastRevIndex(s As String) As Integer
 End Function
 
 '版数マークの図形配置
-Private Sub DrawRevMark(ra As Range, rev As String, id As Integer, comment As String)
+Private Sub DrawRevMark(ra As Range, rev As String, id As Integer, Comment As String)
     If id < 1 Then id = 1
     '
     Dim ce As Range
@@ -115,7 +115,7 @@ Private Sub DrawRevMark(ra As Range, rev As String, id As Integer, comment As St
     Set sh = ws.Shapes.AddShape(msoShapeIsoscelesTriangle, x, y, dx, dy)
     
     Dim a As String
-    a = Trim(comment)
+    a = Trim(Comment)
     a = UpdateParamStr(a, "rev", rev)
     a = UpdateParamStr(a, "idx", CStr(id))
     

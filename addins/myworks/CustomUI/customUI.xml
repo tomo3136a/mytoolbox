@@ -85,12 +85,15 @@
             <button id="b18.3" onAction="works18_onAction" label="名前一覧" imageMso="NameDefineMenu" />
             <button id="b18.4" onAction="works18_onAction" label="リンク一覧" imageMso="AccessRelinkLists" />
             <button id="b18.5" onAction="works18_onAction" label="プロパティ一覧" imageMso="ShowCustomPropertiesPage" />
-            <button id="b18.6" onAction="works18_onAction" label="コメント一覧" imageMso="ShowNotesPage" />
-            <button id="b18.7" onAction="works18_onAction" label="ファイル一覧" imageMso="SharingOpenWssDocumentList" />
+            <button id="b18.6" onAction="works18_onAction" label="ノート一覧" imageMso="ShowNotesPage" />
+            <button id="b18.7" onAction="works18_onAction" label="コメント一覧" imageMso="ShowNotesPage" />
+            <button id="b18.8" onAction="works18_onAction" label="ｘｘｘ一覧" imageMso="SharingOpenWssDocumentList" />
+            <button id="b18.9" onAction="works18_onAction" label="ファイル一覧" imageMso="SharingOpenWssDocumentList" />
             <menuSeparator id="z18a" />
-            <button id="b18.8" onAction="works18_onAction" label="調査シート" />
+            <button id="b18.0" onAction="works18_onAction" label="調査シート" />
             <menuSeparator id="z18b" />
-            <toggleButton id="c18.1" onAction="works18_onChecked" getPressed="works18_getPressed" label="シート追加" />
+            <toggleButton id="c18.1" tag="sheet" onAction="works18_onChecked" getPressed="works18_getPressed" label="シート追加" />
+            <toggleButton id="c18.2" tag="info" onAction="works18_onChecked" getPressed="works18_getPressed" label="情報シート含む" />
           </menu>
           <menu id="m19" label="エクスポート" imageMso="TableExportMenu" >
             <button id="b19.1" onAction="works19_onAction" label="エクスポート(表)" imageMso="TableExportMenu"

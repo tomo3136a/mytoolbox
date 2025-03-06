@@ -107,8 +107,12 @@ Sub Waku(ByVal ra As Range, _
     End If
     If filter Then HeaderFilter rh
     '
-    If ra.Rows.Count > 1 Then Set ra = ra.Resize(ra.Rows.Count - 1).Offset(1)
-    If fit Then ra.Columns.AutoFit
+    Set ra = TableRange(TableHeaderRange(ra))
+    If fit Then
+        ra.Columns.ColumnWidth = 100
+        ra.Columns.AutoFit
+    End If
+
 End Sub
 
 'ˆÍ‚¢(ŠK‘w\‘¢)

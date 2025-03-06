@@ -58,11 +58,11 @@ Private Sub works_onLoad(ByVal Ribbon As IRibbonUI)
     On Error GoTo 0
     '
     '初期化
-    SetRtParam "path", 1, True      'リンクあり
-    SetRtParam "path", 2, True      'フォルダあり
-    SetRtParam "path", 3, True      '再帰あり
-    SetRtParam "info", 1, True      'シート追加
-    SetRtParam "mark", "color", 0   'マーカカラーは黄色
+    SetRtParam "path", 1, True          'リンクあり
+    SetRtParam "path", 2, True          'フォルダあり
+    SetRtParam "path", 3, True          '再帰あり
+    SetRtParam "info", "sheet", True    'シート追加
+    SetRtParam "mark", "color", 0       'マーカカラーは黄色
 End Sub
 
 Private Sub works_ShortcutKey1()
@@ -132,15 +132,15 @@ End Sub
 
 '情報取得
 Private Sub works18_onAction(ByVal control As IRibbonControl)
-    AddInfoSheet RibbonID(control)
+    AddInfoTable RibbonID(control)
 End Sub
 
 Private Sub works18_onChecked(ByRef control As IRibbonControl, ByRef pressed As Boolean)
-    SetRtParam "info", RibbonID(control), CStr(pressed)
+    SetRtParam "info", control.Tag, CStr(pressed)
 End Sub
 
 Private Sub works18_getPressed(control As IRibbonControl, ByRef returnedVal)
-    returnedVal = GetRtParamBool("info", RibbonID(control))
+    returnedVal = GetRtParamBool("info", control.Tag)
 End Sub
 
 'エクスポート

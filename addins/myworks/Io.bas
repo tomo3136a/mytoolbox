@@ -70,7 +70,7 @@ Private Sub ExportRangeToSpreadSheet(ra As Range, utf8 As Boolean)
 End Sub
 
 '選択範囲をリスト形式でエクスポート
-Private Sub ExportRangeToText(ra As Range, utf8 As Boolean)
+Private Sub ExportRangeToText_old(ra As Range, utf8 As Boolean)
     If Not IsArray(ra.Value) Then Exit Sub
     '
     Dim flt As String
@@ -88,6 +88,46 @@ Private Sub ExportRangeToText(ra As Range, utf8 As Boolean)
         If line <> "" Then Print #1, line
     Next rs
     Close #1
+End Sub
+
+'選択範囲をリスト形式でエクスポート
+' apnd:  追加の場合は True
+' frc:   強制上書きの場合は True
+' enc:   文字コード指定 Shift_JIS, UTF-8, EUC-JP, ISO-2022-JP
+' eol:   改行コード指定 -1:CRLF, 10:LF, 13:CR
+      
+Private Sub ExportRangeToText(ra As Range, _
+        Optional ByVal apnd As Boolean, _
+        Optional ByVal frc As Boolean, _
+        Optional ByVal enc As String = "Shift_JIS", _
+        Optional ByVal eol As Integer = -1)
+    If Not IsArray(ra.Value) Then Exit Sub
+    '
+    Dim flt As String, pth As String
+    flt = "テキストファイル,*.txt"
+    pth = GetIoSaveAsFilename(ActiveSheet.name, "txt", flt)
+    If pth = "" Then Exit Sub
+    '
+    Dim res As Variant
+    If fso.FileExists(pth) Then
+        res = MsgBox("既存ファイルがあります。上書きしますか？", vbYesNoCancel Or vbDefaultButton2)
+        If res = vbCancel Then Exit Sub
+        If res = vbYes Then frc = True
+        '
+        res = MsgBox("既存ファイルがあります。既存ファイルに追加しますか？", vbYesNoCancel Or vbDefaultButton2)
+        If res = vbCancel Then Exit Sub
+        If res = vbYes Then apnd = True
+    End If
+    '
+    res = MsgBox("文字コードはUTF-8ですか？", vbYesNoCancel Or vbDefaultButton2)
+    If res = vbCancel Then Exit Sub
+    If res = vbYes Then enc = "UTF-8"
+    '
+    res = MsgBox("改行コードはLFですか？", vbYesNoCancel Or vbDefaultButton2)
+    If res = vbCancel Then Exit Sub
+    If res = vbYes Then eol = 10
+    
+    WriteText ra, pth, apnd, frc, enc, eol
 End Sub
 
 '----------------------------------
