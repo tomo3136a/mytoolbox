@@ -1400,30 +1400,101 @@ End Sub
 '----------------------------------------
 
 '図面シートを追加
-Public Sub AddDrawingSheet(Optional sc As Integer = 25)
-    Dim fsu As Boolean
-    fsu = Application.ScreenUpdating
-    Application.ScreenUpdating = False
-    '
+Public Sub AddDrawingSheet()
     Dim ws As Worksheet
-    Set ws = ActiveSheet
-    '
-    ws.Cells.RowHeight = 20.3
-    ws.Cells.ColumnWidth = 8#
-    '
-    Application.ScreenUpdating = fsu
-    Exit Sub
-    '
-    If sc <= 680 Then
-        ws.Cells.RowHeight = 0.6 * sc
+    Set ws = Sheets.Add(After:=ActiveSheet)
+    ws.Cells.ColumnWidth = 2.5
+End Sub
+
+'配線図形
+Public Sub DrawLineToLine()
+    Dim ce As Range, ws As Worksheet
+    Set ce = ActiveCell
+    Set ws = ce.Worksheet
+    Call DrawLineToLine_1(ce, 1)
+    'Call DrawLineToLine_1(ce, 2)
+End Sub
+
+Private Sub DrawLineToLine_1(ByVal ce As Range, mode As Long)
+    Dim ws As Worksheet
+    Set ws = ce.Worksheet
+    
+    Dim sh As Shape
+    Dim fb As FreeformBuilder
+    
+    Dim ce2 As Range
+    Set ce2 = ce
+    Do While Left(ce2.Value, 1) = "#"
+        Set ce2 = ce2.Offset(-1)
+        Do While ce2.Row > 1 And ce2.Value = ""
+            Set ce2 = ce2.Offset(-1)
+        Loop
+    Loop
+    
+    Dim py(1 To 9) As Double
+    py(1) = ce2.Top
+    py(2) = ce2.Offset(1).Top
+    py(3) = ce2.Offset(2).Top
+    py(4) = ce2.Offset(3).Top
+    py(5) = ce2.Offset(4).Top
+    py(6) = ce2.Offset(5).Top
+    py(7) = ce2.Offset(6).Top
+    py(8) = ce2.Offset(7).Top
+    py(9) = ce2.Offset(8).Top
+    Dim yn As Long
+    yn = 1
+    
+    Dim re As Object
+    Set re = regex("[!#$%&()<>\[\]]")
+    
+    Dim y As Double, y0 As Double
+
+    Dim x1 As Double, x2 As Double, dx As Double, x As Double
+    Dim ss As String, s0 As String, s1 As String
+    Dim i As Long, m As Long
+    
+    ss = re.Replace(CStr(ce.Value), "")
+    m = Len(re.Replace(ss, ""))
+    Do While m > 0
+        x = ce.Left
+        If m < 1 Then m = 1
+        dx = (ce.Offset(, 1).Left - x) / m
+        For i = 1 To Len(ss)
+            s0 = s1: s1 = Mid(ss, i, 1)
+            Select Case s1
+            Case "1": yn = 1: y = py(yn)
+            Case "2": yn = 2: y = py(yn)
+            Case "3": yn = 3: y = py(yn)
+            Case "4": yn = 4: y = py(yn)
+            Case "5": yn = 5: y = py(yn)
+            Case "6": yn = 6: y = py(yn)
+            Case "7": yn = 7: y = py(yn)
+            Case "8": yn = 8: y = py(yn)
+            Case "9": yn = 9: y = py(yn)
+            Case "/": yn = IIf(yn > 1, yn - 1, yn): y = py(yn): y0 = y
+            Case "\": yn = IIf(yn < 9, yn + 1, yn): y = py(yn): y0 = y
+            End Select
+            
+            If fb Is Nothing Then
+                If y <> 0 Then Set fb = ws.Shapes.BuildFreeform(msoEditingAuto, x, y)
+            ElseIf y0 <> y Then
+                fb.AddNodes msoSegmentLine, msoEditingAuto, x, y
+            End If
+            x = x + dx
+            If Not fb Is Nothing And s1 <> "-" Then
+                fb.AddNodes msoSegmentLine, msoEditingAuto, x, y
+                y0 = y
+            End If
+        Next i
+        Set ce = ce.Offset(, 1)
+        ss = CStr(ce.Value)
+        m = Len(re.Replace(ss, ""))
+    Loop
+    
+    If Not fb Is Nothing And s1 = "-" Then
+        fb.AddNodes msoSegmentLine, msoEditingAuto, x, y
     End If
-    If sc <= 2560 Then
-        Dim w As Double
-        w = (sc - 7) / 10
-        If sc < 17 Then w = 0.059 * sc
-        ws.Cells.ColumnWidth = w
-    End If
-     '
-    Application.ScreenUpdating = fsu
+    If Not fb Is Nothing Then Set sh = fb.ConvertToShape
+    Set fb = Nothing
 End Sub
 

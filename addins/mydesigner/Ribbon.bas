@@ -144,6 +144,8 @@ Private Sub Designer4_onAction(ByVal control As IRibbonControl)
     Case 4: DrawItemDelete          '削除
     Case 5: DuplicateDrawItemSheet  '設定ローカル化
     Case 6: ImportDrawItemSheet     '設定シート取込
+    Case 7: AddDrawingSheet
+    Case 8: DrawLineToLine
     'Case 7: ToggleAddinBook
     End Select
     RefreshRibbon "c41"

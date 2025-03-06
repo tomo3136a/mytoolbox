@@ -65,8 +65,12 @@
                 <button id="b4.5" onAction="Designer4_onAction" label="シート複製" />
                 <button id="b4.6" onAction="Designer4_onAction" label="シート取込" />
                 <menuSeparator id="s42" />
-                <button id="b4.7" onAction="Designer4_onAction" label="リスト更新" imageMso="ObjectRotateFree" />
+                <button id="b4.9" onAction="Designer4_onAction" label="リスト更新" imageMso="ObjectRotateFree" />
               </menu>
+            </buttonGroup>
+            <buttonGroup id="g43">
+              <button id="b4.7" onAction="Designer4_onAction" label="方眼紙シート" imageMso="AccessTableEvents" />
+              <button id="b4.8" onAction="Designer4_onAction" label="配線図形" imageMso="ShapeConnectorStyleElbow" />
             </buttonGroup>
           </box>
         </group>
