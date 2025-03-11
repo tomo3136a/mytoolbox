@@ -252,7 +252,7 @@ Public Sub SetShapeStyle(Optional ByVal sr As ShapeRange)
         If TypeName(Selection) = "Range" Then Exit Sub
         Set sr = Selection.ShapeRange
     End If
-    Call SetShapeSetting(sr, 3)
+    Call SetShapeSetting(sr, &H33)
 End Sub
 
 '標準図形設定
@@ -277,7 +277,7 @@ Public Sub SetDefaultShapeStyle()
         .Delete
     End With
     With ws.Shapes.AddTextbox(msoTextOrientationDownward, 10, 10, 10, 10)
-        SetShapeSetting ws.Shapes.Range(.name), &H107
+        SetShapeSetting ws.Shapes.Range(.name), &H117
         .Delete
     End With
 End Sub
@@ -297,16 +297,22 @@ Private Sub SetShapeSetting(Optional ByVal sr As ShapeRange, Optional mode As In
     '設定(テキスト)
     If mode And 1 Then
         With sr.TextFrame2
-            'With .TextRange.Font
-            'End With
+            With .TextRange.Font.Fill
+                .Visible = msoTrue
+                .ForeColor.ObjectThemeColor = msoThemeColorText1
+                .ForeColor.TintAndShade = 0
+                .ForeColor.Brightness = 0
+                .Transparency = 0
+                .Solid
+            End With
             .MarginLeft = 1
             .MarginRight = 1
             .MarginTop = 1
             .MarginBottom = 1
             .AutoSize = msoAutoSizeNone
             .WordWrap = msoFalse
-            .VerticalAnchor = msoAnchorBottom
-            .HorizontalAnchor = msoAnchorNone
+            .VerticalAnchor = msoAnchorMiddle
+            .HorizontalAnchor = msoAnchorCenter
         End With
         With sr.TextFrame
             .VerticalOverflow = xlOartVerticalOverflowOverflow
@@ -332,6 +338,22 @@ Private Sub SetShapeSetting(Optional ByVal sr As ShapeRange, Optional mode As In
             .Visible = msoTrue
         End With
     End If
+    If mode And &H10 Then
+        With sr.Fill
+            .Visible = msoTrue
+            .ForeColor.ObjectThemeColor = msoThemeColorBackground1
+            .ForeColor.TintAndShade = 0
+            .ForeColor.Brightness = 0
+            .Transparency = 0
+            .Solid
+            .Visible = msoFalse
+        End With
+        With sr.line
+            .Visible = msoTrue
+            .Weight = 1
+            .Visible = msoTrue
+        End With
+    End If
     
     '設定(サイズとプロパティ)
     If mode And 4 Then
@@ -340,6 +362,10 @@ Private Sub SetShapeSetting(Optional ByVal sr As ShapeRange, Optional mode As In
         For Each sh In sr
             sh.Placement = xlMove
         Next sh
+    End If
+    If mode And &H20 Then
+        sr.TextFrame2.AutoSize = msoAutoSizeShapeToFitText
+        sr.TextFrame2.Orientation = msoTextOrientationHorizontal
     End If
     '
     '設定(代替え文字)
@@ -1408,11 +1434,9 @@ End Sub
 
 '配線図形
 Public Sub DrawLineToLine()
-    Dim ce As Range, ws As Worksheet
+    Dim ce As Range
     Set ce = ActiveCell
-    Set ws = ce.Worksheet
     Call DrawLineToLine_1(ce, 1)
-    'Call DrawLineToLine_1(ce, 2)
 End Sub
 
 Private Sub DrawLineToLine_1(ByVal ce As Range, mode As Long)
@@ -1421,80 +1445,142 @@ Private Sub DrawLineToLine_1(ByVal ce As Range, mode As Long)
     
     Dim sh As Shape
     Dim fb As FreeformBuilder
+    Dim ns As Collection
+    Set ns = New Collection
     
+    'データ範囲取得
+    Dim ra As Range
+    Set ra = ws.Range(ce, ce.End(xlToRight).Offset(, 1))
+    
+    '描画位置補正
     Dim ce2 As Range
     Set ce2 = ce
-    Do While Left(ce2.Value, 1) = "#"
+    Do While Left(ce2.Value, 1) = "!"
         Set ce2 = ce2.Offset(-1)
-        Do While ce2.Row > 1 And ce2.Value = ""
-            Set ce2 = ce2.Offset(-1)
-        Loop
     Loop
+    If ce2.Value = "" Then Set ce2 = ce2.Offset(1)
     
-    Dim py(1 To 9) As Double
-    py(1) = ce2.Top
-    py(2) = ce2.Offset(1).Top
-    py(3) = ce2.Offset(2).Top
-    py(4) = ce2.Offset(3).Top
-    py(5) = ce2.Offset(4).Top
-    py(6) = ce2.Offset(5).Top
-    py(7) = ce2.Offset(6).Top
-    py(8) = ce2.Offset(7).Top
-    py(9) = ce2.Offset(8).Top
-    Dim yn As Long
-    yn = 1
+    '状態位置取得
+    Dim py(0 To 9) As Double
+    Dim i As Long, j As Long
+    j = 1
+    For i = 0 To 9
+        py(i) = ce2.Offset(j).Top
+        If ce2.Row + j > 1 Then j = j - 1
+    Next i
     
     Dim re As Object
-    Set re = regex("[!#$%&()<>\[\]]")
-    
-    Dim y As Double, y0 As Double
+    Set re = regex("[!#=.\[\]]")
 
-    Dim x1 As Double, x2 As Double, dx As Double, x As Double
-    Dim ss As String, s0 As String, s1 As String
-    Dim i As Long, m As Long
+    Dim x As Double, dx As Double, x0 As Double, x1 As Double, x2 As Double
+    Dim y As Double, dy As Double, y0 As Double, y1 As Double, y2 As Double
     
-    ss = re.Replace(CStr(ce.Value), "")
-    m = Len(re.Replace(ss, ""))
-    Do While m > 0
-        x = ce.Left
-        If m < 1 Then m = 1
-        dx = (ce.Offset(, 1).Left - x) / m
+    Dim xi As Double, yi As Double, yj As Double
+    Dim yn As Long
+    
+    Dim ss As String, s As String, s0 As String
+    Dim b_skip As Boolean
+    Dim b_close As Boolean
+    
+    xi = ra.Left: yi = -1
+    
+    For Each ce In ra
+        ss = CStr(ce.Value)
+        i = Len(re.Replace(ss, ""))
+        x = ce.Left: dx = (ce.Offset(, 1).Left - x) / IIf(i < 1, 1, i)
+        x1 = x: x2 = x1 + dx
+        '
         For i = 1 To Len(ss)
-            s0 = s1: s1 = Mid(ss, i, 1)
-            Select Case s1
-            Case "1": yn = 1: y = py(yn)
-            Case "2": yn = 2: y = py(yn)
-            Case "3": yn = 3: y = py(yn)
-            Case "4": yn = 4: y = py(yn)
-            Case "5": yn = 5: y = py(yn)
-            Case "6": yn = 6: y = py(yn)
-            Case "7": yn = 7: y = py(yn)
-            Case "8": yn = 8: y = py(yn)
-            Case "9": yn = 9: y = py(yn)
-            Case "/": yn = IIf(yn > 1, yn - 1, yn): y = py(yn): y0 = y
-            Case "\": yn = IIf(yn < 9, yn + 1, yn): y = py(yn): y0 = y
+            s0 = s: s = Mid(ss, i, 1)
+            x0 = x: If Not re.Test(s) Then x = x + dx
+            '
+            ' (x0,y0,s0)-(x1,y1,s)-[x,y,s]-(x2,y2,s)
+            '0-9: レベル
+            '-: 前を引き継ぐ
+            '<: 位置保存
+            '>: 位置保存
+            '=: 位置保存
+            Select Case s
+            Case "0", "1", "2", "3", "4": yn = CLng(s): y = py(yn)
+            Case "5", "6", "7", "8", "9": yn = CLng(s): y = py(yn)
+            Case "\": yn = IIf(yn > 0, yn - 1, yn): y1 = y: y = py(yn): y0 = y
+            Case "/": yn = IIf(yn < 9, yn + 1, yn): y1 = y: y = py(yn): y0 = y
+            Case "=": xi = x0: y = y0: yn = yn Xor 1: yi = py(yn)
+            Case "[": xi = x0: yi = y
+            Case "<": xi = x0: yi = y
+            Case ".": b_close = True
             End Select
             
-            If fb Is Nothing Then
-                If y <> 0 Then Set fb = ws.Shapes.BuildFreeform(msoEditingAuto, x, y)
-            ElseIf y0 <> y Then
+            If s = "x" Then
+                If yi < 0 Then y = py(yn): yn = yn Xor 1: y0 = py(yn): yi = y0
+                If fb Is Nothing Then
+                    Set fb = ws.Shapes.BuildFreeform(msoEditingAuto, x0, y)
+                End If
+                fb.AddNodes msoSegmentLine, msoEditingAuto, x0, y
+                fb.AddNodes msoSegmentLine, msoEditingAuto, x, yi
+                Set sh = fb.ConvertToShape
+                ns.Add sh.name
+                Set fb = ws.Shapes.BuildFreeform(msoEditingAuto, xi, yi)
+                fb.AddNodes msoSegmentLine, msoEditingAuto, x0, yi
                 fb.AddNodes msoSegmentLine, msoEditingAuto, x, y
+                xi = x: x0 = x
             End If
-            x = x + dx
-            If Not fb Is Nothing And s1 <> "-" Then
-                fb.AddNodes msoSegmentLine, msoEditingAuto, x, y
+            
+            If x0 <> xi And y = yi And yi <> -1 And s <> "-" Then
+                If Not fb Is Nothing Then
+                    fb.AddNodes msoSegmentLine, msoEditingAuto, x0, y
+                    fb.AddNodes msoSegmentLine, msoEditingAuto, xi, y
+                    Set sh = fb.ConvertToShape
+                    ns.Add sh.name
+                    Set fb = Nothing
+                End If
+                xi = x0
+                y = yi: yi = -1
+            End If
+            
+            If fb Is Nothing Then
+                If y <> 0 Then
+                    Set fb = ws.Shapes.BuildFreeform(msoEditingAuto, xi, y)
+                End If
+            ElseIf y <> y0 Then
+                fb.AddNodes msoSegmentLine, msoEditingAuto, x0, y
+            End If
+            '
+            If InStr("-<>[", s) = 0 Then
+                If Not fb Is Nothing Then
+                    fb.AddNodes msoSegmentLine, msoEditingAuto, x, y
+                End If
                 y0 = y
             End If
+            
+            '切断処理
+            If b_close Then
+                b_close = False
+                If Not fb Is Nothing Then
+                    Set sh = fb.ConvertToShape
+                    ns.Add sh.name
+                    Set fb = ws.Shapes.BuildFreeform(msoEditingAuto, x, y)
+                End If
+            End If
+            
         Next i
-        Set ce = ce.Offset(, 1)
-        ss = CStr(ce.Value)
-        m = Len(re.Replace(ss, ""))
-    Loop
+    Next ce
     
-    If Not fb Is Nothing And s1 = "-" Then
+    If Not fb Is Nothing Then
         fb.AddNodes msoSegmentLine, msoEditingAuto, x, y
+        Set sh = fb.ConvertToShape
+        ns.Add sh.name
+        Set fb = Nothing
     End If
-    If Not fb Is Nothing Then Set sh = fb.ConvertToShape
-    Set fb = Nothing
+    If x <> xi And yi <> -1 Then
+        Set fb = ws.Shapes.BuildFreeform(msoEditingAuto, xi, yi)
+        fb.AddNodes msoSegmentLine, msoEditingAuto, x, yi
+        Set sh = fb.ConvertToShape
+        ns.Add sh.name
+        Set fb = Nothing
+    End If
+
+    If ns.Count > 1 Then Set sh = ws.Shapes.Range(ColToArr(ns)).Group
+
 End Sub
 
