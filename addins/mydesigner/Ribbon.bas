@@ -88,10 +88,10 @@ Private Sub Designer1_onAction(ByVal control As IRibbonControl)
     Case 0
         Select Case no
         Case 1: SetDefaultShapeStyle        '標準図形設定
-        Case 2: 'DefaultShapeSetting
+        Case 2:
         Case 3: RemoveSharps                '図形削除
         Case 4: ConvertToPicture            '図形を絵に変換
-        Case 5: SetShapeStyle               'テキストボックス基本設定
+        Case 5: SetTextBoxStyle             'テキストボックス基本設定
         Case 6: ToggleVisible 0             '塗りつぶし表示ON/OFF
         Case 7: ToggleVisible 3             '3D表示ON/OFF
         Case 8                              '原点取得

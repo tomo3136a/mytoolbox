@@ -245,57 +245,59 @@ End Function
 '図形基本設定
 '----------------------------------------
 
-'図形基本設定
-'[3] テキスト, 塗りつぶしと線
-Public Sub SetShapeStyle(Optional ByVal sr As ShapeRange)
-    If sr Is Nothing Then
-        If TypeName(Selection) = "Range" Then Exit Sub
-        Set sr = Selection.ShapeRange
-    End If
-    Call SetShapeSetting(sr, &H33)
+'テキストボックス基本設定
+Public Sub SetTextBoxStyle()
+    If TypeName(Selection) = "Range" Then Exit Sub
+    Call SetShapeSetting(Selection.ShapeRange, &H33)
 End Sub
 
 '標準図形設定
-Public Sub DefaultShapeSetting(Optional ByVal sr As ShapeRange)
-    If sr Is Nothing Then
-        If TypeName(Selection) = "Range" Then Exit Sub
-        Set sr = Selection.ShapeRange
-    End If
-    Call SetShapeSetting(sr, 511)
+Public Sub DefaultShapeSetting()
+    If TypeName(Selection) = "Range" Then Exit Sub
+    Call SetShapeSetting(Selection.ShapeRange, &H37)
 End Sub
 
+'図形基本設定
+'[3] テキスト, 塗りつぶしと線
 Public Sub SetDefaultShapeStyle()
     Dim ws As Worksheet
     Set ws = ActiveSheet
-    Dim sh As Shape
+    '
     With ws.Shapes.AddShape(msoShapeOval, 10, 10, 10, 10)
         SetShapeSetting ws.Shapes.Range(.name), &H107
         .Delete
     End With
+    '
     With ws.Shapes.AddLine(10, 10, 20, 20)
         SetShapeSetting ws.Shapes.Range(.name), &H107
         .Delete
     End With
+    '
     With ws.Shapes.AddTextbox(msoTextOrientationDownward, 10, 10, 10, 10)
-        SetShapeSetting ws.Shapes.Range(.name), &H117
+        SetShapeSetting ws.Shapes.Range(.name), &H137
         .Delete
     End With
 End Sub
 
 '----------------------------------------
 '図形基本設定
-'[1] テキスト
-'[2] 塗りつぶしと線
+'[1] 設定(テキスト)
+'[2] 設定(塗りつぶしと線)
 '[4] サイズとプロパティ
 '[8] 代替え文字
+'[16]
+'[32]
 '[256] デフォルト設定
-Private Sub SetShapeSetting(Optional ByVal sr As ShapeRange, Optional mode As Integer = 255)
+Private Sub SetShapeSetting( _
+        Optional ByVal sr As ShapeRange, _
+        Optional mode As Integer = 255 _
+    )
     
     Dim sh As Shape
     On Error Resume Next
     
     '設定(テキスト)
-    If mode And 1 Then
+    If (mode And 1) Then
         With sr.TextFrame2
             With .TextRange.Font.Fill
                 .Visible = msoTrue
@@ -320,25 +322,29 @@ Private Sub SetShapeSetting(Optional ByVal sr As ShapeRange, Optional mode As In
         End With
     End If
     
-    '設定(塗りつぶしと線)
-    If mode And 2 Then
+    '設定(塗りつぶし)
+    If (mode And 2) Then
         With sr.Fill
             .Visible = msoTrue
-            '.ForeColor.RGB = RGB(255, 0, 0)
             .ForeColor.ObjectThemeColor = msoThemeColorBackground1
             .ForeColor.TintAndShade = 0
             .ForeColor.Brightness = 0
             .Transparency = 0
             .Solid
-            '.Visible = msoFalse
         End With
+    End If
+    
+    '設定(線)
+    If (mode And 2) Then
         With sr.line
             .Visible = msoTrue
             .Weight = 1
             .Visible = msoTrue
         End With
     End If
-    If mode And &H10 Then
+    
+    '設定(線)
+    If (mode And &H10) Then
         With sr.Fill
             .Visible = msoTrue
             .ForeColor.ObjectThemeColor = msoThemeColorBackground1
@@ -356,27 +362,29 @@ Private Sub SetShapeSetting(Optional ByVal sr As ShapeRange, Optional mode As In
     End If
     
     '設定(サイズとプロパティ)
-    If mode And 4 Then
+    If (mode And 4) Then
         sr.LockAspectRatio = msoTrue
         sr.Placement = xlMove
         For Each sh In sr
             sh.Placement = xlMove
         Next sh
     End If
-    If mode And &H20 Then
+    
+    'デフォルトに設定
+    If (mode And &H20) Then
         sr.TextFrame2.AutoSize = msoAutoSizeShapeToFitText
         sr.TextFrame2.Orientation = msoTextOrientationHorizontal
     End If
-    '
+    
     '設定(代替え文字)
-    If mode And 8 Then
+    If (mode And &H8) Then
         For Each sh In sr
             sh.AlternativeText = sh.name
         Next sh
     End If
     
     'デフォルト設定
-    If mode And 256 Then sr.SetShapesDefaultProperties
+    If (mode And &H100) Then sr.SetShapesDefaultProperties
 
     On Error GoTo 0
 
@@ -574,31 +582,31 @@ End Sub
 '部品登録
 Sub DrawItemEntry()
     
-    If TypeName(Selection) = "Range" Then Exit Sub
+    If TypeName(Selection) = "Range" Then
+        MsgBox "部品を選択してください。", vbOKOnly, app_name
+        Exit Sub
+    End If
     Dim ws As Worksheet
-    Set ws = GetSheet("#shapes", ThisWorkbook)
+    Set ws = GetSheet("#shapes", ThisWorkbook, True)
     
     '登録位置を計算
-    Dim ce As Range
-    Dim r As Long
+    Dim r As Long, i As Long
     Dim sh As Shape
     For Each sh In ws.Shapes
-        Set ce = sh.BottomRightCell
-        If ce.Row > r Then r = ce.Row
+        i = sh.BottomRightCell.Row
+        If i > r Then r = i
     Next sh
+    Dim ce As Range
     Set ce = ws.Cells(r + 2, 2)
-
 
     '部品化
     Dim sr As ShapeRange
     Set sr = Selection.ShapeRange
-    If sr.Count > 1 Then
-        Dim s As String
-        s = InputBox("名前を入力してください。")
-        If s = "" Then Exit Sub
-        sr.Group
-        sr.name = s
-    End If
+    If sr.Count > 1 Then sr.Group
+    Dim s As String
+    s = InputBox("名前を入力してください。", app_name, sr.name)
+    If s = "" Then Exit Sub
+    sr.name = s
     UpdateShapeName sr
     sr.LockAspectRatio = msoTrue
     For Each sh In sr
@@ -642,16 +650,20 @@ Sub AddDrawItem()
     Set ws = GetSheet("#shapes")
     If ws Is Nothing Then Exit Sub
     
+    ws.Shapes(g_part).Copy
+    
     Dim ra As Range
     If TypeName(Selection) = "Range" Then
-        Set ra = Selection
+        Set ra = Selection(1, 1)
     Else
         Set ra = Selection.TopLeftCell
     End If
     
-    ws.Shapes(g_part).Copy
+    ScreenUpdateOn
+    ScreenUpdateOff
     ra.Worksheet.Paste
     UpdateShapeName Selection.ShapeRange
+    ScreenUpdateOn
 
 End Sub
 
@@ -1450,6 +1462,7 @@ Private Sub DrawLineToLine_1(ByVal ce As Range, mode As Long)
     
     'データ範囲取得
     Dim ra As Range
+    If ce.Offset(1) = "" Then Exit Sub
     Set ra = ws.Range(ce, ce.End(xlToRight).Offset(, 1))
     
     '描画位置補正

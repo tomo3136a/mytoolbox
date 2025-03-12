@@ -34,25 +34,28 @@ Public Sub eof()
 End Sub
 
 
+Public Function app_name() As String
+    app_name = "Designer"
+End Function
 
 
 '-------------------------------------
 
-Private Sub SetDefaultShapeStyle(sh As Shape)
-    With sh
-        With .TextFrame2
-            .MarginLeft = 0
-            .MarginRight = 0
-            .MarginTop = 0
-            .MarginBottom = 0
-            .VerticalAnchor = msoAnchorBottom
-            .HorizontalAnchor = msoAnchorNone
-            .WordWrap = msoFalse
-        End With
-        .TextFrame.VerticalOverflow = xlOartVerticalOverflowOverflow
-        .TextFrame.HorizontalOverflow = xlOartHorizontalOverflowOverflow
-    End With
-End Sub
+'Private Sub DefaultShapeStyle(sh As Shape)
+'    With sh
+'        With .TextFrame2
+'            .MarginLeft = 0
+'            .MarginRight = 0
+'            .MarginTop = 0
+'            .MarginBottom = 0
+'            .VerticalAnchor = msoAnchorBottom
+'            .HorizontalAnchor = msoAnchorNone
+'            .WordWrap = msoFalse
+'        End With
+'        .TextFrame.VerticalOverflow = xlOartVerticalOverflowOverflow
+'        .TextFrame.HorizontalOverflow = xlOartHorizontalOverflowOverflow
+'    End With
+'End Sub
 
 Private Function ArrayToCollection( _
         arr As Variant, s As String, _
