@@ -192,10 +192,13 @@ End Sub
 Private Sub Designer5_onAction(ByVal control As IRibbonControl)
     Select Case RibbonID(control)
     Case 1: DrawIDF                     'IDF作図
-    Case 2: ImportIDF                   'IDFファイル読み込み
-    Case 3: ExportIDF                   'IDFファイル書き出し
-    Case 4: AddRecordIDF                'IDF行追加
-    Case 5: AddRecordIDF 1                'IDF行追加
+    Case 2: AddSheetIDF                 'IDFシート追加
+    Case 3: MacroIDF                    'IDFマクロ
+    Case 4: ImportIDF                   'IDFファイル読み込み
+    Case 5: ExportIDF                   'IDFファイル書き出し
+    Case 6: AddRecordIDF                'IDF行追加
+    Case 7: AddRecordIDF 1              'IDF行追加
+    Case 8: AddRecordIDF 2              'IDF行追加
     End Select
 End Sub
 

@@ -13,7 +13,9 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-
+'==================================
+'ダイアログ
+'==================================
 
 Option Explicit
 
@@ -21,6 +23,10 @@ Private sFileName As String
 Private sTool As String
 Private sDate As String
 Private iVer As Long
+
+'==================================
+'イベント
+'==================================
 
 Private Sub CommandButtonLib_Click()
     Dim sht As Worksheet
@@ -60,16 +66,8 @@ End Sub
 
 Private Sub AddButton_Click()
     If TestData() Then Exit Sub
-    
-    Dim ce As Range
-    Set ce = TableLeftTop(ActiveCell)
-    If ce.Value = "" Then
-        Set ce = ce.Parent.Cells(1, 1)
-        Call AddHeader(ce)
-    End If
-    Set ce = LeftBottom(ce)
-    ce.Offset(1).Select
-    Call WriteData(ce)
+    Call NextRowSelect
+    Call WriteData(Selection)
     ComboBoxRef.Value = ""
     ComboBoxRef.SetFocus
 End Sub
@@ -77,9 +75,9 @@ End Sub
 Private Sub UserForm_Initialize()
     TextBoxZ.Value = 0
     TextBoxA.Value = 0
-    sFileName = "-"
-    sTool = "-"
-    sDate = "10/22/96.16:41:37"
+    sFileName = ActiveSheet.name
+    sTool = "designer"
+    sDate = Format(Now(), "MM/dd/yy.hh:mm:ss")
     iVer = 1
     
     Call ComboBoxRef.AddItem("")
@@ -102,17 +100,9 @@ Private Sub UserForm_Initialize()
     If Not s = "" Then TextBoxLib.Value = s
 End Sub
 
-Private Sub NextRowSelect()
-    Dim ce As Range
-    Set ce = TableLeftTop(ActiveCell)
-    If ce.Value = "" Then
-        Set ce = ce.Parent.Cells(1, 1)
-        Call AddHeader(ce)
-    End If
-    Set ce = LeftBottom(ce)
-    ce.Offset(1).Select
-End Sub
-
+'==================================
+'データ更新
+'==================================
 
 Private Sub UpdateComboBox(src As Object, dst As Object)
     If src.ListIndex < 0 Then Exit Sub
@@ -149,9 +139,12 @@ Private Sub AddItemFromRange(o As Object, c As Long)
     Next v
 End Sub
 
+'==================================
+'テスト
+'==================================
+
 Private Function TestRef() As Boolean
     
-
 End Function
 
 Private Function TestData() As Boolean
@@ -174,8 +167,28 @@ Private Sub TestBlank(b As Boolean, o As Object)
     b = True
 End Sub
 
+'==================================
+'検索
+'==================================
+
+Private Sub NextRowSelect()
+    Dim ce As Range
+    Set ce = TableLeftTop(ActiveCell)
+    If ce.Value = "" Then
+        Set ce = ce.Parent.Cells(1, 1)
+        Call AddHeader(ce)
+    End If
+    Set ce = LeftBottom(TableRange(ce))
+    ce.Offset(1).Select
+End Sub
+
+'==================================
+'書き出し
+'==================================
+
 Private Sub WriteData(ce As Range)
     AddRecord ce
+    ce.Select
 End Sub
 
 Private Sub AddHeader(ce As Range)
@@ -190,8 +203,7 @@ End Sub
 Private Sub AddRecord(ce As Range)
     Dim rec(0 To 23) As Variant
     rec(0) = sFileName
-    rec(1) = "BOARD_FILE"
-    If CheckBoxPanel = True Then rec(1) = "PANEL_FILE"
+    rec(1) = IIf(CheckBoxPanel = True, "PANEL_FILE", "BOARD_FILE")
     rec(2) = 3#
     rec(3) = sTool
     rec(4) = sDate
@@ -214,8 +226,7 @@ Private Sub AddRecord(ce As Range)
     rec(21) = CDbl(TextBoxA.Value)
     rec(22) = ""
     rec(23) = ""
-    
-    Set ce = ce.Offset(1)
     ce.Resize(1, 24).Value = rec
+    Set ce = ce.Offset(1)
 End Sub
 

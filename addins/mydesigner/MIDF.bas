@@ -113,7 +113,7 @@ Private g_flag(0 To 10) As Boolean  'モードフラグ
 
 'IDFパラメータ初期化
 Sub IDF_ResetParam(Optional id As Integer)
-    If id = 0 Or id = 1 Then g_scale = 0.1
+    If id = 0 Or id = 1 Then g_scale = 1
     If id <> 0 And id <> 2 Then Exit Sub
     Dim i As Integer
     For i = 1 To UBound(g_flag)
@@ -157,9 +157,43 @@ Function IDF_IsFlag(id As Integer) As Boolean
     IDF_IsFlag = g_flag(id)
 End Function
 
+
 '----------------------------------------
-'IDF読み込み
+'IDFマクロ
 '----------------------------------------
+
+'IDFマクロ
+Public Sub MacroIDF()
+
+End Sub
+
+'----------------------------------------
+'IDFシート操作
+'----------------------------------------
+
+'IDFシート作成
+Public Sub AddSheetIDF()
+
+    'シート名入力
+    Dim s_name As String
+    s_name = InputBox("シート名を入力してください。", app_name)
+    If s_name = "" Then Exit Sub
+    If InStr(s_name, ".") = 0 Then s_name = s_name & ".emn"
+    
+    'ワークシート作成
+    Dim ws As Worksheet
+    Set ws = Worksheets.Add(After:=Worksheets(Worksheets.Count))
+    ws.name = UniqueSheetName(ws.Parent, s_name)
+    ws.Range("C:C").NumberFormatLocal = "#0.0###"
+    ws.Range("M:N").NumberFormatLocal = "#0.0###"
+    ws.Range("W:Y").NumberFormatLocal = "#0.0###"
+    
+    'ヘッダー行作成
+    Dim vh As Variant
+    vh = Split(FHDR, ",")
+    ws.Cells(1, 1).Resize(1, 1 + UBound(vh)).Value = vh
+
+End Sub
 
 'IDFファイルを読み込み、シート作成
 Public Sub ImportIDF()
@@ -168,26 +202,6 @@ Public Sub ImportIDF()
     Dim path As String
     path = GetRtParam("IDF", "path")
     If path = "" Then path = ActiveWorkbook.path
-    
-    'Dim list_name As String
-    'list_name = GetRtParam("IDF", "list_name", "@IDF")
-    
-    '管理シート作成
-    'Dim list_ws As Worksheet
-    'On Error Resume Next
-    'Set list_ws = ActiveWorkbook.Worksheets(list_name)
-    'On Error GoTo 0
-    'If list_ws Is Nothing Then
-    '    Set list_ws = ActiveWorkbook.Worksheets.Add
-    '    list_ws.name = list_name
-    'End If
-
-    '管理テーブル作成
-    'Dim list_ce As Range
-    'Set list_ce = FindCell("IDF", ActiveCell)
-    'If list_ce Is Nothing Then
-    '    Set list_ce = list_ws.Cells(2, 2)
-    'End If
     
     'ファイル選択
     With Application.FileDialog(msoFileDialogOpen)
@@ -210,30 +224,6 @@ Public Sub ImportIDF()
             Dim ws As Worksheet
             ImportIDF_1 CStr(v), ws
             If ws Is Nothing Then Exit Sub
-            
-            'Dim ce As Range
-            'Set ce = FindCell("IDF", list_ws.Cells(1, 1))
-            'If ce Is Nothing Then
-            '    Dim r As Long
-            '    r = list_ws.UsedRange.Row + list_ws.UsedRange.Rows.Count
-            '    Set ce = list_ws.Cells(r + 2, 2)
-            '    ce.Value = "IDF"
-            '
-            '    Dim vs As Variant
-            '    vs = Split("name,sheet,note", ",")
-            '    Dim i As Integer
-            '    With ce.Offset(2)
-            '        For i = 0 To UBound(vs)
-            '            .Offset(, i).Value = vs(i)
-            '        Next i
-            '    End With
-            'End If
-            'Set ce = ce.Offset(3)
-            'Do Until ce.Value = ""
-            '    Set ce = ce.Offset(1)
-            'Loop
-            'ce.Value = ws.name
-            'ce.Offset(, 1).Value = ws.name
         Next v
         
         '画面チラつき防止処置解除
@@ -794,6 +784,9 @@ Public Sub AddRecordIDF(Optional mode As Long)
     Case 1
         IDF_PlaceForm.Show
         Unload IDF_PlaceForm
+    Case 2
+        IDF_PanelForm.Show
+        Unload IDF_PanelForm
     End Select
 End Sub
 
@@ -887,6 +880,8 @@ Private Sub LoadDesign(name As String, lib As Dictionary)
     Set ra = Nothing
     Set ws = Nothing
     
+    convertToMM arr
+    
     'ライブラリ名取得
     Dim rmax As Long, r As Long
     rmax = UBound(arr, 1)
@@ -935,6 +930,38 @@ Private Sub LoadDesign(name As String, lib As Dictionary)
     End If
     
 End Sub
+
+'-------------------------------------
+'描画配列がinchならmmに変換
+
+Private Sub convertToMM(arr As Variant)
+
+    Dim r As Long, c As Long
+    
+    For r = 1 To UBound(arr, 1)
+        If arr(r, FID.N_UNITS) = "THOU" Then
+            arr(r, FID.N_UNITS) = "MM"
+            c = FID.N_HEIGHT
+            If TypeName(arr(r, c)) = "Double" Then
+                arr(r, c) = arr(r, c) * 0.0254
+            End If
+            c = FID.N_LENGTH
+            If TypeName(arr(r, c)) = "Double" Then
+                arr(r, c) = arr(r, c) * 0.0254
+            End If
+            c = FID.N_XPOS
+            If TypeName(arr(r, c)) = "Double" Then
+                arr(r, c) = arr(r, c) * 0.0254
+            End If
+            c = FID.N_YPOS
+            If TypeName(arr(r, c)) = "Double" Then
+                arr(r, c) = arr(r, c) * 0.0254
+            End If
+        End If
+    Next r
+
+End Sub
+
 
 '-------------------------------------
 
@@ -1176,6 +1203,7 @@ Private Function DrawOrigin( _
     dx = dra(4)
     dy = dra(5)
     w = 50
+    w = 10
     
     Dim tw As Double
     Dim tx As Double
@@ -1185,7 +1213,7 @@ Private Function DrawOrigin( _
     ty = y0 - sc * w
     
     Dim sh As Shape
-    Set sh = ws.Shapes.AddShape(msoShapeFlowchartOr, tx, ty, tw, tw)
+    Set sh = ws.Shapes.AddShape(msoShapeRightTriangle, tx, ty, tw, tw)
     With sh
         .LockAspectRatio = msoTrue
         .Placement = xlMove

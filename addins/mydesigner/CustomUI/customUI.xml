@@ -77,10 +77,15 @@
         <group id="g5" label="IDF" imageMso="ComAddInsDialog">
           <button id="b5.1" onAction="Designer5_onAction" label="描画" imageMso="ShapesMoreShapes" size="large" />
           <menu id="m51" label="その他" >
-            <button id="b5.4" onAction="Designer5_onAction" label="部品追加" imageMso="ShapesMoreShapes" />
-            <button id="b5.5" onAction="Designer5_onAction" label="部品配置" imageMso="ShapesMoreShapes" />
-            <button id="b5.2" onAction="Designer5_onAction" label="読み込み" imageMso="GetExternalDataImportClassic" />
-            <button id="b5.3" onAction="Designer5_onAction" label="エクスポート" imageMso="ExportTextFile" />
+            <button id="b5.2" onAction="Designer5_onAction" label="シート追加" imageMso="CreateQueryFromWizard" />
+            <button id="b5.3" onAction="Designer5_onAction" label="マクロ" imageMso="ControlWizards" />
+            <menuSeparator id="s51" />
+            <button id="b5.6" onAction="Designer5_onAction" label="部品追加" imageMso="ShapesMoreShapes" />
+            <button id="b5.7" onAction="Designer5_onAction" label="部品配置" imageMso="ShapesMoreShapes" />
+            <button id="b5.8" onAction="Designer5_onAction" label="パネル追加" imageMso="ShapesMoreShapes" />
+            <menuSeparator id="s52" />
+            <button id="b5.4" onAction="Designer5_onAction" label="読み込み" imageMso="GetExternalDataImportClassic" />
+            <button id="b5.5" onAction="Designer5_onAction" label="エクスポート" imageMso="ExportTextFile" />
           </menu>
           <!-- <editBox id="e5.1" onChange="Designer5_onChange" label="比率" getText="Designer5_getText" sizeString="wwwww" />
           <checkBox id="c5.1" onAction="Designer5_onActionPressed" label="A面" getPressed="Designer5_getPressed" />

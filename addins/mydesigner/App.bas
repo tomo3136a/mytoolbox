@@ -79,3 +79,16 @@ Private Function ArrayToCollection( _
 
 End Function
 
+Sub Macro1()
+    Dim ws As Worksheet
+    Set ws = ActiveSheet
+    
+    Dim sh As Shape
+    Dim sr As ShapeRange
+    With ws.Shapes
+        Set sh = .AddShape(msoShapeRightTriangle, 300, 250, 10, 10)
+        Set sr = ws.Shapes.Range(Array(sh.name))
+        sr.LockAspectRatio = msoTrue
+    End With
+End Sub
+

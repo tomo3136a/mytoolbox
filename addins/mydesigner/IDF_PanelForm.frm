@@ -1,19 +1,18 @@
 VERSION 5.00
-Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} IDF_PartForm 
-   Caption         =   "部品追加"
+Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} IDF_PanelForm 
+   Caption         =   "パネル追加"
    ClientHeight    =   4065
    ClientLeft      =   -45
    ClientTop       =   -150
    ClientWidth     =   3525
-   OleObjectBlob   =   "IDF_PartForm.frx":0000
+   OleObjectBlob   =   "IDF_PanelForm.frx":0000
    StartUpPosition =   1  'オーナー フォームの中央
 End
-Attribute VB_Name = "IDF_PartForm"
+Attribute VB_Name = "IDF_PanelForm"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-
 '==================================
 'ダイアログ
 '==================================
@@ -50,13 +49,27 @@ Private Sub AddButton_Click()
     Call NextRowSelect
     Call WriteData(Selection)
     TextBoxGeo.Value = ""
-    TextBoxNum.Value = ""
     TextBoxGeo.SetFocus
 End Sub
 
 Private Sub UserForm_Initialize()
+    Call ComboBoxType.AddItem("PANEL")
+    Call ComboBoxType.AddItem("BOARD")
     Call ComboBoxUnit.AddItem("MM")
     Call ComboBoxUnit.AddItem("THOU")
+    Call ComboBoxSect.AddItem("BOARD_OUTLINE")
+    Call ComboBoxSect.AddItem("PANEL_OUTLINE")
+    Call ComboBoxSect.AddItem("OTHER_OUTLINE")
+    Call ComboBoxSect.AddItem("ROUTE_OUTLINE")
+    Call ComboBoxSect.AddItem("PLACE_OUTLINE")
+    Call ComboBoxSect.AddItem("ROUTE_KEEPOUT")
+    Call ComboBoxSect.AddItem("PLACE_KEEPOUT")
+    Call ComboBoxSect.AddItem("VIA_KEEPOUT")
+    TextBoxXPos = 0
+    TextBoxYPos = 0
+    TextBoxW.Value = 100
+    TextBoxL.Value = 100
+    TextBoxH.Value = 1.6
     sFileName = ActiveSheet.name
     sTool = "designer"
     sDate = Format(Now(), "MM/dd/yy.hh:mm:ss")
@@ -74,7 +87,8 @@ End Function
 Private Function TestData() As Boolean
     Dim e As Boolean
     TestBlank e, TextBoxGeo
-    TestBlank e, TextBoxNum
+    TestBlank e, TextBoxXPos
+    TestBlank e, TextBoxYPos
     TestBlank e, TextBoxH
     TestBlank e, TextBoxW
     TestBlank e, TextBoxL
@@ -110,22 +124,27 @@ End Sub
 
 Private Sub WriteData(ce As Range)
     Dim s As String
-    Dim w As Double, l As Double
+    Dim w As Double, l As Double, x As Double, y As Double
     s = Trim(TextBoxW.Value)
     If s = "" Then Exit Sub
     w = s
     s = Trim(TextBoxL.Value)
     If s = "" Then Exit Sub
     l = s
+    s = Trim(TextBoxXPos.Value)
+    If s = "" Then Exit Sub
+    x = s
+    s = Trim(TextBoxYPos.Value)
+    If s = "" Then Exit Sub
+    y = s
     
     If Trim(TextBoxGeo.Value) = "" Then Exit Sub
-    If Trim(TextBoxNum.Value) = "" Then Exit Sub
     
-    Call AddRecord(ce, 0, -w / 2, -l / 2)
-    Call AddRecord(ce, 1, w / 2, -l / 2)
-    Call AddRecord(ce, 2, w / 2, l / 2)
-    Call AddRecord(ce, 3, -w / 2, l / 2)
-    Call AddRecord(ce, 4, -w / 2, -l / 2)
+    Call AddRecord(ce, 0, x, y)
+    Call AddRecord(ce, 1, x + w, y)
+    Call AddRecord(ce, 2, x + w, y + l)
+    Call AddRecord(ce, 3, x, y + l)
+    Call AddRecord(ce, 4, x, y)
     ce.Select
 End Sub
 
@@ -139,19 +158,22 @@ Private Sub AddHeader(ce As Range)
 End Sub
 
 Private Sub AddRecord(ce As Range, i As Long, x As Double, y As Double)
+    Dim mode As Long
+    mode = IIf(ComboBoxType = "LIBRARY", 0, 1)
+    
     Dim rec(0 To 23) As Variant
     rec(0) = sFileName
-    rec(1) = "LIBRARY_FILE"
+    rec(1) = ComboBoxType.Value & "_FILE"
     rec(2) = 3#
     rec(3) = sTool
     rec(4) = sDate
     rec(5) = iVer
-    rec(6) = ""
+    rec(6) = Trim(TextBoxGeo.Value)
     rec(7) = ComboBoxUnit.Value
-    rec(8) = ""
-    rec(9) = IIf(CheckBoxMecanical.Value = True, "MECANICAL", "ELECTRICAL")
-    rec(10) = Trim(TextBoxGeo.Value)
-    rec(11) = Trim(TextBoxNum.Value)
+    rec(8) = IIf(CheckBoxMecanical.Value = True, "MCAD", "ECAD")
+    rec(9) = Trim(ComboBoxSect.Value)
+    rec(10) = ""
+    rec(11) = ""
     rec(12) = val(TextBoxH.Value)
     rec(13) = ""
     rec(14) = ""
