@@ -15,32 +15,18 @@ Private g_select As Integer
 
 'リボンを更新
 Private Sub RefreshRibbon(Optional id As String)
-    If g_ribbon Is Nothing Then Exit Sub
-    If id = "" Then
-        g_ribbon.Invalidate
-    Else
-        g_ribbon.InvalidateControl id
+    If g_ribbon Is Nothing Then
+    ElseIf id = "" Then g_ribbon.Invalidate
+    Else: g_ribbon.InvalidateControl id
     End If
     DoEvents
 End Sub
 
 'リボンID番号取得
-Private Function RibbonID(control As IRibbonControl) As Integer
-    Dim s As String
-    s = control.Tag
-    If s = "" Then s = control.id
+Private Function RibbonID(control As IRibbonControl, Optional n As Long) As Long
     Dim vs As Variant
-    vs = Split(s, ".")
-    If UBound(vs) >= 0 Then
-        RibbonID = val("0" & vs(UBound(vs)))
-        Exit Function
-    End If
-    vs = Split(s, "_")
-    If UBound(vs) >= 0 Then
-        RibbonID = val("0" & vs(UBound(vs)))
-        Exit Function
-    End If
-    RibbonID = val(s)
+    vs = Split(re_replace(control.id, "[^0-9.]", ""), ".")
+    If UBound(vs) >= n Then RibbonID = val("0" & vs(UBound(vs) - n))
 End Function
 
 '----------------------------------------
@@ -79,25 +65,29 @@ End Sub
 '図形操作機能
 '----------------------------------------
 
+Private Sub Draw_onAction(ByVal control As IRibbonControl)
+    Select Case RibbonID(control, 1)
+    Case 1: Draw1_Menu RibbonID(control)
+    End Select
+End Sub
+
 Private Sub Designer1_onAction(ByVal control As IRibbonControl)
-    Dim id As Integer: id = RibbonID(control)
-    Dim no As Integer: no = id Mod 10
-    Dim v As Variant
-    
-    Select Case id \ 10
-    Case 0
-        Select Case no
-        Case 1: SetDefaultShapeStyle        '標準図形設定
-        Case 2:
-        Case 3: RemoveSharps                '図形削除
-        Case 4: ConvertToPicture            '図形を絵に変換
-        Case 5: SetTextBoxStyle             'テキストボックス基本設定
-        Case 6: ToggleVisible 0             '塗りつぶし表示ON/OFF
-        Case 7: ToggleVisible 3             '3D表示ON/OFF
-        Case 8                              '原点取得
-            v = GetShapeProperty(Selection.ShapeRange, "zero")
-        Case 9: UpdateShapeName ActiveSheet '図形名一括更新
-        End Select
+    Select Case RibbonID(control, 1)
+    Case 1: Draw1_Menu RibbonID(control)
+    End Select
+End Sub
+
+Private Sub Draw1_Menu(id As Long, Optional opt As Variant)
+    Select Case id
+    Case 1: SetDefaultShapeStyle        '標準図形設定
+    Case 2:
+    Case 3: RemoveSharps                '図形削除
+    Case 4: ConvertToPicture            '図形を絵に変換
+    Case 5: SetTextBoxStyle             'テキストボックス基本設定
+    Case 6: ToggleVisible 0             '塗りつぶし表示ON/OFF
+    Case 7: ToggleVisible 3             '3D表示ON/OFF
+    Case 8: OriginAlignment             '原点合わせ
+    Case 9: UpdateShapeName ActiveSheet '図形名一括更新
     End Select
 End Sub
 
@@ -109,19 +99,19 @@ End Sub
 '----------------------------------------
 
 Private Sub Designer2_onAction(ByVal control As IRibbonControl)
-    Dim id As Integer: id = RibbonID(control)
-    Dim no As Integer: no = id Mod 10
-    Dim v As Variant
-    Select Case id \ 10
-    Case 1: AddListShapeHeader ActiveCell, no   'ヘッダ項目追加
-    Case 2
-        Select Case no
-        Case 1: ListShapeInfo               '一覧取得
-        Case 2: AddShapeListName            '名前追加
-        Case 3: ApplyShapeInfo ActiveCell   '図形情報適用
-        Case 4: SelectShapeName             '図形名選択
-        Case 5: UpdateShapeInfo             'データ取得
-        End Select
+    Select Case RibbonID(control, 1)
+    Case 2: Draw2_Menu RibbonID(control)
+    Case 3: Draw3_Menu RibbonID(control)
+    End Select
+End Sub
+
+Private Sub Draw2_Menu(id As Long, Optional opt As Variant)
+    Select Case id
+    Case 1: ListShapeInfo               '一覧取得
+    Case 2: AddShapeListName            '名前追加
+    Case 3: ApplyShapeInfo ActiveCell   '図形情報適用
+    Case 4: SelectShapeName             '図形名選択
+    Case 5: UpdateShapeInfo             'データ取得
     End Select
 End Sub
 
@@ -130,6 +120,10 @@ End Sub
 '
 '----------------------------------------
 
+Private Sub Draw3_Menu(id As Long, Optional opt As Variant)
+    AddListShapeHeader ActiveCell, id   'ヘッダ項目追加
+End Sub
+
 '----------------------------------------
 ''■機能グループ4
 '部品配置機能
@@ -137,7 +131,14 @@ End Sub
 
 '図形アイテム
 Private Sub Designer4_onAction(ByVal control As IRibbonControl)
-    Select Case RibbonID(control)
+    Select Case RibbonID(control, 1)
+    Case 4: Draw4_Menu RibbonID(control)
+    End Select
+    RefreshRibbon "c41"
+End Sub
+
+Private Sub Draw4_Menu(id As Long, Optional opt As Variant)
+    Select Case id
     Case 1: AddDrawItem             '配置
     Case 2: CopyDrawItem            'コピー
     Case 3: DrawItemEntry           '登録
@@ -148,7 +149,6 @@ Private Sub Designer4_onAction(ByVal control As IRibbonControl)
     Case 8: DrawLineToLine
     'Case 7: ToggleAddinBook
     End Select
-    RefreshRibbon "c41"
 End Sub
 
 '部品選択
@@ -190,7 +190,13 @@ End Sub
 '----------------------------------------
 
 Private Sub Designer5_onAction(ByVal control As IRibbonControl)
-    Select Case RibbonID(control)
+    Select Case RibbonID(control, 1)
+    Case 5: Draw5_Menu RibbonID(control)
+    End Select
+End Sub
+
+Private Sub Draw5_Menu(id As Long, Optional opt As Variant)
+    Select Case id
     Case 1: DrawIDF                     'IDF作図
     Case 2: AddSheetIDF                 'IDFシート追加
     Case 3: MacroIDF                    'IDFマクロ
@@ -199,6 +205,9 @@ Private Sub Designer5_onAction(ByVal control As IRibbonControl)
     Case 6: AddRecordIDF                'IDF行追加
     Case 7: AddRecordIDF 1              'IDF行追加
     Case 8: AddRecordIDF 2              'IDF行追加
+    Case 10: ResetShapeSize             'サイズ修正
+    Case 11: ResizeShapeScale           'スケール変更
+    Case 12: FlipShapes                 '表裏反転
     End Select
 End Sub
 

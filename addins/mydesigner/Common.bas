@@ -100,16 +100,66 @@ Function re_extract(col As Variant, ptn As String) As Variant
 End Function
 
 '----------------------------------------
+'文字列操作
+'----------------------------------------
+
+'固定長フォーマット文字列
+Function FixedFormat(v As Variant, Optional n As Integer = 16, Optional c As String) As String
+    Dim s As String
+    If n > 0 Then
+        s = Right(space(n) & Format(v, "0.0"), n)
+    Else
+        s = Left(Format(v, "0.0") & space(-n), -n)
+    End If
+    If c <> "" Then s = Replace(s, " ", c)
+    FixedFormat = s
+End Function
+
+'右寄せフォーマット文字列
+Function RightAlignedFormat(s As Variant, Optional n As Integer = 16) As String
+    RightAlignedFormat = Right(space(n) & Format(s, "0.0"), n)
+End Function
+
+'左寄せフォーマット文字列
+Function LeftAlignedFormat(s As Variant, Optional n As Integer = 16) As String
+    LeftAlignedFormat = Left(Format(s, "0.0") & space(n), n)
+End Function
+
+'領域の値文字列取得
+Function StrRange(s As String) As String
+    Dim ra As Range
+    Set ra = Range(s)
+    If ra.Count = 1 Then
+        StrRange = s
+        Exit Function
+    End If
+    
+    Dim n As Integer
+    n = ra.Column + ra.Columns.Count - 1
+    
+    Dim ss As String
+    Dim ce As Range
+    For Each ce In ra
+        ss = ss & Chr(34) & ce.Value & Chr(34)
+        ss = ss & IIf(n = ce.Column, vbLf, ",")
+    Next ce
+    StrRange = Left(ss, Len(ss) - 1)
+End Function
+
+'----------------------------------------
 'コレクション操作
 '----------------------------------------
 
 'コレクションから名前を指定して検索(配列は除く)
-Function SearchName(col As Object, sname As String) As Object
+Function SearchName(col As Object, s As String, Optional ByVal n As Long) As Object
     Dim v As Object
     For Each v In col
-        If v.name = sname Then
-            Set SearchName = v
-            Exit Function
+        If v.name Like s Then
+            n = n - 1
+            If n < 0 Then
+                Set SearchName = v
+                Exit Function
+            End If
         End If
     Next v
     Set SearchName = Nothing
@@ -366,30 +416,6 @@ Function TakeArray(arr() As String, Optional p As Integer, Optional n As Integer
     Next i
     TakeArray = sa
 
-End Function
-
-'----------------------------------------
-'領域の値文字列取得
-'----------------------------------------
-
-Function StrRange(s As String) As String
-    If Range(s).Count = 1 Then
-        StrRange = s
-        Exit Function
-    End If
-    Dim n As Integer
-    n = Range(s).Column + Range(s).Columns.Count - 1
-    Dim ra As Range
-    Dim ss As String
-    For Each ra In Range(s)
-        ss = ss & Chr(34) & ra.Value & Chr(34)
-        If n = ra.Column Then
-            ss = ss & vbLf
-        Else
-            ss = ss & ","
-        End If
-    Next ra
-    StrRange = Left(ss, Len(ss) - 1)
 End Function
 
 '----------------------------------------

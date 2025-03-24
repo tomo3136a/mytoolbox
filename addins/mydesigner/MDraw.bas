@@ -110,7 +110,7 @@ Private pshapetypename As Variant   '図形タイプテーブル
 '描画パラメータ初期化
 Public Sub Draw_ResetParam(Optional id As Integer)
     If id = 0 Or id = 1 Then g_mask = ""
-    If id = 0 Or id = 2 Then g_scale = 0.1
+    If id = 0 Or id = 2 Then g_scale = 1
     If id = 0 Or id = 3 Then g_axes = 10
     If id = 0 Or id = 4 Then g_part = ""
     If id = 0 Or id = 5 Then g_flag = 1 + 2
@@ -119,43 +119,50 @@ End Sub
 '描画パラメータ設定
 Public Sub Draw_SetParam(id As Integer, ByVal val As String)
     Select Case id
-    Case 1: g_mask = val
     Case 2
         If val <= 0 Then
             MsgBox "比率の設定が間違っています。(設定値>0)" & Chr(10) _
                 & "設定値： " & val
             Exit Sub
         End If
-        g_scale = val
     Case 3
         If val <= 0 Then
             MsgBox "目盛りの設定が間違っています。(設定値>0)" & Chr(10) _
                 & "設定値： " & val
             Exit Sub
         End If
-        g_axes = val
+    End Select
+    
+    Select Case id
+    Case 1: g_mask = val
+    Case 2: g_scale = val
+    Case 3: g_axes = val
     Case 4: g_part = val
     End Select
 End Sub
 
 '描画パラメータ取得
 Public Function Draw_GetParam(id As Integer) As String
+    Dim msg As String
     Select Case id
-    Case 1: Draw_GetParam = g_mask
     Case 2
         If g_scale <= 0 Then
             Draw_ResetParam id
-            MsgBox "比率の設定を初期化しました。(設定値" & g_scale & ")"
+            msg = "比率の設定を初期化しました。(設定値" & g_scale & ")"
         End If
-        Draw_GetParam = g_scale
     Case 3
         If g_axes <= 0 Then
             Draw_ResetParam id
-            MsgBox "目盛りの設定を初期化しました。(設定値" & g_axes & ")"
+            msg = "目盛りの設定を初期化しました。(設定値" & g_axes & ")"
         End If
-        Draw_GetParam = g_axes
-    Case 4
-        Draw_GetParam = g_part
+    End Select
+    If msg <> "" Then MsgBox msg
+    
+    Select Case id
+    Case 1: Draw_GetParam = g_mask
+    Case 2: Draw_GetParam = g_scale
+    Case 3: Draw_GetParam = g_axes
+    Case 4: Draw_GetParam = g_part
     End Select
 End Function
 
@@ -236,7 +243,6 @@ Private Function FormatColor(v As ColorFormat) As String
     Dim s As String
     s = Right("00000000" & Hex(v), 6)
     s = "#" & Mid(s, 5, 2) & Mid(s, 3, 2) & Mid(s, 1, 2)
-    'FormatColor = s & " " & v.Type & " " & v.SchemeColor & " " & v.ObjectThemeColor & " " & v.Brightness
     If v.ObjectThemeColor > 0 Then s = s & " " & v.ObjectThemeColor & Format(v.Brightness, "+0%;-0%;"""";@")
     FormatColor = s
 End Function
@@ -495,7 +501,15 @@ End Sub
 Public Sub ConvertToPicture()
     
     '対象選択
-    If TypeName(Selection) = "Range" Then Exit Sub
+    If TypeName(Selection) = "Range" Then
+        MsgBox "図形を選択してください。"
+        Exit Sub
+    End If
+    If TypeName(Selection) = "DrawingObjects" Then
+        MsgBox "複数の図形は選択できません。"
+        Exit Sub
+    End If
+    
     Dim sr As ShapeRange
     Set sr = Selection.ShapeRange
     If sr Is Nothing Then Exit Sub
@@ -531,7 +545,48 @@ Public Sub PasteShapeNameList()
     Dim sr As ShapeRange
     Set sr = Selection.ShapeRange
     If sr Is Nothing Then Exit Sub
+
+End Sub
+
+'原点合わせ
+Public Sub OriginAlignment()
     
+    If TypeName(Selection) = "Range" Then Exit Sub
+    
+    'オブジェクトコレクション作成
+    Dim col As Collection
+    Set col = New Collection
+    Dim obj As Object
+    If TypeName(Selection) = "DrawingObjects" Then
+        For Each obj In Selection
+            col.Add obj
+        Next obj
+    Else
+        col.Add Selection
+    End If
+    
+    '左下セル取得
+    Dim s As String
+    Dim ce As Range
+    Dim x0 As Double, y0 As Double, y As Double
+    Dim r As Long, c As Long
+    For Each obj In col
+        Set ce = obj.TopLeftCell
+        y = obj.Top + obj.Height
+        Do While y > ce.Top
+            Set ce = ce.Offset(1)
+        Loop
+        If r = 0 Or r < ce.Row Then r = ce.Row
+        If c = 0 Or c > ce.Column Then c = ce.Column
+    Next obj
+    Set ce = ce.Worksheet.Cells(r, c)
+    
+    '左下位置に移動
+    For Each obj In col
+        obj.Left = ce.Left
+        obj.Top = ce.Top - obj.Height
+    Next obj
+    ce.Select
 
 End Sub
 
@@ -721,7 +776,7 @@ End Sub
 '----------------------------------------
 
 'ヘッダ追加
-Public Sub AddListShapeHeader(ByVal ce As Range, Optional mode As Integer)
+Public Sub AddListShapeHeader(ByVal ce As Range, Optional mode As Long)
     
     'テーブル項目取得
     Dim dic As Dictionary
@@ -788,7 +843,7 @@ Public Sub AddListShapeHeader(ByVal ce As Range, Optional mode As Integer)
 End Sub
 
 'ヘッダ追加
-Public Sub AddShapeHeader(ByVal ce As Range, Optional mode As Integer)
+Public Sub AddShapeHeader(ByVal ce As Range, Optional mode As Long)
     
     'テーブル項目取得
     Dim dic As Dictionary
@@ -1157,7 +1212,7 @@ Public Sub LinkedSheet(ws As Worksheet, s As String)
 End Sub
 
 '文字列から行配列を取得
-Sub StringToRow(arr() As String, info As String, Optional mode As Integer = 0)
+Sub StringToRow(arr() As String, info As String, Optional mode As Long = 0)
     
     Dim dic As Dictionary
     ArrStrToDict dic, info
@@ -1299,7 +1354,7 @@ Private Function ShapeValue(sh As Shape, k As String, Optional ts As String) As 
     
     Case "TOP": v = sh.Top
     Case "LEFT": v = sh.Left
-    Case "BACK": v = sh.ThreeD.z
+    Case "BACK": v = sh.ThreeD.Z
     Case "ROTATION": v = sh.Rotation
     
     Case "HEIGHT": v = sh.Height
@@ -1309,11 +1364,9 @@ Private Function ShapeValue(sh As Shape, k As String, Optional ts As String) As 
     Case "VISIBLE": v = CBool(sh.Visible)
     
     Case "LINEVISIBLE": v = CBool(sh.line.Visible)
-    'Case "LINECOLOR": v = FormatRGB(sh.line.ForeColor)
     Case "LINECOLOR": v = FormatColor(sh.line.ForeColor)
     
     Case "FILLVISIBLE": v = CBool(sh.Fill.Visible)
-    'Case "FILLCOLOR": v = FormatRGB(sh.Fill.ForeColor)
     Case "FILLCOLOR": v = FormatColor(sh.Fill.ForeColor)
     Case "TRANSPARENCY": v = sh.Fill.Transparency
     
@@ -1348,7 +1401,7 @@ Private Sub ApplyShapeValue(sh As Shape, k As String, ByVal v As Variant)
     
     Case "TOP": sh.Top = CSng(v)
     Case "LEFT": sh.Left = CSng(v)
-    Case "BACK": sh.ThreeD.z = CSng(v)
+    Case "BACK": sh.ThreeD.Z = CSng(v)
     Case "ROTATION": sh.Rotation = CSng(v)
     
     Case "HEIGHT": sh.Height = CSng(v)

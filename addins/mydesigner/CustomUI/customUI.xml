@@ -5,7 +5,6 @@
       <tab id="TabDesigner" label="作図" insertAfterQ="TabAddIns">
         <group id="g1" label="図形操作" imageMso="ComAddInsDialog">
           <button id="b1.1" onAction="Designer1_onAction" label="標準図形設定" imageMso="ObjectFormatDialog" size="large" />
-          <!-- <button id="b1.3" onAction="Designer1_onAction" label="図形削除" imageMso="Clear" /> -->
           <button id="b1.4" onAction="Designer1_onAction" label="絵に変換" imageMso="SelectionPane" />
           <button id="b1.5" onAction="Designer1_onAction" label="テキストボックス基本設定" imageMso="SObjectFormatDialog" />
           <button id="b1.6" onAction="Designer1_onAction" label="塗りつぶし表示ON/OFF" imageMso="SObjectFormatDialog" />
@@ -15,7 +14,7 @@
               <control idQ="_3DRotationOptionsDialog" visible="true" />
             </menu>
           </splitButton>
-          <button id="b1.8" onAction="Designer1_onAction" label="原点" imageMso="SelectionPane" />
+          <button id="b1.8" onAction="Designer1_onAction" label="原点合わせ" imageMso="SelectionPane" />
           <button id="b1.9" onAction="Designer1_onAction" label="図形名更新" imageMso="SelectionPane" />
           <control idQ="ObjectFlipHorizontal" visible="true" />
           <control idQ="ObjectFlipVertical" visible="true" />
@@ -28,24 +27,24 @@
           <box id="g21" boxStyle="vertical">
             <editBox id="c2.1" onChange="Designer_onChange" label="名前:" getText="Designer_getText" sizeString="wwwwwwwwwww" />
             <buttonGroup id="g22">
-              <button id="b2.21" onAction="Designer2_onAction" label="一覧" imageMso="CreateTableInDesignView" />
-              <button id="b2.23" onAction="Designer2_onAction" label="更新" imageMso="Refresh" />
-              <button id="b2.24" onAction="Designer2_onAction" label="選択" imageMso="SelectionPane" />
+              <button id="b2.1" onAction="Designer2_onAction" label="一覧" imageMso="CreateTableInDesignView" />
+              <button id="b2.3" onAction="Designer2_onAction" label="更新" imageMso="Refresh" />
+              <button id="b2.4" onAction="Designer2_onAction" label="選択" imageMso="SelectionPane" />
             </buttonGroup>
-            <buttonGroup id="g23">
-              <button id="b2.25" onAction="Designer2_onAction" label="データ取得" imageMso="CreateTableInDesignView" />
+            <buttonGroup id="g3">
+              <button id="b2.5" onAction="Designer2_onAction" label="データ取得" imageMso="CreateTableInDesignView" />
               <menu id="m211" label="項目追加">
-                <button id="b2.22" onAction="Designer2_onAction" label="名前" imageMso="PlayMacro" />
-                <menuSeparator id="s21" />
-                <button id="b2.11" onAction="Designer2_onAction" label="形状" imageMso="PlayMacro" />
-                <button id="b2.12" onAction="Designer2_onAction" label="位置" imageMso="PlayMacro" />
-                <button id="b2.13" onAction="Designer2_onAction" label="サイズ" imageMso="PlayMacro" />
-                <button id="b2.14" onAction="Designer2_onAction" label="表示" imageMso="PlayMacro" />
-                <button id="b2.15" onAction="Designer2_onAction" label="枠線" imageMso="PlayMacro" />
-                <button id="b2.16" onAction="Designer2_onAction" label="塗りつぶし" imageMso="PlayMacro" />
-                <button id="b2.17" onAction="Designer2_onAction" label="テキスト" imageMso="PlayMacro" />
-                <button id="b2.18" onAction="Designer2_onAction" label="代替え" imageMso="PlayMacro" />
-                <button id="b2.19" onAction="Designer2_onAction" label="属性" imageMso="PlayMacro" />
+                <button id="b2.2" onAction="Designer2_onAction" label="名前" imageMso="PlayMacro" />
+                <menuSeparator id="s31" />
+                <button id="b3.1" onAction="Designer2_onAction" label="形状" imageMso="PlayMacro" />
+                <button id="b3.2" onAction="Designer2_onAction" label="位置" imageMso="PlayMacro" />
+                <button id="b3.3" onAction="Designer2_onAction" label="サイズ" imageMso="PlayMacro" />
+                <button id="b3.4" onAction="Designer2_onAction" label="表示" imageMso="PlayMacro" />
+                <button id="b3.5" onAction="Designer2_onAction" label="枠線" imageMso="PlayMacro" />
+                <button id="b3.6" onAction="Designer2_onAction" label="塗りつぶし" imageMso="PlayMacro" />
+                <button id="b3.7" onAction="Designer2_onAction" label="テキスト" imageMso="PlayMacro" />
+                <button id="b3.8" onAction="Designer2_onAction" label="代替え" imageMso="PlayMacro" />
+                <button id="b3.9" onAction="Designer2_onAction" label="属性" imageMso="PlayMacro" />
               </menu>
             </buttonGroup>
           </box>
@@ -87,6 +86,9 @@
             <button id="b5.4" onAction="Designer5_onAction" label="読み込み" imageMso="GetExternalDataImportClassic" />
             <button id="b5.5" onAction="Designer5_onAction" label="エクスポート" imageMso="ExportTextFile" />
           </menu>
+          <button id="b5.10" onAction="Designer5_onAction" label="サイズ修正" imageMso="GroupPositionLayout" />
+          <button id="b5.11" onAction="Designer5_onAction" label="スケール修正" imageMso="OrgChartScale" />
+          <button id="b5.12" onAction="Designer5_onAction" label="表裏反転" imageMso="DiagramReverseClassic" />
           <!-- <editBox id="e5.1" onChange="Designer5_onChange" label="比率" getText="Designer5_getText" sizeString="wwwww" />
           <checkBox id="c5.1" onAction="Designer5_onActionPressed" label="A面" getPressed="Designer5_getPressed" />
           <checkBox id="c5.2" onAction="Designer5_onActionPressed" label="B面" getPressed="Designer5_getPressed" />

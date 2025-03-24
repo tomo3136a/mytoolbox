@@ -205,9 +205,10 @@ Function SelectBook(Optional ptn As String) As Workbook
 End Function
 
 'ワークシート選択
-Function SelectSheet(Optional wb As Workbook, Optional ptn As String) As Worksheet
+Function SelectSheet(Optional wb As Workbook, Optional ptn As String, Optional Title As String, Optional msg As String) As Worksheet
     If wb Is Nothing Then Set wb = ActiveWorkbook
-    SelectForm.reset "シート", ptn
+    SelectForm.reset IIf(msg <> "", msg, "シート"), ptn
+    SelectForm.Title = IIf(Title <> "", Title, SelectForm.Title)
     SelectForm.AddNames wb.Worksheets
     If SelectForm.ItemCount > 0 Then SelectForm.Show
     Dim s As String

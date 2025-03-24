@@ -9,6 +9,35 @@ Attribute VB_Name = "App"
 Option Explicit
 Option Private Module
 
+Public Sub eof()
+    ScreenUpdateOn
+End Sub
+
+'----------------------------------------
+'基本
+'----------------------------------------
+
+'アプリケーション情報
+Public Function app_name() As String
+    app_name = "Designer"
+End Function
+
+'----------------------------------------
+'
+'----------------------------------------
+
+
+Public Sub Sample()
+ 
+  Range("A1").Select
+  Workbooks.Add
+  If ActiveCell.Address(False, False) <> "A1" Then Range("A1").Select
+  Windows.CompareSideBySideWith "book1"
+  '----
+  Windows.BreakSideBySide
+   
+End Sub
+
 
 'パラメータ
 '  保存先：
@@ -24,19 +53,6 @@ Option Private Module
 '   シートパラメータ    シートに付随(参照は自動計算)
 '   図形パラメータ      図形に付随
 '
-
-'----------------------------------------
-'
-'----------------------------------------
-
-Public Sub eof()
-    ScreenUpdateOn
-End Sub
-
-
-Public Function app_name() As String
-    app_name = "Designer"
-End Function
 
 
 '-------------------------------------
@@ -78,17 +94,3 @@ Private Function ArrayToCollection( _
     Set ArrayToCollection = col
 
 End Function
-
-Sub Macro1()
-    Dim ws As Worksheet
-    Set ws = ActiveSheet
-    
-    Dim sh As Shape
-    Dim sr As ShapeRange
-    With ws.Shapes
-        Set sh = .AddShape(msoShapeRightTriangle, 300, 250, 10, 10)
-        Set sr = ws.Shapes.Range(Array(sh.name))
-        sr.LockAspectRatio = msoTrue
-    End With
-End Sub
-

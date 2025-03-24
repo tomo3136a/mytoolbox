@@ -169,14 +169,18 @@ End Sub
 
 '----------------------------------------
 'IDFシート操作
+'  1. IDFシート作成 AddSheetIDF(Optional ByVal s_name)
+'  2. IDFファイルを読み込み、シート作成 ImportIDF()
+'
 '----------------------------------------
 
 'IDFシート作成
-Public Sub AddSheetIDF()
+Public Sub AddSheetIDF(Optional ByVal s_name As String)
 
     'シート名入力(拡張子がない場合は.emnをつける)
-    Dim s_name As String
-    s_name = InputBox("シート名を入力してください。", app_name)
+    If s_name = "" Then
+        s_name = InputBox("シート名を入力してください。", app_name)
+    End If
     If s_name = "" Then Exit Sub
     If InStr(s_name, ".") = 0 Then s_name = s_name & ".emn"
     
@@ -199,9 +203,9 @@ End Sub
 Public Sub ImportIDF()
 
     'IDFパラメータ取得
-    Dim path As String
-    path = GetRtParam("IDF", "path")
-    If path = "" Then path = ActiveWorkbook.path
+    Dim pth As String
+    pth = GetRtParam("IDF", "path")
+    If pth = "" Then pth = ActiveWorkbook.path
     
     'ファイル選択
     With Application.FileDialog(msoFileDialogOpen)
@@ -211,7 +215,7 @@ Public Sub ImportIDF()
         .Filters.Add "library file", "*.emp,*.lib,*.ldf,*.idl"
         .Filters.Add "全てのファイル", "*.*"
         .FilterIndex = 1
-        .InitialFileName = path & "\"
+        .InitialFileName = pth & "\"
         .AllowMultiSelect = True
         If Not .Show Then Exit Sub
         
@@ -219,10 +223,9 @@ Public Sub ImportIDF()
         ScreenUpdateOff
         
         'ファイル読み込み
-        Dim ws As Worksheet
         Dim v As Variant
         For Each v In .SelectedItems
-            ImportIDF_1 CStr(v)
+            i_ImportIDF CStr(v)
         Next v
         
         '画面チラつき防止処置解除
@@ -231,23 +234,28 @@ Public Sub ImportIDF()
 
 End Sub
 
-Private Sub ImportIDF_1(ByVal path As String)
+Private Sub i_ImportIDF(ByVal pth As String)
     
     'ファイルを配列に読み込み
     Dim arr As Variant
-    ReadArrayIDF arr, path, True
+    ReadArrayIDF arr, pth
     If UBound(arr, 2) < 2 Then Exit Sub
     
     'ワークシート作成
     Dim ws As Worksheet
     Set ws = Worksheets.Add(After:=Worksheets(Worksheets.Count))
-    ws.name = UniqueSheetName(ws.Parent, fso.GetFileName(path))
+    ws.name = UniqueSheetName(ws.Parent, fso.GetFileName(pth))
     ws.Range("C:C").NumberFormatLocal = "#0.0###"
     ws.Range("M:N").NumberFormatLocal = "#0.0###"
     ws.Range("W:Y").NumberFormatLocal = "#0.0###"
     
+    'ワークシートにヘッダー行出力
+    Dim vh As Variant
+    vh = Split(FHDR, ",")
+    ws.Cells(1, 1).Resize(1, 1 + UBound(vh)).Value = vh
+    
     'ワークシートに出力
-    ws.Range("A1").Resize(UBound(arr, 1), UBound(arr, 2)).Value = arr
+    ws.Cells(2, 1).Resize(UBound(arr, 1), UBound(arr, 2)).Value = arr
 
 End Sub
 
@@ -256,25 +264,17 @@ End Sub
 '----------------------------------------
 
 'IDFファイルを読み込み、配列作成
-Private Sub ReadArrayIDF(arr As Variant, path As String, Optional hdr As Boolean)
+Private Sub ReadArrayIDF(arr As Variant, pth As String)
     
     Dim col As Collection
     Set col = New Collection
 
-    'ヘッダー行作成
-    Dim ccnt As Long
-    If hdr Then
-        Dim vh As Variant
-        vh = Split("," & FHDR, ",")
-        col.Add vh
-        ccnt = UBound(vh) + 1
-    End If
-    
     '読み込み
-    ReadIDF col, path
-    Dim rcnt As Long
+    ReadIDF col, pth
+    Dim rcnt As Long, ccnt As Long
     rcnt = col.Count
-    If rcnt < 2 Then Exit Sub
+    ccnt = UBound(col(1))
+    If rcnt < 1 Then Exit Sub
     
     '配列にコピー
     ReDim arr(1 To rcnt, 1 To ccnt)
@@ -290,12 +290,12 @@ Private Sub ReadArrayIDF(arr As Variant, path As String, Optional hdr As Boolean
 End Sub
 
 'IDFファイルを読み込み、コレクション作成
-Private Sub ReadIDF(col As Collection, path As String)
+Private Sub ReadIDF(col As Collection, pth As String)
     
-    SetRtParam "IDF", "path", fso.GetParentFolderName(path)
-    If Not fso.FileExists(path) Then Exit Sub
+    SetRtParam "IDF", "path", fso.GetParentFolderName(pth)
+    If Not fso.FileExists(pth) Then Exit Sub
     Dim file_name As String
-    file_name = fso.GetFileName(path)
+    file_name = fso.GetFileName(pth)
     
     'モードディクショナリ作成
     Dim mode As Dictionary
@@ -318,7 +318,7 @@ Private Sub ReadIDF(col As Collection, path As String)
     
     'ファイルを読み込み、行ごとに処理
     Dim st As Object
-    Set st = fso.GetFile(path).OpenAsTextStream
+    Set st = fso.GetFile(pth).OpenAsTextStream
     Do Until st.AtEndOfStream = True
         Dim mc As Object
         Set mc = re.Execute(st.Readline)
@@ -532,10 +532,8 @@ Public Sub ExportIDF()
     For Each ws In ActiveWindow.SelectedSheets
         
         '出力パスの選択
-        Dim name As String
-        Dim path As String
-        name = re_replace(ws.name, "\s*\(\d+\)$", "")
-        path = fso.BuildPath(root, name)
+        Dim pth As String
+        pth = fso.BuildPath(root, re_replace(ws.name, "\s*\(\d+\)$", ""))
         Dim flt As String
         flt = "IDF file,*.emn,IDF file,*.brd,IDF file,*.bdf,IDF file,*.idb"
         flt = flt & ",library file,*.emp,library file,*.lib"
@@ -543,16 +541,16 @@ Public Sub ExportIDF()
         flt = flt & ",all file,*.*"
         Dim idx As Integer
         idx = 9
-        If LCase(Right(path, 4)) = ".emn" Then idx = 1
-        If LCase(Right(path, 4)) = ".brd" Then idx = 2
-        If LCase(Right(path, 4)) = ".bdf" Then idx = 3
-        If LCase(Right(path, 4)) = ".idb" Then idx = 4
-        If LCase(Right(path, 4)) = ".emp" Then idx = 5
-        If LCase(Right(path, 4)) = ".lib" Then idx = 6
-        If LCase(Right(path, 4)) = ".ldf" Then idx = 7
-        If LCase(Right(path, 4)) = ".idl" Then idx = 8
-        path = Application.GetSaveAsFilename(path, flt, idx)
-        If path = "False" Then Exit Sub
+        If LCase(Right(pth, 4)) = ".emn" Then idx = 1
+        If LCase(Right(pth, 4)) = ".brd" Then idx = 2
+        If LCase(Right(pth, 4)) = ".bdf" Then idx = 3
+        If LCase(Right(pth, 4)) = ".idb" Then idx = 4
+        If LCase(Right(pth, 4)) = ".emp" Then idx = 5
+        If LCase(Right(pth, 4)) = ".lib" Then idx = 6
+        If LCase(Right(pth, 4)) = ".ldf" Then idx = 7
+        If LCase(Right(pth, 4)) = ".idl" Then idx = 8
+        pth = Application.GetSaveAsFilename(pth, flt, idx)
+        If pth = "False" Then Exit Sub
         
         'ファイル書き出し
         Dim ra As Range
@@ -560,16 +558,16 @@ Public Sub ExportIDF()
         If ra.Count > 2 Then
             Dim arr As Variant
             arr = ra.Value
-            WriteIDF path, arr
+            WriteIDF pth, arr
         End If
     Next ws
     
-    SetRtParam "IDF", "path", fso.GetParentFolderName(path)
+    SetRtParam "IDF", "path", fso.GetParentFolderName(pth)
 
 End Sub
 
 '配列からIDFファイル書き出し
-Private Sub WriteIDF(path As String, arr As Variant)
+Private Sub WriteIDF(pth As String, arr As Variant)
     
     'モードディクショナリ作成
     Dim mode As Dictionary
@@ -591,7 +589,7 @@ Private Sub WriteIDF(path As String, arr As Variant)
     Dim s1 As String
     Dim s As String
     
-    Open path For Output As #1
+    Open pth For Output As #1
     For r = 1 To UBound(arr, 1)
         
         'ヘッダ情報書き出し
@@ -613,8 +611,8 @@ Private Sub WriteIDF(path As String, arr As Variant)
                 line = line & "  " & arr(r, FID.N_FILE_VERSION)
                 Print #1, RTrim(line)
                 If hdr <> 3 Then
-                    line = FormatL(arr(r, FID.N_NAME), 15)
-                    line = line & FormatR(arr(r, FID.N_UNITS), 4)
+                    line = LeftAlignedFormat(arr(r, FID.N_NAME), 15)
+                    line = line & RightAlignedFormat(arr(r, FID.N_UNITS), 4)
                     Print #1, RTrim(line)
                 End If
                 Print #1, RTrim(".END_HEADER")
@@ -663,8 +661,8 @@ Private Sub WriteIDF(path As String, arr As Variant)
                 ElseIf mode1 = EM1.N_PLACEMENT Then
                 ElseIf mode1 = EM1.N_MATERIAL Then
                 Else
-                    line = FormatL(line, 16) & "   "
-                    line = line & FormatR(arr(r, FID.N_OWNER), 8)
+                    line = LeftAlignedFormat(line, 16) & "   "
+                    line = line & RightAlignedFormat(arr(r, FID.N_OWNER), 8)
                 End If
                 Print #1, (line)
                 seq = 1
@@ -684,8 +682,8 @@ Private Sub WriteIDF(path As String, arr As Variant)
                     Case EM2.N_ROUTE_OUTLINE
                         line = arr(r, FID.N_LAYER)
                     Case EM2.N_PLACE_OUTLINE
-                        line = FormatL(arr(r, FID.N_LAYER), 8) & "   "
-                        line = line & FormatR(arr(r, FID.N_HEIGHT), 8)
+                        line = LeftAlignedFormat(arr(r, FID.N_LAYER), 8) & "   "
+                        line = line & RightAlignedFormat(arr(r, FID.N_HEIGHT), 8)
                     Case EM2.N_PLACE_REGION
                         line = arr(r, FID.N_LAYER)
                         line = line & "  " & arr(r, FID.N_REFERENCE)
@@ -694,59 +692,59 @@ Private Sub WriteIDF(path As String, arr As Variant)
                     seq = 2
                 End If
                 line = arr(r, FID.N_LABEL) & "  "
-                line = line & FormatR(arr(r, FID.N_XPOS), 8)
-                line = line & FormatR(arr(r, FID.N_YPOS), 8)
-                line = line & FormatR(arr(r, FID.N_ANGLE), 8)
+                line = line & RightAlignedFormat(arr(r, FID.N_XPOS), 8)
+                line = line & RightAlignedFormat(arr(r, FID.N_YPOS), 8)
+                line = line & RightAlignedFormat(arr(r, FID.N_ANGLE), 8)
                 Print #1, RTrim(line)
             
             Case EM1.N_DRILLED_HOLES
-                line = FormatR(arr(r, FID.N_LENGTH), 8)
-                line = line & FormatR(arr(r, FID.N_XPOS), 8)
-                line = line & FormatR(arr(r, FID.N_YPOS), 8)
-                line = line & FormatR(arr(r, FID.N_GEOMETORY), 8)
-                line = line & FormatR(arr(r, FID.N_REFERENCE), 8)
-                line = line & FormatR(arr(r, FID.N_NUMBER), 8)
-                line = line & FormatR(arr(r, FID.N_OWNER), 8)
+                line = RightAlignedFormat(arr(r, FID.N_LENGTH), 8)
+                line = line & RightAlignedFormat(arr(r, FID.N_XPOS), 8)
+                line = line & RightAlignedFormat(arr(r, FID.N_YPOS), 8)
+                line = line & RightAlignedFormat(arr(r, FID.N_GEOMETORY), 8)
+                line = line & RightAlignedFormat(arr(r, FID.N_REFERENCE), 8)
+                line = line & RightAlignedFormat(arr(r, FID.N_NUMBER), 8)
+                line = line & RightAlignedFormat(arr(r, FID.N_OWNER), 8)
                 Print #1, RTrim(line)
             
             Case EM1.N_NOTES
-                line = FormatR(arr(r, FID.N_XPOS), 8)
-                line = line & FormatR(arr(r, FID.N_YPOS), 8)
-                line = line & FormatR(arr(r, FID.N_HEIGHT), 8)
-                line = line & FormatR(arr(r, FID.N_LENGTH), 8)
+                line = RightAlignedFormat(arr(r, FID.N_XPOS), 8)
+                line = line & RightAlignedFormat(arr(r, FID.N_YPOS), 8)
+                line = line & RightAlignedFormat(arr(r, FID.N_HEIGHT), 8)
+                line = line & RightAlignedFormat(arr(r, FID.N_LENGTH), 8)
                 line = line & "  " & arr(r, FID.N_VAL)
                 Print #1, RTrim(line)
             
             Case EM1.N_PLACEMENT
-                line = FormatR(arr(r, FID.N_GEOMETORY))
-                line = line & FormatR(arr(r, FID.N_NUMBER))
-                line = line & FormatR(arr(r, FID.N_REFERENCE))
+                line = RightAlignedFormat(arr(r, FID.N_GEOMETORY))
+                line = line & RightAlignedFormat(arr(r, FID.N_NUMBER))
+                line = line & RightAlignedFormat(arr(r, FID.N_REFERENCE))
                 Print #1, RTrim(line)
-                line = FormatR(arr(r, FID.N_XPOS), 8)
-                line = line & FormatR(arr(r, FID.N_YPOS), 8)
-                line = line & FormatR(arr(r, FID.N_HEIGHT), 8)
-                line = line & FormatR(arr(r, FID.N_ANGLE), 8)
-                line = line & FormatR(arr(r, FID.N_LAYER), 8)
-                line = line & FormatR(arr(r, FID.N_STATUS), 8)
+                line = RightAlignedFormat(arr(r, FID.N_XPOS), 8)
+                line = line & RightAlignedFormat(arr(r, FID.N_YPOS), 8)
+                line = line & RightAlignedFormat(arr(r, FID.N_HEIGHT), 8)
+                line = line & RightAlignedFormat(arr(r, FID.N_ANGLE), 8)
+                line = line & RightAlignedFormat(arr(r, FID.N_LAYER), 8)
+                line = line & RightAlignedFormat(arr(r, FID.N_STATUS), 8)
                 Print #1, RTrim(line)
             
             Case EM1.N_MATERIAL
                 If seq = 1 Then
-                    line = FormatR(arr(r, FID.N_GEOMETORY))
-                    line = line & FormatR(arr(r, FID.N_NUMBER))
-                    line = line & FormatR(arr(r, FID.N_UNITS), 8)
-                    line = line & FormatR(arr(r, FID.N_HEIGHT), 8)
+                    line = RightAlignedFormat(arr(r, FID.N_GEOMETORY))
+                    line = line & RightAlignedFormat(arr(r, FID.N_NUMBER))
+                    line = line & RightAlignedFormat(arr(r, FID.N_UNITS), 8)
+                    line = line & RightAlignedFormat(arr(r, FID.N_HEIGHT), 8)
                     Print #1, RTrim(line)
                     seq = 2
                 End If
                 line = arr(r, FID.N_LABEL)
                 If line = "PROP" Then
-                    line = line & FormatR(arr(r, FID.N_ATTRIBUTE), 12)
-                    line = line & FormatR(arr(r, FID.N_VAL), 8)
+                    line = line & RightAlignedFormat(arr(r, FID.N_ATTRIBUTE), 12)
+                    line = line & RightAlignedFormat(arr(r, FID.N_VAL), 8)
                 Else
-                    line = line & "  " & FormatR(arr(r, FID.N_XPOS), 8)
-                    line = line & FormatR(arr(r, FID.N_YPOS), 8)
-                    line = line & FormatR(arr(r, FID.N_ANGLE), 8)
+                    line = line & "  " & RightAlignedFormat(arr(r, FID.N_XPOS), 8)
+                    line = line & RightAlignedFormat(arr(r, FID.N_YPOS), 8)
+                    line = line & RightAlignedFormat(arr(r, FID.N_ANGLE), 8)
                 End If
                 Print #1, RTrim(line)
             
@@ -758,29 +756,21 @@ Private Sub WriteIDF(path As String, arr As Variant)
 
 End Sub
 
-'右寄せ
-Private Function FormatR(s As Variant, Optional n As Integer = 16)
-    FormatR = Right("                " & Format(s, "0.0"), n)
-End Function
-
-'左寄せ
-Private Function FormatL(s As Variant, Optional n As Integer = 16)
-    FormatL = Left(Format(s, "0.0") & "                ", n)
-End Function
-
 '-------------------------------------
 'IDFレコード追加
 '-------------------------------------
 
 Public Sub AddRecordIDF(Optional mode As Long)
+    
     Select Case mode
-    Case 0: IDF_PartForm.Show
-    Case 1: IDF_PlaceForm.Show
-    Case 2: IDF_PanelForm.Show
+    Case 0: IDF_PartForm.Show       'ライブラリ部品追加
+    Case 1: IDF_PlaceForm.Show      '配置指定追加
+    Case 2: IDF_PanelForm.Show      'アウトライン追加
     End Select
     Unload IDF_PartForm
     Unload IDF_PlaceForm
     Unload IDF_PanelForm
+
 End Sub
 
 '-------------------------------------
@@ -789,24 +779,26 @@ End Sub
 
 'IDF描画
 Public Sub DrawIDF()
+    
     IDF_ModeForm.Show
     If Not IDF_IsFlag(0) Then Exit Sub
 
-    Dim ce As Range: Set ce = ActiveCell
-    Dim ws As Worksheet: Set ws = ce.Worksheet
-    DrawIDF_1 ws, ce.Left, ce.Top, ce.Row
+    With ActiveCell
+        i1_DrawIDF .Worksheet, .Left, .Top, .Row
+    End With
+
 End Sub
 
 'ワークシートからIDF描画
-Private Sub DrawIDF_1(ws As Worksheet, x As Double, ByVal y As Double, r As Long)
-    '
+Private Sub i1_DrawIDF(ws As Worksheet, x As Double, ByVal y As Double, r As Long)
+    
     'ライブラリ辞書作成
     Dim lib As Dictionary
     Set lib = New Dictionary
     
     'デザイン取得
     Dim name As String
-    LoadDesign name, lib
+    LoadDesign name, lib, 1
     If name = "*" Then Exit Sub
     If Not lib.Exists(name) Then Exit Sub
     If Not lib.Exists("$" & name) Then Exit Sub
@@ -835,18 +827,27 @@ Private Sub DrawIDF_1(ws As Worksheet, x As Double, ByVal y As Double, r As Long
     Dim env As T_EnvIDF
     SetEnvIDF env, x0, y0, 0, sc
     
-    Dim sh As Shape
+    Dim sh As Shape, sh2 As Shape
     Dim ns As Collection
     Set ns = New Collection
     
-    'Assy描画
-    Set sh = DrawAssy(ws, env, lib, name)
-    If Not sh Is Nothing Then ns.Add sh.name
-
     '原点マーク
     Set sh = DrawOrigin(ws, env, arr, lib)
     If Not sh Is Nothing Then ns.Add sh.name
         
+    'Assy描画
+    Set sh = DrawAssy(ws, env, lib, name)
+    If Not sh Is Nothing Then
+        If sh.Type = msoGroup Then
+            For Each sh2 In sh.GroupItems
+                ns.Add sh2.name
+            Next sh2
+            sh.Ungroup
+        Else
+            ns.Add sh.name
+        End If
+    End If
+
     If ns.Count > 0 Then Set sh = GroupShape(ws, ns, name)
     
     Set ns = Nothing
@@ -859,12 +860,20 @@ End Sub
 '-------------------------------------
 
 'ライブラリを辞書に登録
-Private Sub LoadDesign(name As String, lib As Dictionary)
-    
+Private Sub LoadDesign(name As String, lib As Dictionary, Optional mode As Long)
+        
     'ライブラリシート選択
+    Dim ptn As String
+    Select Case mode
+    Case 1: ptn = "\.(emn|brd|bdf|idb)($|\s)"
+    Case 2: ptn = "\.(emp|lib|ldf|idl)($|\s)"
+    Case 3: ptn = "\.(emn|brd|bdf|idb|emp|lib|ldf|idl)($|\s)"
+    End Select
+    
     Dim ws As Worksheet
-    Set ws = SelectSheetCB(ActiveWorkbook)
+    Set ws = SelectSheet(ActiveWorkbook, ptn, "デザイン一覧：", app_name)
     name = "*"
+    If ws Is Nothing Then Exit Sub
     If ws Is ActiveSheet Then Exit Sub
     If ws.UsedRange.Rows.Count < 1 Then Exit Sub
     If ws.UsedRange.Columns.Count < FID.N_VAL Then Exit Sub
@@ -1020,8 +1029,9 @@ Private Function DrawAssy( _
     
     Dim arr As Variant
     arr = lib("$" & name)
-    Dim dic As Object
     If Not lib.Exists(name) Then Exit Function
+    
+    Dim dic As Object
     Set dic = lib(name)
     GetTinkness env, dic, arr
     
@@ -1030,40 +1040,6 @@ Private Function DrawAssy( _
     Dim side As Variant
     Dim k As String
 
-    'Board
-    Set sh = DrawBoard(ws, env, lib, name)
-    If Not sh Is Nothing Then ns.Add sh.name
-    
-    'PLACEMENT(BOTTOM)
-    If g_flag(2) Then
-        env.scz = -env.scz
-        env.z0 = env.z0 + env.scz * env.t0
-        env.flip = Not env.flip
-        
-        k = Join(Array("PLACEMENT", "BOTTOM", ""), "-")
-        Set sh = DrawGroupPlace(ws, env, k, arr, lib(name), lib)
-        If Not sh Is Nothing Then ns.Add sh.name
-        
-        k = Join(Array("OTHER_OUTLINE", "BOTTOM", ""), "-")
-        Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
-        If Not sh Is Nothing Then ns.Add sh.name
-        
-        env.flip = Not env.flip
-        env.z0 = env.z0 - env.scz * env.t0
-        env.scz = -env.scz
-    End If
-    
-    'PLACEMENT(TOP)
-    If g_flag(1) Then
-        k = Join(Array("PLACEMENT", "TOP", ""), "-")
-        Set sh = DrawGroupPlace(ws, env, k, arr, lib(name), lib)
-        If Not sh Is Nothing Then ns.Add sh.name
-        
-        k = Join(Array("OTHER_OUTLINE", "TOP", ""), "-")
-        Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
-        If Not sh Is Nothing Then ns.Add sh.name
-    End If
-    
     'OUTLINE, KEEPOUT, REGION(BOTTOM)
     If g_flag(2) Then
         env.scz = -env.scz
@@ -1105,6 +1081,47 @@ Private Function DrawAssy( _
         env.scz = -env.scz
     End If
 
+    'PLACEMENT(BOTTOM)
+    If g_flag(2) Then
+        env.scz = -env.scz
+        env.z0 = env.z0 + env.scz * env.t0
+        env.flip = Not env.flip
+        
+        k = Join(Array("PLACEMENT", "BOTTOM", ""), "-")
+        Set sh = DrawGroupPlace(ws, env, k, arr, lib(name), lib)
+        If Not sh Is Nothing Then ns.Add sh.name
+        
+        k = Join(Array("OTHER_OUTLINE", "BOTTOM", ""), "-")
+        Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
+        If Not sh Is Nothing Then ns.Add sh.name
+        
+        env.flip = Not env.flip
+        env.z0 = env.z0 - env.scz * env.t0
+        env.scz = -env.scz
+    End If
+    
+    'Board
+    Set sh = DrawBoard(ws, env, lib, name)
+    If Not sh Is Nothing Then ns.Add sh.name
+    
+    'VIA
+    If g_flag(5) Then
+        k = Join(Array("VIA_KEEPOUT", "", ""), "-")
+        Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
+        If Not sh Is Nothing Then ns.Add sh.name
+    End If
+
+    'PLACEMENT(TOP)
+    If g_flag(1) Then
+        k = Join(Array("PLACEMENT", "TOP", ""), "-")
+        Set sh = DrawGroupPlace(ws, env, k, arr, lib(name), lib)
+        If Not sh Is Nothing Then ns.Add sh.name
+        
+        k = Join(Array("OTHER_OUTLINE", "TOP", ""), "-")
+        Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
+        If Not sh Is Nothing Then ns.Add sh.name
+    End If
+    
     'OUTLINE, KEEPOUT, REGION(TOP)
     If g_flag(1) Then
         For Each side In Array("ALL", "BOTH", "INNER", "TOP")
@@ -1140,13 +1157,6 @@ Private Function DrawAssy( _
         Next side
     End If
     
-    'VIA
-    If g_flag(5) Then
-        k = Join(Array("VIA_KEEPOUT", "", ""), "-")
-        Set sh = DrawGroupOutline(ws, env, k, arr, lib(name))
-        If Not sh Is Nothing Then ns.Add sh.name
-    End If
-
     'NOTES
     If g_flag(6) Then
         k = Join(Array("NOTES", "", ""), "-")
@@ -1222,8 +1232,9 @@ Private Function DrawBoard( _
         
     Dim arr As Variant
     arr = lib("$" & name)
-    Dim dic As Object
     If Not lib.Exists(name) Then Exit Function
+    
+    Dim dic As Object
     Set dic = lib(name)
     
     Dim ns As Collection, ns2 As Collection
@@ -1491,7 +1502,7 @@ Private Function DrawHole( _
         .BevelBottomInset = 0
         .BevelBottomDepth = 0
         .Depth = 0
-        .z = sc * z0
+        .Z = sc * z0
     End With
     
     kw = arr(r, FID.N_SECTION)
@@ -1560,7 +1571,7 @@ Public Function DrawNote( _
         .BevelBottomDepth = 0
         .ExtrusionColor.RGB = RGB(255, 0, 0)
         .Depth = 0
-        .z = 20
+        .Z = 20
     End With
     
     Set DrawNote = sh
@@ -1690,8 +1701,8 @@ Private Function DrawShape( _
     scx = sc
     If env.flip Then scx = -scx
     scy = -sc
-    x0 = env.x0 ' + scx * x
-    y0 = env.y0 ' + scy * y
+    x0 = env.x0
+    y0 = env.y0
 
     Dim sh As Shape
     Dim fb As FreeformBuilder
@@ -1842,13 +1853,11 @@ Private Function DrawShape( _
         Else
             z0 = env.z0
         End If
-        .z = sc * z0
+        .Z = sc * z0
     End With
     
     px = (sh.Left - x0) / scx
     py = (sh.Top - y0) / scy
-    'dx = sh.Width / sc
-    'dy = sh.Height / sc
     dx = tx2 - tx1
     dy = ty2 - ty1
     
@@ -1931,3 +1940,94 @@ Private Sub SetStyleIDF(obj As Object, k1 As String, Optional k2 As String)
     End Select
 End Sub
 
+'----------------------------------------
+'IDF表示属性
+'----------------------------------------
+
+Sub ResetShapeSize()
+    If TypeName(Selection) = "Range" Then Exit Sub
+    Dim sr As Variant
+    Set sr = Selection.ShapeRange
+    
+    'コレクション作成
+    Dim col As Collection
+    Set col = New Collection
+    Dim sh As Shape, sh2 As Shape
+    Dim s As String
+    For Each sh In sr
+        If sh.Type = msoGroup Then
+            For Each sh2 In sh.GroupItems
+                col.Add sh2.name
+            Next sh2
+        Else
+            col.Add sh.name
+        End If
+    Next sh
+    
+    Dim v As Variant
+    For Each v In col
+        Set sh = ActiveSheet.Shapes(v)
+        Dim sc As Double, d1, d2, d3, d4
+        
+        sc = ParamStrVal(sh.AlternativeText, "sc")
+        Dim arr As Variant
+        arr = StrToArr(ParamStrVal(sh.AlternativeText, "d"))
+        sh.Width = sc * arr(0)
+        sh.Height = sc * arr(1)
+        sh.ThreeD.Depth = sc * arr(2)
+    Next v
+    
+    Set col = Nothing
+End Sub
+    
+Sub ResizeShapeScale()
+    If TypeName(Selection) = "Range" Then Exit Sub
+
+
+End Sub
+
+Sub FlipShapes()
+
+    If TypeName(Selection) = "Range" Then Exit Sub
+
+    Dim sr As ShapeRange
+    Set sr = Selection.ShapeRange
+    
+    'コレクション作成
+    Dim col As Collection
+    Set col = New Collection
+    Dim sh As Shape, sh2 As Shape
+    Dim s As String
+    For Each sh In sr
+        If sh.Type = msoGroup Then
+            For Each sh2 In sh.GroupItems
+                col.Add sh2.name
+            Next sh2
+        Else
+            col.Add sh.name
+        End If
+    Next sh
+    
+    Dim ws As Worksheet
+    Set ws = sr.Parent
+    
+    'コレクション作成
+    Dim i As Long, n As Long
+    Set sr = Selection.ShapeRange
+    'n = sr.GroupItems.Count
+    'For i = n To 1 Step -1
+    '    sr.GroupItems(i).ZOrder msoSendToBack
+    'Next i
+    
+    Dim v As Variant
+    For Each v In col
+        Set sh = ActiveSheet.Shapes(v)
+        If sh.ThreeD.Z > -10000 Then
+             sh.ThreeD.Z = sh.ThreeD.Depth - sh.ThreeD.Z
+        End If
+    Next v
+    sr.flip msoFlipHorizontal
+    
+    Set col = Nothing
+
+End Sub
