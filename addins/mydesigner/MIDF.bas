@@ -836,17 +836,7 @@ Private Sub i1_DrawIDF(ws As Worksheet, x As Double, ByVal y As Double, r As Lon
     If Not sh Is Nothing Then ns.Add sh.name
         
     'Assy描画
-    Set sh = DrawAssy(ws, env, lib, name)
-    If Not sh Is Nothing Then
-        If sh.Type = msoGroup Then
-            For Each sh2 In sh.GroupItems
-                ns.Add sh2.name
-            Next sh2
-            sh.Ungroup
-        Else
-            ns.Add sh.name
-        End If
-    End If
+    Set sh = DrawAssy(ws, env, lib, name, ns)
 
     If ns.Count > 0 Then Set sh = GroupShape(ws, ns, name)
     
@@ -1022,10 +1012,12 @@ End Sub
 'Assy描画
 Private Function DrawAssy( _
         ws As Worksheet, env As T_EnvIDF, _
-        lib As Dictionary, name As String) As Shape
+        lib As Dictionary, name As String, _
+        Optional col As Collection) As Shape
         
     Dim ns As Collection
-    Set ns = New Collection
+    Set ns = col
+    If ns Is Nothing Then Set ns = New Collection
     
     Dim arr As Variant
     arr = lib("$" & name)
@@ -1164,9 +1156,11 @@ Private Function DrawAssy( _
         If Not sh Is Nothing Then ns.Add sh.name
     End If
     
-    If ns.Count > 0 Then Set sh = GroupShape(ws, ns, name)
-    Set DrawAssy = sh
-    Set ns = Nothing
+    If col Is Nothing Then
+        If ns.Count > 0 Then Set sh = GroupShape(ws, ns, name)
+        Set ns = Nothing
+        Set DrawAssy = sh
+    End If
     
 End Function
 
@@ -1992,6 +1986,7 @@ Sub FlipShapes()
 
     Dim sr As ShapeRange
     Set sr = Selection.ShapeRange
+    sr.Ungroup
     
     'コレクション作成
     Dim col As Collection
@@ -1999,13 +1994,7 @@ Sub FlipShapes()
     Dim sh As Shape, sh2 As Shape
     Dim s As String
     For Each sh In sr
-        If sh.Type = msoGroup Then
-            For Each sh2 In sh.GroupItems
-                col.Add sh2.name
-            Next sh2
-        Else
-            col.Add sh.name
-        End If
+        col.Add sh.name
     Next sh
     
     Dim ws As Worksheet
@@ -2014,10 +2003,10 @@ Sub FlipShapes()
     'コレクション作成
     Dim i As Long, n As Long
     Set sr = Selection.ShapeRange
-    'n = sr.GroupItems.Count
-    'For i = n To 1 Step -1
-    '    sr.GroupItems(i).ZOrder msoSendToBack
-    'Next i
+    n = sr.Count
+    For i = n To 1 Step -1
+        sr.GroupItems(i).ZOrder msoSendToBack
+    Next i
     
     Dim v As Variant
     For Each v In col
