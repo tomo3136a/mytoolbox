@@ -1610,8 +1610,8 @@ Private Function DrawPlace( _
     
     Dim name As String
     If Not lib.Exists(kw) Then
-        MsgBox kw
-        Call LoadDesign(name, lib)
+        MsgBox kw, vbOKOnly, "DrawPlace"
+        Call LoadDesign(name, lib, 3)
     End If
     
     Dim sh As Shape
@@ -1647,15 +1647,19 @@ Private Function DrawPart( _
     kw = arr(r, FID.N_GEOMETORY)
     kw = UCase(kw)
     If Not lib.Exists(kw) Then
-        MsgBox kw
+        MsgBox kw, vbOKOnly, "DrawPart"
         Dim s As String
-        Call LoadDesign(s, lib)
+        Call LoadDesign(s, lib, 3)
         If s = "*" Then
             r = UBound(arr, 1)
             Exit Function
         End If
     End If
     If Not lib.Exists(kw) Then Exit Function
+
+    Dim v As Variant
+    v = lib(kw)
+    If TypeName(v) = "Empty" Then Exit Function
     
     Dim arr2 As Variant
     arr2 = lib("$" & lib(kw)(0))
@@ -1977,45 +1981,183 @@ End Sub
 Sub ResizeShapeScale()
     If TypeName(Selection) = "Range" Then Exit Sub
 
-
-End Sub
-
-Sub FlipShapes()
-
-    If TypeName(Selection) = "Range" Then Exit Sub
-
+    Dim ws As Worksheet
+    Set ws = ActiveSheet
+    
+    'コレクション作成
+    Dim grp_name As String
     Dim sr As ShapeRange
     Set sr = Selection.ShapeRange
-    sr.Ungroup
+    
+    If sr.Count <> 1 Then
+    ElseIf sr.Type = msoGroup Then
+        grp_name = sr.name
+        Selection.ShapeRange.Ungroup.Select
+        Set sr = Selection.ShapeRange
+    End If
     
     'コレクション作成
     Dim col As Collection
     Set col = New Collection
-    Dim sh As Shape, sh2 As Shape
-    Dim s As String
+    Dim sh As Shape
     For Each sh In sr
         col.Add sh.name
     Next sh
     
-    Dim ws As Worksheet
-    Set ws = sr.Parent
-    
-    'コレクション作成
-    Dim i As Long, n As Long
-    Set sr = Selection.ShapeRange
-    n = sr.Count
-    For i = n To 1 Step -1
-        sr.GroupItems(i).ZOrder msoSendToBack
-    Next i
-    
+    '3D 奥行設定
+    Dim sr2 As ShapeRange
     Dim v As Variant
     For Each v In col
         Set sh = ActiveSheet.Shapes(v)
-        If sh.ThreeD.Z > -10000 Then
-             sh.ThreeD.Z = sh.ThreeD.Depth - sh.ThreeD.Z
+        If sh.Type = msoGroup Then
+            Dim sh2 As Shape
+            For Each sh2 In sh.GroupItems
+                If sh2.ThreeD.Z < -100000 Then
+                ElseIf sh2.ThreeD.Depth < -10000 Then
+                Else
+                    sh2.ThreeD.Z = sh2.ThreeD.Depth - sh2.ThreeD.Z - 1.6 * 2
+                End If
+            Next sh2
+        Else
+            If sh.ThreeD.Z < -100000 Then
+            ElseIf sh.ThreeD.Depth < -10000 Then
+            Else
+                sh.ThreeD.Z = sh.ThreeD.Depth - sh.ThreeD.Z - 1.6 * 2
+            End If
         End If
     Next v
+    
+    '再グループ化
+    If grp_name <> "" Then
+        Selection.Group.Select
+        Set sr = Selection.ShapeRange
+        sr.name = grp_name
+        grp_name = ""
+    End If
+    sr.Select
+
+    If sr.ThreeD.Visible Then
+        With sr.ThreeD
+            .Visible = True
+            .SetPresetCamera (msoCameraIsometricTopUp)
+            .RotationX = 45.2809
+            .RotationY = -35.3962666667
+            .RotationZ = -60.1624166667
+        End With
+    End If
+
+End Sub
+
+'裏表反転
+Sub FlipShapes()
+
+    If TypeName(Selection) = "Range" Then Exit Sub
+    'If Selection.ShapeRange.Count = 1 Then Exit Sub
+
+    Dim sr As ShapeRange
+    Dim ws As Worksheet
+    Set sr = Selection.ShapeRange
+    Set ws = sr.Parent
+    
+    '3D情報取得
+    Dim rx As Double, ry As Double, rz As Double
+    Dim v3d As Boolean
+    With sr
+        rx = .ThreeD.RotationX
+        ry = .ThreeD.RotationY
+        rz = .ThreeD.RotationZ
+        v3d = .ThreeD.Visible
+    End With
+    
+    'グループ解除
+    Dim grp_name As String
+    If sr.Type = msoGroup Then
+        grp_name = sr.name
+        Set sr = sr.Ungroup
+    End If
+    
+    'コレクション作成
+    Dim col As Collection
+    Set col = New Collection
+    Dim sh As Shape
+    For Each sh In sr
+        col.Add sh.name
+    Next sh
+    
+    'ZOhder変更
+    Dim i As Long
+    For i = 1 To col.Count
+        sr.Item(col(i)).ZOrder msoSendToBack
+    Next i
+    
+    '再グループ化
+    If grp_name <> "" Then
+        sr.Group.Select
+        Set sr = Selection.ShapeRange
+        sr.name = grp_name
+        grp_name = ""
+    End If
+    'sr.Select
+    
+    '左右反転
     sr.flip msoFlipHorizontal
+    
+    'コレクション作成
+    Set sr = Selection.ShapeRange
+    If sr.Count <> 1 Then
+    ElseIf sr.Type = msoGroup Then
+        grp_name = sr.name
+        Selection.ShapeRange.Ungroup.Select
+        Set sr = Selection.ShapeRange
+    End If
+    
+    'コレクション作成
+    'Set col = New Collection
+    'For Each sh In sr
+    '    col.Add sh.name
+    'Next sh
+    
+    '3D 奥行設定
+    Dim sr2 As ShapeRange
+    Dim v As Variant
+    For Each v In col
+        Set sh = ActiveSheet.Shapes(v)
+        If sh.Type = msoGroup Then
+            Dim sh2 As Shape
+            For Each sh2 In sh.GroupItems
+                If sh2.ThreeD.Z < -100000 Then
+                ElseIf sh2.ThreeD.Depth < -10000 Then
+                Else
+                    sh2.ThreeD.Z = sh2.ThreeD.Depth - sh2.ThreeD.Z - 1.6 * 2
+                End If
+            Next sh2
+        Else
+            If sh.ThreeD.Z < -100000 Then
+            ElseIf sh.ThreeD.Depth < -10000 Then
+            Else
+                sh.ThreeD.Z = sh.ThreeD.Depth - sh.ThreeD.Z - 1.6 * 2
+            End If
+        End If
+    Next v
+    
+    '再グループ化
+    If grp_name <> "" Then
+        Selection.Group.Select
+        Set sr = Selection.ShapeRange
+        sr.name = grp_name
+        grp_name = ""
+    End If
+    sr.Select
+    
+    If v3d Then
+        With sr.ThreeD
+            .Visible = True
+            .SetPresetCamera (msoCameraIsometricTopUp)
+            .RotationX = rx
+            .RotationY = ry
+            .RotationZ = rz
+        End With
+    End If
     
     Set col = Nothing
 
