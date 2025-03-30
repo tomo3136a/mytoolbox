@@ -4,20 +4,25 @@
     <tabs>
       <tab id="TabDesigner" label="作図" insertAfterQ="TabAddIns">
         <group id="g1" label="図形操作" imageMso="ComAddInsDialog">
-          <button id="b1.1" onAction="Designer1_onAction" label="標準図形設定" imageMso="ObjectFormatDialog" size="large" />
-          <button id="b1.4" onAction="Designer1_onAction" label="絵に変換" imageMso="SelectionPane" />
-          <button id="b1.5" onAction="Designer1_onAction" label="テキストボックス基本設定" imageMso="SObjectFormatDialog" />
-          <button id="b1.6" onAction="Designer1_onAction" label="塗りつぶし表示ON/OFF" imageMso="SObjectFormatDialog" />
           <splitButton id="g11">
-            <button id="b1.7" onAction="Designer1_onAction" label="3D" imageMso="SelectionPane" />
+            <button id="b1.1" onAction="Designer1_onAction" label="標準図形設定" imageMso="ObjectFormatDialog" />
             <menu id="m11">
+              <button id="b1.5" onAction="Designer1_onAction" label="テキストボックス基本設定" imageMso="SObjectFormatDialog" />
+            </menu>
+          </splitButton>
+          <button id="b1.4" onAction="Designer1_onAction" label="絵に変換" imageMso="SelectionPane" />
+          <button id="b1.6" onAction="Designer1_onAction" label="塗りつぶし表示ON/OFF" imageMso="SObjectFormatDialog" />
+          <splitButton id="g12">
+            <button id="b1.7" onAction="Designer1_onAction" label="3D" imageMso="SelectionPane" />
+            <menu id="m12">
               <control idQ="_3DRotationOptionsDialog" visible="true" />
             </menu>
           </splitButton>
-          <button id="b1.8" onAction="Designer1_onAction" label="原点合わせ" imageMso="SelectionPane" />
-          <button id="b1.9" onAction="Designer1_onAction" label="図形名更新" imageMso="SelectionPane" />
           <control idQ="ObjectFlipHorizontal" visible="true" />
           <control idQ="ObjectFlipVertical" visible="true" />
+          <button id="b1.10" onAction="Designer1_onAction" label="表裏反転" imageMso="DiagramReverseClassic" />
+          <button id="b1.8" onAction="Designer1_onAction" label="原点合わせ" imageMso="SelectionPane" />
+          <button id="b1.9" onAction="Designer1_onAction" label="図形名更新" imageMso="SelectionPane" />
           <control idQ="ObjectsSelect" visible="true" />
           <control idQ="SelectionPane" visible="true" />
           <control idQ="AltTextPaneRibbon" visible="true" />
@@ -88,7 +93,6 @@
           </menu>
           <button id="b5.10" onAction="Designer5_onAction" label="サイズ修正" imageMso="GroupPositionLayout" />
           <button id="b5.11" onAction="Designer5_onAction" label="スケール修正" imageMso="OrgChartScale" />
-          <button id="b5.12" onAction="Designer5_onAction" label="表裏反転" imageMso="DiagramReverseClassic" />
           <!-- <editBox id="e5.1" onChange="Designer5_onChange" label="比率" getText="Designer5_getText" sizeString="wwwww" />
           <checkBox id="c5.1" onAction="Designer5_onActionPressed" label="A面" getPressed="Designer5_getPressed" />
           <checkBox id="c5.2" onAction="Designer5_onActionPressed" label="B面" getPressed="Designer5_getPressed" />

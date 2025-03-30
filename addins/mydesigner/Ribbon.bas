@@ -88,6 +88,7 @@ Private Sub Draw1_Menu(id As Long, Optional opt As Variant)
     Case 7: ToggleVisible 3             '3D表示ON/OFF
     Case 8: OriginAlignment             '原点合わせ
     Case 9: UpdateShapeName ActiveSheet '図形名一括更新
+    Case 10: FlipShapes                 '表裏反転
     End Select
 End Sub
 
@@ -207,7 +208,6 @@ Private Sub Draw5_Menu(id As Long, Optional opt As Variant)
     Case 8: AddRecordIDF 2              'IDF行追加
     Case 10: ResetShapeSize             'サイズ修正
     Case 11: ResizeShapeScale           'スケール変更
-    Case 12: FlipShapes                 '表裏反転
     End Select
 End Sub
 

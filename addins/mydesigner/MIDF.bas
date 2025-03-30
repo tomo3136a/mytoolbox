@@ -798,8 +798,13 @@ Private Sub i1_DrawIDF(ws As Worksheet, x As Double, ByVal y As Double, r As Lon
     
     'デザイン取得
     Dim name As String
-    LoadDesign name, lib, 1
-    If name = "*" Then Exit Sub
+    'LoadDesign_X name, lib, 1
+    Dim ws2 As Worksheet
+    SelectDesign ws2, 2
+    If Not ws2 Is Nothing Then LoadDesign lib, name, ws2
+    SelectDesign ws2, 1
+    If ws2 Is Nothing Then Exit Sub
+    LoadDesign lib, name, ws2
     If Not lib.Exists(name) Then Exit Sub
     If Not lib.Exists("$" & name) Then Exit Sub
     
@@ -849,10 +854,9 @@ End Sub
 'デザイン読み込み
 '-------------------------------------
 
-'ライブラリを辞書に登録
-Private Sub LoadDesign(name As String, lib As Dictionary, Optional mode As Long)
-        
-    'ライブラリシート選択
+'ライブラリシート選択
+Private Sub SelectDesign(ws As Worksheet, Optional mode As Long)
+    
     Dim ptn As String
     Select Case mode
     Case 1: ptn = "\.(emn|brd|bdf|idb)($|\s)"
@@ -860,13 +864,18 @@ Private Sub LoadDesign(name As String, lib As Dictionary, Optional mode As Long)
     Case 3: ptn = "\.(emn|brd|bdf|idb|emp|lib|ldf|idl)($|\s)"
     End Select
     
-    Dim ws As Worksheet
     Set ws = SelectSheet(ActiveWorkbook, ptn, "デザイン一覧：", app_name)
-    name = "*"
-    If ws Is Nothing Then Exit Sub
-    If ws Is ActiveSheet Then Exit Sub
-    If ws.UsedRange.Rows.Count < 1 Then Exit Sub
-    If ws.UsedRange.Columns.Count < FID.N_VAL Then Exit Sub
+    If ws Is Nothing Then
+    ElseIf ws Is ActiveSheet Then Set ws = Nothing
+    ElseIf ws.UsedRange.Rows.Count < 1 Then Set ws = Nothing
+    ElseIf ws.UsedRange.Columns.Count < FID.N_VAL Then Set ws = Nothing
+    End If
+
+End Sub
+
+'ライブラリを辞書に登録
+Private Sub LoadDesign(lib As Dictionary, name As String, ws As Worksheet)
+    
     name = UCase(ws.name)
     
     'ライブラリデータ配列取得
@@ -876,7 +885,6 @@ Private Sub LoadDesign(name As String, lib As Dictionary, Optional mode As Long)
     Dim arr As Variant
     arr = ra.Value
     Set ra = Nothing
-    Set ws = Nothing
     
     ConvertToMM arr
     
@@ -1611,7 +1619,11 @@ Private Function DrawPlace( _
     Dim name As String
     If Not lib.Exists(kw) Then
         MsgBox kw, vbOKOnly, "DrawPlace"
-        Call LoadDesign(name, lib, 3)
+        'デザイン取得
+        Dim ws2 As Worksheet
+        SelectDesign ws2, 3
+        If ws2 Is Nothing Then Exit Function
+        LoadDesign lib, name, ws2
     End If
     
     Dim sh As Shape
@@ -1648,12 +1660,15 @@ Private Function DrawPart( _
     kw = UCase(kw)
     If Not lib.Exists(kw) Then
         MsgBox kw, vbOKOnly, "DrawPart"
+        'デザイン取得
         Dim s As String
-        Call LoadDesign(s, lib, 3)
-        If s = "*" Then
+        Dim ws2 As Worksheet
+        SelectDesign ws2, 3
+        If ws2 Is Nothing Then
             r = UBound(arr, 1)
             Exit Function
         End If
+        LoadDesign lib, s, ws2
     End If
     If Not lib.Exists(kw) Then Exit Function
 
@@ -2048,117 +2063,3 @@ Sub ResizeShapeScale()
 
 End Sub
 
-'裏表反転
-Sub FlipShapes()
-
-    If TypeName(Selection) = "Range" Then Exit Sub
-    'If Selection.ShapeRange.Count = 1 Then Exit Sub
-
-    Dim sr As ShapeRange
-    Dim ws As Worksheet
-    Set sr = Selection.ShapeRange
-    Set ws = sr.Parent
-    
-    '3D情報取得
-    Dim rx As Double, ry As Double, rz As Double
-    Dim v3d As Boolean
-    With sr
-        rx = .ThreeD.RotationX
-        ry = .ThreeD.RotationY
-        rz = .ThreeD.RotationZ
-        v3d = .ThreeD.Visible
-    End With
-    
-    'グループ解除
-    Dim grp_name As String
-    If sr.Type = msoGroup Then
-        grp_name = sr.name
-        Set sr = sr.Ungroup
-    End If
-    
-    'コレクション作成
-    Dim col As Collection
-    Set col = New Collection
-    Dim sh As Shape
-    For Each sh In sr
-        col.Add sh.name
-    Next sh
-    
-    'ZOhder変更
-    Dim i As Long
-    For i = 1 To col.Count
-        sr.Item(col(i)).ZOrder msoSendToBack
-    Next i
-    
-    '再グループ化
-    If grp_name <> "" Then
-        sr.Group.Select
-        Set sr = Selection.ShapeRange
-        sr.name = grp_name
-        grp_name = ""
-    End If
-    'sr.Select
-    
-    '左右反転
-    sr.flip msoFlipHorizontal
-    
-    'コレクション作成
-    Set sr = Selection.ShapeRange
-    If sr.Count <> 1 Then
-    ElseIf sr.Type = msoGroup Then
-        grp_name = sr.name
-        Selection.ShapeRange.Ungroup.Select
-        Set sr = Selection.ShapeRange
-    End If
-    
-    'コレクション作成
-    'Set col = New Collection
-    'For Each sh In sr
-    '    col.Add sh.name
-    'Next sh
-    
-    '3D 奥行設定
-    Dim sr2 As ShapeRange
-    Dim v As Variant
-    For Each v In col
-        Set sh = ActiveSheet.Shapes(v)
-        If sh.Type = msoGroup Then
-            Dim sh2 As Shape
-            For Each sh2 In sh.GroupItems
-                If sh2.ThreeD.Z < -100000 Then
-                ElseIf sh2.ThreeD.Depth < -10000 Then
-                Else
-                    sh2.ThreeD.Z = sh2.ThreeD.Depth - sh2.ThreeD.Z - 1.6 * 2
-                End If
-            Next sh2
-        Else
-            If sh.ThreeD.Z < -100000 Then
-            ElseIf sh.ThreeD.Depth < -10000 Then
-            Else
-                sh.ThreeD.Z = sh.ThreeD.Depth - sh.ThreeD.Z - 1.6 * 2
-            End If
-        End If
-    Next v
-    
-    '再グループ化
-    If grp_name <> "" Then
-        Selection.Group.Select
-        Set sr = Selection.ShapeRange
-        sr.name = grp_name
-        grp_name = ""
-    End If
-    sr.Select
-    
-    If v3d Then
-        With sr.ThreeD
-            .Visible = True
-            .SetPresetCamera (msoCameraIsometricTopUp)
-            .RotationX = rx
-            .RotationY = ry
-            .RotationZ = rz
-        End With
-    End If
-    
-    Set col = Nothing
-
-End Sub

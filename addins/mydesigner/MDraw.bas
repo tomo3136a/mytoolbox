@@ -419,10 +419,14 @@ Public Sub ToggleVisible(mode As Integer, Optional sr As ShapeRange)
     Case 3
         '3D表示/非表示反転
         With sr2.ThreeD
-            If .Visible = msoTrue Then
-                .Visible = msoFalse
+            If .PresetCamera <> msoPresetCameraMixed Then
+                .ResetRotation
+                .RotationX = 0
+                .RotationY = 0
+                .RotationZ = 0
+                .Visible = False
+                .Visible = True
             Else
-                .Visible = msoTrue
                 .SetPresetCamera (msoCameraIsometricTopUp)
                 .RotationX = 45.2809
                 .RotationY = -35.3962666667
@@ -1647,6 +1651,97 @@ Private Sub DrawLineToLine_1(ByVal ce As Range, mode As Long)
     End If
 
     If ns.Count > 1 Then Set sh = ws.Shapes.Range(ColToArr(ns)).Group
+
+End Sub
+
+
+'----------------------------------------
+'図操作
+'----------------------------------------
+
+'裏表反転
+Sub FlipShapes()
+
+    If TypeName(Selection) = "Range" Then
+        MsgBox "図形を選択してください。", vbOKOnly, app_name
+        Exit Sub
+    End If
+
+    '対象図形取得
+    Dim sr As ShapeRange
+    Set sr = Selection.ShapeRange
+    
+    'グループ解除
+    Dim rx As Double, ry As Double, rz As Double
+    Dim rv As Integer
+    Dim grp_name As String
+    If sr.Count = 1 Then
+        If sr.Type <> msoGroup Then Exit Sub
+        '3D情報取得
+        With sr
+            rx = .ThreeD.RotationX
+            ry = .ThreeD.RotationY
+            rz = .ThreeD.RotationZ
+            rv = .ThreeD.Visible
+        End With
+        grp_name = sr.name
+        Set sr = sr.Ungroup
+    End If
+    
+    'コレクション作成
+    Dim col As Collection
+    Set col = New Collection
+    Dim sh As Shape
+    For Each sh In sr
+        col.Add sh.name
+    Next sh
+    
+    'ZOhder変更
+    Dim i As Long
+    For i = 1 To col.Count
+        sr.Item(col(i)).ZOrder msoSendToBack
+    Next i
+    
+    '3D 奥行設定
+    Dim v As Variant
+    For Each v In col
+        Set sh = ActiveSheet.Shapes(v)
+        If sh.Type = msoGroup Then
+            Dim sh2 As Shape
+            For Each sh2 In sh.GroupItems
+                If sh2.ThreeD.Z < -100000 Then
+                ElseIf sh2.ThreeD.Depth < -10000 Then
+                Else
+                    sh2.ThreeD.Z = sh2.ThreeD.Depth - sh2.ThreeD.Z
+                End If
+            Next sh2
+        ElseIf sh.ThreeD.Z < -100000 Then
+        ElseIf sh.ThreeD.Depth < -10000 Then
+        Else
+            sh.ThreeD.Z = sh.ThreeD.Depth - sh.ThreeD.Z
+        End If
+    Next v
+    
+    '再グループ化
+    If grp_name <> "" Then
+        If sr.Count > 1 Then sr.Group
+        sr.name = grp_name
+        grp_name = ""
+    End If
+    
+    '3Dリセット
+    If rv Then
+        With sr.ThreeD
+            .SetPresetCamera msoCameraIsometricTopUp
+            .RotationX = rx
+            .RotationY = ry
+            .RotationZ = rz
+        End With
+    End If
+    
+    '左右反転
+    sr.flip msoFlipHorizontal
+    sr.Select
 
 End Sub
 
