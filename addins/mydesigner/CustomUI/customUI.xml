@@ -4,7 +4,7 @@
     <tabs>
       <tab id="TabDesigner" label="作図" insertAfterQ="TabAddIns">
         <group id="g1" label="図形操作" imageMso="ComAddInsDialog">
-          <splitButton id="g11">
+          <splitButton id="g11" size="large" >
             <button id="b1.1" onAction="Designer1_onAction" label="標準図形設定" imageMso="ObjectFormatDialog" />
             <menu id="m11">
               <button id="b1.5" onAction="Designer1_onAction" label="テキストボックス基本設定" imageMso="SObjectFormatDialog" />
