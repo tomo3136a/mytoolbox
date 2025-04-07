@@ -2,7 +2,11 @@
 $name = "PERSONAL"
 $root = "${env:APPDATA}/Microsoft/Excel/XLSTART"
 
-if (-not (Test-Path $root)) { exit }
+if (-not (Test-Path $root)) {
+  Write-Host "# Not found XLSTART." -ForegroundColor Yellow
+  Write-Host "# Please open Excel application." -ForegroundColor Yellow
+  exit
+}
 
 $xls_file = $name + ".XLSB"
 $xls = Join-Path $root $xls_file
@@ -15,6 +19,11 @@ if (Test-Path $xls) {
 
 Write-Host "# Create file..." -ForegroundColor Yellow
 $app = New-Object -ComObject Excel.Application
+if ($app -eq $null) {
+  Write-Host "# Not open Excel application." -ForegroundColor Yellow
+  exit
+}
+
 $wb = $null
 try {
   $app.Visible = $false
@@ -32,4 +41,6 @@ try {
   # release application
   [void][System.Runtime.Interopservices.Marshal]::ReleaseComObject($app)
   Write-Host "# Created." -ForegroundColor Yellow
+  Write-Host -ForegroundColor Yellow
+  Write-Host "# Please reopen Excel application." -ForegroundColor Yellow
 }
