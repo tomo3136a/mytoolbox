@@ -122,8 +122,12 @@ Private Sub Cells_RemoveSpace( _
     Set re2 = regex("[ \t\v\f\u00A0^u3000]+")
     Set re3 = regex(sep & "(\r?\n)")
     '
-    Dim va As Variant, v As Variant
+    Dim va As Variant
     va = ra.Formula2
+    If ra.Count = 1 Then
+        ReDim va(1 To 1, 1 To 1)
+        va(1, 1) = ra.Formula2
+    End If
     '
     Dim r As Long, c As Long
     For r = LBound(va, 1) To UBound(va, 1)
@@ -143,32 +147,6 @@ Private Sub Cells_RemoveSpace( _
     Next r
     '
     ra.Value = va
-End Sub
-
-Private Sub Cells_RemoveSpace_old( _
-        ra As Range, _
-        Optional SingleLine As Boolean = False, _
-        Optional sep As String = " ")
-    Dim re1 As Object, re2 As Object, re3 As Object
-    Set re1 = regex("[\s\u00A0\u3000]+")
-    Set re2 = regex("[ \t\v\f\u00A0^u3000]+")
-    Set re3 = regex(sep & "(\r?\n)")
-    '
-    Dim ce As Range
-    For Each ce In ra.Cells
-        If Not ce.HasFormula Then
-            If ce.Value <> "" Then
-                Dim s As String
-                If SingleLine Then
-                    s = re1.Replace(ce.Value, sep)
-                Else
-                    s = re2.Replace(ce.Value, sep)
-                    s = re3.Replace(s, "$1")
-                End If
-                ce.Value = Trim(s)
-            End If
-        End If
-    Next ce
 End Sub
 
 'ï∂éöóÒïœçX
