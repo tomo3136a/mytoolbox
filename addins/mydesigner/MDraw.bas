@@ -1519,7 +1519,7 @@ Private Sub DrawLineToLine_1(ByVal ce As Range, mode As Long)
     
     'データ範囲取得
     Dim ra As Range
-    If ce.Offset(1) = "" Then Exit Sub
+    If ce.Offset(, 1) = "" Then Exit Sub
     Set ra = ws.Range(ce, ce.End(xlToRight).Offset(, 1))
     
     '描画位置補正
