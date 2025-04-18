@@ -69,12 +69,29 @@
                 <button id="b4.5" onAction="Designer4_onAction" label="シート複製" />
                 <button id="b4.6" onAction="Designer4_onAction" label="シート取込" />
                 <menuSeparator id="s42" />
-                <button id="b4.9" onAction="Designer4_onAction" label="リスト更新" imageMso="ObjectRotateFree" />
+                <button id="b4.7" onAction="Designer4_onAction" label="リスト更新" imageMso="ObjectRotateFree" />
               </menu>
             </buttonGroup>
             <buttonGroup id="g43">
-              <button id="b4.7" onAction="Designer4_onAction" label="方眼紙シート" imageMso="AccessTableEvents" />
-              <button id="b4.8" onAction="Designer4_onAction" label="配線図形" imageMso="ShapeConnectorStyleElbow" />
+              <menu id="m42" label="タイムチャート">
+                <button id="b4.11" onAction="Designer4_onAction" label="クロック" />
+                <button id="b4.12" onAction="Designer4_onAction" label="カウンタ" />
+                <button id="b4.13" onAction="Designer4_onAction" label="ロジック" />
+                <menu id="m43" label="論理ゲート">
+                  <button id="b4.14" onAction="Designer4_onAction" label="否定(NOT)" />
+                  <button id="b4.15" onAction="Designer4_onAction" label="論理積(AND)" />
+                  <button id="b4.16" onAction="Designer4_onAction" label="論理和(OR)" />
+                  <button id="b4.17" onAction="Designer4_onAction" label="排他的論理和(XOR)" />
+                  <button id="b4.18" onAction="Designer4_onAction" label="MUX" />
+                  <button id="b4.19" onAction="Designer4_onAction" label="DFF" />
+                </menu>
+                <menuSeparator id="s43" />
+                <button id="b4.10" onAction="Designer4_onAction" label="方眼紙シート" imageMso="AccessTableEvents" />
+                <menu id="m44" label="描画">
+                  <button id="b4.8" onAction="Designer4_onAction" label="図形" imageMso="ShapeConnectorStyleElbow" />
+                  <button id="b4.9" onAction="Designer4_onAction" label="罫線" imageMso="ShapeConnectorStyleElbow" />
+                </menu>
+              </menu>
             </buttonGroup>
           </box>
         </group>

@@ -146,8 +146,18 @@ Private Sub Draw4_Menu(id As Long, Optional opt As Variant)
     Case 4: DrawItemDelete          '削除
     Case 5: DuplicateDrawItemSheet  '設定ローカル化
     Case 6: ImportDrawItemSheet     '設定シート取込
-    Case 7: AddDrawingSheet
-    Case 8: DrawLineToLine
+    Case 8: DrawTimeChart 1         'タイムチャート作図
+    Case 9: DrawTimeChart 2         'タイムチャート作図(罫線)
+    Case 10: AddDrawingSheet        '方眼紙シート追加
+    Case 11: GenerateTimeChart 1    'タイムチャートデータ作成(クロック)
+    Case 12: GenerateTimeChart 2    'タイムチャートデータ作成(カウンタ)
+    Case 13: GenerateTimeChart 3    'タイムチャートデータ作成(ロジック)
+    Case 14: GenerateTimeChart 4    'タイムチャートデータ作成(NOT)
+    Case 15: GenerateTimeChart 5    'タイムチャートデータ作成(AND)
+    Case 16: GenerateTimeChart 6    'タイムチャートデータ作成(OR)
+    Case 17: GenerateTimeChart 7    'タイムチャートデータ作成(XOR)
+    Case 18: GenerateTimeChart 8    'タイムチャートデータ作成(SEL)
+    Case 19: GenerateTimeChart 9    'タイムチャートデータ作成(DFF)
     'Case 7: ToggleAddinBook
     End Select
 End Sub

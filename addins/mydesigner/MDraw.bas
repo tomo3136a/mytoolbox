@@ -1501,16 +1501,37 @@ Public Sub AddDrawingSheet()
     ws.Cells.ColumnWidth = 2.5
 End Sub
 
-'配線図形
-Public Sub DrawLineToLine()
+'----------------------------------------
+'タイムチャート
+'----------------------------------------
+
+'タイムチャート作図
+Public Sub DrawTimeChart(Optional mode As Long)
     Dim ce As Range
     Set ce = ActiveCell
-    Call DrawLineToLine_1(ce, 1)
+    If ce.Value = "" Then Exit Sub
+    
+    'データ範囲取得
+    Dim ra As Range
+    Set ra = ce
+    If ce.Offset(, 1) <> "" Then
+        Set ra = ce.Worksheet.Range(ce, ce.End(xlToRight))
+    End If
+    If ra.Count < 2 Then
+        Dim v As Variant
+        v = Application.InputBox("横サイズを指定してください。", app_name, "16", , , , , Type:=1)
+        If TypeName(v) = "Boolean" Then Set ra = ra.Range(ra, ra.Offset(, v))
+    End If
+    
+    Select Case mode
+    Case 1: Call DrawTimeChart_1(ra)
+    Case 2: Call DrawTimeChart_2(ra)
+    End Select
 End Sub
 
-Private Sub DrawLineToLine_1(ByVal ce As Range, mode As Long)
+Private Sub DrawTimeChart_1(ByVal ra As Range)
     Dim ws As Worksheet
-    Set ws = ce.Worksheet
+    Set ws = ra.Worksheet
     
     Dim sh As Shape
     Dim fb As FreeformBuilder
@@ -1518,25 +1539,23 @@ Private Sub DrawLineToLine_1(ByVal ce As Range, mode As Long)
     Set ns = New Collection
     
     'データ範囲取得
-    Dim ra As Range
-    If ce.Offset(, 1) = "" Then Exit Sub
-    Set ra = ws.Range(ce, ce.End(xlToRight).Offset(, 1))
+    Set ra = ws.Range(ra, ra.End(xlToRight).Offset(, 1))
     
     '描画位置補正
-    Dim ce2 As Range
-    Set ce2 = ce
-    Do While Left(ce2.Value, 1) = "!"
-        Set ce2 = ce2.Offset(-1)
+    Dim ce As Range
+    Set ce = ra.Cells(1, 1)
+    Do While Left(ce.Value, 1) = "!"
+        Set ce = ce.Offset(-1)
     Loop
-    If ce2.Value = "" Then Set ce2 = ce2.Offset(1)
+    If ce.Value = "" Then Set ce = ce.Offset(1)
     
     '状態位置取得
     Dim py(0 To 9) As Double
     Dim i As Long, j As Long
     j = 1
     For i = 0 To 9
-        py(i) = ce2.Offset(j).Top
-        If ce2.Row + j > 1 Then j = j - 1
+        py(i) = ce.Offset(j).Top
+        If ce.Row + j > 1 Then j = j - 1
     Next i
     
     Dim re As Object
@@ -1654,6 +1673,218 @@ Private Sub DrawLineToLine_1(ByVal ce As Range, mode As Long)
 
 End Sub
 
+Private Sub DrawTimeChart_2(ByVal ra As Range)
+    Dim ce As Range
+    Set ce = ra(1, 1)
+    
+    'データ範囲取得
+    If ce.Offset(, 1) <> "" Then
+        Set ra = ce.Worksheet.Range(ce, ce.End(xlToRight))
+    End If
+
+    With ra
+        .FormatConditions.Add Type:=xlExpression, Operator:=xlEqual, _
+            Formula1:="=mod(" & ra(1, 1).Address(False, False) & ",2)=0"
+        .FormatConditions(.FormatConditions.Count).SetFirstPriority
+        With .FormatConditions(1).Borders(xlBottom)
+            .LineStyle = xlContinuous
+            .TintAndShade = 0
+            .Weight = xlThin
+        End With
+        .FormatConditions(1).StopIfTrue = False
+        
+        .FormatConditions.Add Type:=xlExpression, Operator:=xlEqual, _
+            Formula1:="=mod(" & ra(1, 1).Address(False, False) & ",2)=1"
+        .FormatConditions(.FormatConditions.Count).SetFirstPriority
+        With .FormatConditions(1).Borders(xlTop)
+            .LineStyle = xlContinuous
+            .TintAndShade = 0
+            .Weight = xlThin
+        End With
+        .FormatConditions(1).StopIfTrue = False
+    
+        .FormatConditions.Add Type:=xlExpression, _
+            Formula1:="=" & ce.Address(False, False) & "<>" & ce.Offset(0, -1).Address(False, False)
+        .FormatConditions(.FormatConditions.Count).SetFirstPriority
+        With .FormatConditions(1).Borders(xlLeft)
+            .LineStyle = xlContinuous
+            .TintAndShade = 0
+            .Weight = xlThin
+        End With
+        .FormatConditions(1).StopIfTrue = False
+    End With
+End Sub
+
+'タイムチャートデータ生成
+Public Sub GenerateTimeChart(Optional mode As Long)
+    If TypeName(Selection) <> "Range" Then Exit Sub
+    
+    Dim ra As Range
+    Set ra = Selection
+    If ra(1, 1) <> "" And ra(1, 1).Offset(, 1) <> "" Then
+       Set ra = ra.Worksheet.Range(ra(1, 1), ra(1, 1).End(xlToRight))
+    End If
+    
+    Select Case mode
+    Case 1: Call GenerateTimeChart_1(ra)
+    Case 2: Call GenerateTimeChart_2(ra)
+    Case 3: Call GenerateTimeChart_3(ra)
+    Case 4: Call GenerateTimeChart_4(ra)
+    Case 5: Call GenerateTimeChart_5(ra)
+    Case 6: Call GenerateTimeChart_6(ra)
+    Case 7: Call GenerateTimeChart_7(ra)
+    Case 8: Call GenerateTimeChart_8(ra)
+    Case 9: Call GenerateTimeChart_9(ra)
+    End Select
+End Sub
+
+'
+Private Function TimeChartRange(ra As Range, msg As String) As Range
+    Dim c As Long, e As Long
+    c = ra.Column
+    e = c + ra.Columns.Count - 1
+    On Error Resume Next
+    Dim ce As Range
+    Set ce = Application.InputBox(msg, app_name, Type:=8)
+    On Error GoTo 0
+    If ce Is Nothing Then Exit Function
+    Set ce = ce.Worksheet.Cells(ce.Row, c)
+    If ce(1, 1) <> "" And ce(1, 1).Offset(, 1) <> "" Then
+       e = wsf.Max(e, ce(1, 1).End(xlToRight).Column)
+    End If
+    Set ra = ra.Worksheet.Range(ra(1, 1), ra(1, 1).Offset(, e - c))
+    Set TimeChartRange = ce
+End Function
+
+'クロック
+Private Sub GenerateTimeChart_1(ByVal ra As Range, Optional mode As Long)
+    If ra.Count < 2 Then
+        Dim v As Variant
+        v = Application.InputBox("横サイズを指定してください。", app_name, "16", , , , , Type:=1)
+        If TypeName(v) <> "Boolean" Then Set ra = ra.Worksheet.Range(ra, ra.Offset(, v - 1))
+    End If
+    ra.FormulaR1C1 = "=1-RC[-1]"
+End Sub
+
+'カウンタ
+Private Sub GenerateTimeChart_2(ByVal ra As Range, Optional mode As Long)
+    If ra.Count < 2 Then
+        Dim v As Variant
+        v = Application.InputBox("横サイズを指定してください。", app_name, "16", , , , , Type:=1)
+        If TypeName(v) <> "Boolean" Then Set ra = ra.Worksheet.Range(ra, ra.Offset(, v - 1))
+    End If
+    
+    Dim v1 As Variant, v2 As Variant, v3 As Variant
+    v1 = Application.InputBox("カウント数を入力してください。", app_name, "16", Type:=0)
+    If TypeName(v1) = "Boolean" Then Exit Sub
+    If Left(v1, 1) = "=" Then v1 = Mid(v1, 2)
+    v2 = Application.InputBox("ステップ数入力してください。", app_name, "1", Type:=0)
+    If TypeName(v2) = "Boolean" Then Exit Sub
+    If Left(v2, 1) = "=" Then v2 = Mid(v2, 2)
+    v3 = Application.InputBox("開始値を入力してください。", app_name, "0", Type:=0)
+    If TypeName(v3) = "Boolean" Then Exit Sub
+    '
+    ra.FormulaR1C1 = "=MOD(" & v2 & "+RC[-1]," & v1 & ")"
+    ra.Cells(1, 1).FormulaR1C1 = v3
+End Sub
+
+'ロジック
+Private Sub GenerateTimeChart_3(ByVal ra As Range, Optional mode As Long)
+    Dim ce As Range
+    Set ce = TimeChartRange(ra, "信号を選択してください。")
+    ra.Formula = "=1-" & ra(1, 1).Offset(ce.Row - ra.Row).Address(False, False)
+End Sub
+
+'NOT
+Private Sub GenerateTimeChart_4(ByVal ra As Range, Optional mode As Long)
+    Dim ce As Range
+    Set ce = TimeChartRange(ra, "NOT:信号を選択してください。")
+    ra.Formula = "=1-" & ra(1, 1).Offset(ce.Row - ra.Row).Address(False, False)
+End Sub
+
+'AND
+Private Sub GenerateTimeChart_5(ByVal ra As Range, Optional mode As Long)
+    Dim exp As String
+    Dim ce As Range
+    Dim i As Long
+    For i = 1 To 8
+        Set ce = TimeChartRange(ra, "AND:信号を選択してください。")
+        If ce Is Nothing Then Exit For
+        If exp <> "" Then exp = exp & "*"
+        exp = exp & ra(1, 1).Offset(ce.Row - ra.Row).Address(False, False)
+    Next i
+    ra.Formula = "=" & exp
+End Sub
+
+'OR
+Private Sub GenerateTimeChart_6(ByVal ra As Range, Optional mode As Long)
+    Dim exp As String
+    Dim ce As Range
+    Dim i As Long
+    For i = 1 To 8
+        Set ce = TimeChartRange(ra, "OR:信号を選択してください。")
+        If ce Is Nothing Then Exit For
+        If exp <> "" Then exp = exp & "*"
+        exp = exp & "(1-" & ra(1, 1).Offset(ce.Row - ra.Row).Address(False, False) & ")"
+    Next i
+    ra.Formula = "=1-" & exp
+End Sub
+
+'XOR
+Private Sub GenerateTimeChart_7(ByVal ra As Range, Optional mode As Long)
+    Dim exp As String
+    Dim ce As Range
+    Dim i As Long
+    For i = 1 To 8
+        Set ce = TimeChartRange(ra, "XOR:信号を選択してください。")
+        If ce Is Nothing Then Exit For
+        If exp <> "" Then exp = exp & "+"
+        exp = exp & ra(1, 1).Offset(ce.Row - ra.Row).Address(False, False)
+    Next i
+    ra.Formula = "=mod(" & exp & ",2)"
+End Sub
+
+'SEL
+Private Sub GenerateTimeChart_8(ByVal ra As Range, Optional mode As Long)
+    Dim exp As String, s As String
+    Dim ce As Range
+    Set ce = TimeChartRange(ra, "SEL:SEL信号を選択してください。")
+    If ce Is Nothing Then Exit Sub
+    exp = ra(1, 1).Offset(ce.Row - ra.Row).Address(False, False)
+    
+    Set ce = TimeChartRange(ra, "SEL:信号A(SEL=0)を選択してください。")
+    If ce Is Nothing Then Exit Sub
+    s = ra(1, 1).Offset(ce.Row - ra.Row).Address(False, False)
+    
+    Set ce = TimeChartRange(ra, "SEL:信号B(SEL=1)を選択してください。")
+    If ce Is Nothing Then Exit Sub
+    
+    exp = exp & "*(" & ra(1, 1).Offset(ce.Row - ra.Row).Address(False, False)
+    exp = exp & "-" & s & ")+" & s
+    ra.Formula = "=" & exp
+End Sub
+
+'DFF
+Private Sub GenerateTimeChart_9(ByVal ra As Range, Optional mode As Long)
+    Dim exp As String
+    Dim ce As Range
+    Set ce = TimeChartRange(ra, "DFF:クロック信号を選択してください。")
+    If ce Is Nothing Then Exit Sub
+    exp = ra(1, 1).Offset(ce.Row - ra.Row).Address(False, False)
+    
+    Set ce = TimeChartRange(ra, "DFF:イネーブル信号を選択してください。")
+    If Not ce Is Nothing Then
+        exp = exp & "*" & ra(1, 1).Offset(ce.Row - ra.Row, -1).Address(False, False)
+    End If
+    
+    Set ce = TimeChartRange(ra, "DFF:データ信号を選択してください。")
+    If ce Is Nothing Then Exit Sub
+    
+    exp = exp & "*(" & ra(1, 1).Offset(ce.Row - ra.Row, -1).Address(False, False)
+    exp = exp & "-" & ra(1, 1).Offset(0, -1).Address(False, False) & ")"
+    exp = exp & "+" & ra(1, 1).Offset(0, -1).Address(False, False)
+    ra.Formula = "=" & exp
+End Sub
 
 '----------------------------------------
 '図操作

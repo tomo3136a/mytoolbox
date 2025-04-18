@@ -192,6 +192,9 @@ Public Sub AddSheetIDF(Optional ByVal s_name As String)
     ws.Range("M:N").NumberFormatLocal = "#0.0###"
     ws.Range("W:Y").NumberFormatLocal = "#0.0###"
     
+    ws.Range("G:L").NumberFormatLocal = "@"
+    ws.Range("O:Q").NumberFormatLocal = "@"
+    
     'ヘッダー行作成
     Dim vh As Variant
     vh = Split(FHDR, ",")
@@ -210,9 +213,9 @@ Public Sub ImportIDF()
     'ファイル選択
     With Application.FileDialog(msoFileDialogOpen)
         .Filters.Clear
-        .Filters.Add "IDF file", "*.emn,*.brd,*.bdf,*.idb,*.emp,*.lib,*.ldf,*.idl"
+        .Filters.Add "IDF file", "*.emn,*.brd,*.bdf,*.idb,*.emp,*.lib,*.ldf,*.idl,*.pro"
         .Filters.Add "design file", "*.emn,*.brd,*.bdf,*.idb"
-        .Filters.Add "library file", "*.emp,*.lib,*.ldf,*.idl"
+        .Filters.Add "library file", "*.emp,*.lib,*.ldf,*.idl,*.pro"
         .Filters.Add "全てのファイル", "*.*"
         .FilterIndex = 1
         .InitialFileName = pth & "\"
@@ -248,6 +251,9 @@ Private Sub i_ImportIDF(ByVal pth As String)
     ws.Range("C:C").NumberFormatLocal = "#0.0###"
     ws.Range("M:N").NumberFormatLocal = "#0.0###"
     ws.Range("W:Y").NumberFormatLocal = "#0.0###"
+    
+    ws.Range("G:L").NumberFormatLocal = "@"
+    ws.Range("O:Q").NumberFormatLocal = "@"
     
     'ワークシートにヘッダー行出力
     Dim vh As Variant
@@ -446,10 +452,16 @@ Private Sub ReadIDF(col As Collection, pth As String)
                 Case Else
                     wa(FID.N_XPOS) = va(0)
                     wa(FID.N_YPOS) = va(1)
-                    wa(FID.N_HEIGHT) = va(2)
-                    wa(FID.N_ANGLE) = va(3)
-                    wa(FID.N_LAYER) = va(4)
-                    wa(FID.N_STATUS) = va(5)
+                    If wa(FID.N_IDF_VERSION) = 2 Then
+                        wa(FID.N_ANGLE) = va(2)
+                        wa(FID.N_LAYER) = va(3)
+                        wa(FID.N_STATUS) = va(4)
+                    Else
+                        wa(FID.N_HEIGHT) = va(2)
+                        wa(FID.N_ANGLE) = va(3)
+                        wa(FID.N_LAYER) = va(4)
+                        wa(FID.N_STATUS) = va(5)
+                    End If
                     col.Add wa
                     seq = seq - 2
                 End Select
@@ -538,6 +550,7 @@ Public Sub ExportIDF()
         flt = "IDF file,*.emn,IDF file,*.brd,IDF file,*.bdf,IDF file,*.idb"
         flt = flt & ",library file,*.emp,library file,*.lib"
         flt = flt & ",library file,*.ldf,library file,*.idl"
+        flt = flt & ",library file,*pro"
         flt = flt & ",all file,*.*"
         Dim idx As Integer
         idx = 9
@@ -549,6 +562,7 @@ Public Sub ExportIDF()
         If LCase(Right(pth, 4)) = ".lib" Then idx = 6
         If LCase(Right(pth, 4)) = ".ldf" Then idx = 7
         If LCase(Right(pth, 4)) = ".idl" Then idx = 8
+        If LCase(Right(pth, 4)) = ".pro" Then idx = 9
         pth = Application.GetSaveAsFilename(pth, flt, idx)
         If pth = "False" Then Exit Sub
         
@@ -860,8 +874,8 @@ Private Sub SelectDesign(ws As Worksheet, Optional mode As Long)
     Dim ptn As String
     Select Case mode
     Case 1: ptn = "\.(emn|brd|bdf|idb)($|\s)"
-    Case 2: ptn = "\.(emp|lib|ldf|idl)($|\s)"
-    Case 3: ptn = "\.(emn|brd|bdf|idb|emp|lib|ldf|idl)($|\s)"
+    Case 2: ptn = "\.(emp|lib|ldf|idl|pro)($|\s)"
+    Case 3: ptn = "\.(emn|brd|bdf|idb|emp|lib|ldf|idl|pro)($|\s)"
     End Select
     
     Set ws = SelectSheet(ActiveWorkbook, ptn, "デザイン一覧：", app_name)
