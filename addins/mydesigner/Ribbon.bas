@@ -50,10 +50,8 @@ Private Sub Designer_getText(ByRef control As IRibbonControl, ByRef text As Vari
 End Sub
 
 'チェックボックス
-Private Sub Designer_onAction(ByRef control As IRibbonControl, ByRef pressed As Boolean)
-    Dim v As Integer
-    If pressed Then v = 1
-    Call Draw_SetParam(RibbonID(control), v)
+Private Sub Designer_onActionPressed(ByRef control As IRibbonControl, ByRef pressed As Boolean)
+    Call Draw_SetParam(RibbonID(control), IIf(pressed, 1, 0))
 End Sub
 
 Private Sub Designer_getPressed(control As IRibbonControl, ByRef returnedVal)
@@ -61,19 +59,32 @@ Private Sub Designer_getPressed(control As IRibbonControl, ByRef returnedVal)
 End Sub
 
 '----------------------------------------
+'■メニュー
+'  1.x: 図形操作機能
+'  2.x: 図形リスト
+'  3.x: 図形の更新
+'  4.x: 部品配置機能
+'  5.x: 作図機能(IDF)
+'----------------------------------------
+
+Private Sub Designer_onAction(ByVal control As IRibbonControl)
+    Select Case RibbonID(control, 1)
+    Case 1: Draw1_Menu RibbonID(control)
+    Case 2: Draw2_Menu RibbonID(control)
+    Case 3: Draw3_Menu RibbonID(control)
+    End Select
+End Sub
+
+'----------------------------------------
 '■機能グループ1
 '図形操作機能
 '----------------------------------------
 
-Private Sub Draw_onAction(ByVal control As IRibbonControl)
-    Select Case RibbonID(control, 1)
-    Case 1: Draw1_Menu RibbonID(control)
-    End Select
-End Sub
-
 Private Sub Designer1_onAction(ByVal control As IRibbonControl)
     Select Case RibbonID(control, 1)
     Case 1: Draw1_Menu RibbonID(control)
+    Case 2: Draw2_Menu RibbonID(control)
+    Case 3: Draw3_Menu RibbonID(control)
     End Select
 End Sub
 
@@ -146,19 +157,8 @@ Private Sub Draw4_Menu(id As Long, Optional opt As Variant)
     Case 4: DrawItemDelete          '削除
     Case 5: DuplicateDrawItemSheet  '設定ローカル化
     Case 6: ImportDrawItemSheet     '設定シート取込
-    Case 8: DrawTimeChart 1         'タイムチャート作図
-    Case 9: DrawTimeChart 2         'タイムチャート作図(罫線)
-    Case 10: AddDrawingSheet        '方眼紙シート追加
-    Case 11: GenerateTimeChart 1    'タイムチャートデータ作成(クロック)
-    Case 12: GenerateTimeChart 2    'タイムチャートデータ作成(カウンタ)
-    Case 13: GenerateTimeChart 3    'タイムチャートデータ作成(ロジック)
-    Case 14: GenerateTimeChart 4    'タイムチャートデータ作成(NOT)
-    Case 15: GenerateTimeChart 5    'タイムチャートデータ作成(AND)
-    Case 16: GenerateTimeChart 6    'タイムチャートデータ作成(OR)
-    Case 17: GenerateTimeChart 7    'タイムチャートデータ作成(XOR)
-    Case 18: GenerateTimeChart 8    'タイムチャートデータ作成(SEL)
-    Case 19: GenerateTimeChart 9    'タイムチャートデータ作成(DFF)
     'Case 7: ToggleAddinBook
+    Case Else:
     End Select
 End Sub
 
@@ -197,7 +197,7 @@ End Sub
 
 '----------------------------------------
 ''■機能グループ5
-'作図機能(IDF)
+'タイミング図
 '----------------------------------------
 
 Private Sub Designer5_onAction(ByVal control As IRibbonControl)
@@ -207,6 +207,52 @@ Private Sub Designer5_onAction(ByVal control As IRibbonControl)
 End Sub
 
 Private Sub Draw5_Menu(id As Long, Optional opt As Variant)
+    Select Case id
+    Case 1: GenerateTimeChart 1     'タイムチャートデータ作成(クロック)
+    Case 2: GenerateTimeChart 2     'タイムチャートデータ作成(カウンタ)
+    Case 3: GenerateTimeChart 3     'タイムチャートデータ作成(ロジック)
+    Case 7: AddDrawingSheet         '方眼紙シート追加
+    Case 8: DrawTimeChart 1         '作図
+    Case 9: DrawTimeChart 2         '作図(図形)
+    
+    Case 5: GenerateTimeChart 5     '抽出
+    Case 6: GenerateTimeChart 6     '結合
+
+    Case 11: ApplyTimeChart 1       '反転
+    Case 12: ApplyTimeChart 2       'クリア
+    Case 13: ApplyTimeChart 3       'プリセット
+    
+    Case 21: GenerateTimeChart 1    'データ作成(クロック)
+    Case 22: GenerateTimeChart 2    'データ作成(カウンタ)
+    Case 23: GenerateTimeChart 3    'データ作成(ロジック)
+    Case 24: GenerateTimeChart 4    'データ作成(抽出)
+    Case 25: GenerateTimeChart 5    'データ作成(結合)
+    
+    Case 31: GenerateTimeChart 11   'データ作成(NOT)
+    Case 32: GenerateTimeChart 12   'データ作成(AND)
+    Case 33: GenerateTimeChart 13   'データ作成(OR)
+    Case 34: GenerateTimeChart 14   'データ作成(XOR)
+    Case 35: GenerateTimeChart 15   'データ作成(MUX)
+    Case 36: GenerateTimeChart 16   'データ作成(D-FF)
+    Case 37: GenerateTimeChart 17   'データ作成(SR-FF)
+    Case 38: GenerateTimeChart 18   'データ作成(SYNC)
+    Case 39: GenerateTimeChart 19   'データ作成(EDGE)
+    Case Else: HelpTimingChart
+    End Select
+End Sub
+
+'----------------------------------------
+''■機能グループ6
+'作図機能(IDF)
+'----------------------------------------
+
+Private Sub Designer6_onAction(ByVal control As IRibbonControl)
+    Select Case RibbonID(control, 1)
+    Case 5: Draw6_Menu RibbonID(control)
+    End Select
+End Sub
+
+Private Sub Draw6_Menu(id As Long, Optional opt As Variant)
     Select Case id
     Case 1: DrawIDF                     'IDF作図
     Case 2: AddSheetIDF                 'IDFシート追加
@@ -222,20 +268,20 @@ Private Sub Draw5_Menu(id As Long, Optional opt As Variant)
 End Sub
 
 'テキスト入力
-Private Sub Designer5_onChange(ByRef control As IRibbonControl, ByRef text As String)
+Private Sub Designer6_onChange(ByRef control As IRibbonControl, ByRef text As String)
     Call IDF_SetParam(RibbonID(control), text)
 End Sub
 
-Private Sub Designer5_getText(ByRef control As IRibbonControl, ByRef text As Variant)
+Private Sub Designer6_getText(ByRef control As IRibbonControl, ByRef text As Variant)
     text = IDF_GetParam(RibbonID(control))
 End Sub
 
 'チェックボックス
-Private Sub Designer5_onActionPressed(ByRef control As IRibbonControl, ByRef pressed As Boolean)
+Private Sub Designer6_onActionPressed(ByRef control As IRibbonControl, ByRef pressed As Boolean)
     Call IDF_SetFlag(RibbonID(control), pressed)
 End Sub
 
-Private Sub Designer5_getPressed(control As IRibbonControl, ByRef returnedVal)
+Private Sub Designer6_getPressed(control As IRibbonControl, ByRef returnedVal)
     returnedVal = IDF_IsFlag(RibbonID(control))
 End Sub
 

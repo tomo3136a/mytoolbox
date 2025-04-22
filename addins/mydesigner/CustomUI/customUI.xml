@@ -72,51 +72,63 @@
                 <button id="b4.7" onAction="Designer4_onAction" label="リスト更新" imageMso="ObjectRotateFree" />
               </menu>
             </buttonGroup>
-            <buttonGroup id="g43">
-              <menu id="m42" label="タイムチャート">
-                <button id="b4.11" onAction="Designer4_onAction" label="クロック" />
-                <button id="b4.12" onAction="Designer4_onAction" label="カウンタ" />
-                <button id="b4.13" onAction="Designer4_onAction" label="ロジック" />
-                <menu id="m43" label="論理ゲート">
-                  <button id="b4.14" onAction="Designer4_onAction" label="否定(NOT)" />
-                  <button id="b4.15" onAction="Designer4_onAction" label="論理積(AND)" />
-                  <button id="b4.16" onAction="Designer4_onAction" label="論理和(OR)" />
-                  <button id="b4.17" onAction="Designer4_onAction" label="排他的論理和(XOR)" />
-                  <button id="b4.18" onAction="Designer4_onAction" label="MUX" />
-                  <button id="b4.19" onAction="Designer4_onAction" label="DFF" />
-                </menu>
-                <menuSeparator id="s43" />
-                <button id="b4.10" onAction="Designer4_onAction" label="方眼紙シート" imageMso="AccessTableEvents" />
-                <menu id="m44" label="描画">
-                  <button id="b4.8" onAction="Designer4_onAction" label="図形" imageMso="ShapeConnectorStyleElbow" />
-                  <button id="b4.9" onAction="Designer4_onAction" label="罫線" imageMso="ShapeConnectorStyleElbow" />
-                </menu>
-              </menu>
-            </buttonGroup>
           </box>
         </group>
-        <group id="g5" label="IDF" imageMso="ComAddInsDialog">
-          <button id="b5.1" onAction="Designer5_onAction" label="描画" imageMso="ShapesMoreShapes" size="large" />
-          <menu id="m51" label="その他" >
-            <button id="b5.2" onAction="Designer5_onAction" label="シート追加" imageMso="CreateQueryFromWizard" />
-            <button id="b5.3" onAction="Designer5_onAction" label="マクロ" imageMso="ControlWizards" />
-            <menuSeparator id="s51" />
-            <button id="b5.6" onAction="Designer5_onAction" label="部品追加" imageMso="ShapesMoreShapes" />
-            <button id="b5.7" onAction="Designer5_onAction" label="部品配置" imageMso="ShapesMoreShapes" />
-            <button id="b5.8" onAction="Designer5_onAction" label="パネル追加" imageMso="ShapesMoreShapes" />
+        <group id="g5" label="作図" imageMso="ComAddInsDialog">
+          <menu id="m51" label="タイミング図">
+            <button id="b5.1" onAction="Designer5_onAction" label="クロック" />
+            <button id="b5.2" onAction="Designer5_onAction" label="カウンタ" />
+            <button id="b5.3" onAction="Designer5_onAction" label="ロジック" />
+            <button id="b5.5" onAction="Designer5_onAction" label="抽出" />
+            <button id="b5.6" onAction="Designer5_onAction" label="結合" />
+            <menu id="m52" label="操作">
+              <button id="b5.11" onAction="Designer5_onAction" label="反転" />
+              <button id="b5.12" onAction="Designer5_onAction" label="マスク" />
+              <button id="b5.13" onAction="Designer5_onAction" label="合成" />
+            </menu>
+            <menu id="m53" label="論理ゲート">
+              <button id="b5.31" onAction="Designer5_onAction" label="論理否定(NOT)" />
+              <button id="b5.32" onAction="Designer5_onAction" label="論理積(AND)" />
+              <button id="b5.33" onAction="Designer5_onAction" label="論理和(OR)" />
+              <button id="b5.34" onAction="Designer5_onAction" label="排他的論理和(XOR)" />
+              <button id="b5.35" onAction="Designer5_onAction" label="マルチプレクサ(MUX)" />
+              <menuSeparator id="s51" />
+              <button id="b5.36" onAction="Designer5_onAction" label="D-FF" />
+              <button id="b5.37" onAction="Designer5_onAction" label="SR-FF" />
+              <!-- <button id="b5.38" onAction="Designer5_onAction" label="クロック同期" /> -->
+              <!-- <button id="b5.39" onAction="Designer5_onAction" label="エッジ検出" /> -->
+            </menu>
             <menuSeparator id="s52" />
-            <button id="b5.4" onAction="Designer5_onAction" label="読み込み" imageMso="GetExternalDataImportClassic" />
-            <button id="b5.5" onAction="Designer5_onAction" label="エクスポート" imageMso="ExportTextFile" />
+            <button id="b5.7" onAction="Designer5_onAction" label="方眼紙シート" imageMso="AccessTableEvents" />
+            <menuSeparator id="s53" />
+            <button id="b5.8" onAction="Designer5_onAction" label="描画" imageMso="ShapeConnectorStyleElbow" />
+            <button id="b5.9" onAction="Designer5_onAction" label="描画(図形)" imageMso="ShapeConnectorStyleElbow" />
+            <menuSeparator id="s54" />
+            <button id="b5.99" onAction="Designer5_onAction" label="ヘルプ" imageMso="Help" />
           </menu>
-          <button id="b5.10" onAction="Designer5_onAction" label="サイズ修正" imageMso="GroupPositionLayout" />
-          <button id="b5.11" onAction="Designer5_onAction" label="スケール修正" imageMso="OrgChartScale" />
-          <!-- <editBox id="e5.1" onChange="Designer5_onChange" label="比率" getText="Designer5_getText" sizeString="wwwww" />
-          <checkBox id="c5.1" onAction="Designer5_onActionPressed" label="A面" getPressed="Designer5_getPressed" />
-          <checkBox id="c5.2" onAction="Designer5_onActionPressed" label="B面" getPressed="Designer5_getPressed" />
-          <checkBox id="c5.3" onAction="Designer5_onActionPressed" label="配線制約" getPressed="Designer5_getPressed" />
-          <checkBox id="c5.4" onAction="Designer5_onActionPressed" label="配置制約" getPressed="Designer5_getPressed" />
-          <checkBox id="c5.5" onAction="Designer5_onActionPressed" label="PTH" getPressed="Designer5_getPressed" />
-          <checkBox id="c5.6" onAction="Designer5_onActionPressed" label="Note" getPressed="Designer5_getPressed" /> -->
+        </group>
+        <group id="g6" label="IDF" imageMso="ComAddInsDialog">
+          <button id="b6.1" onAction="Designer6_onAction" label="描画" imageMso="ShapesMoreShapes" size="large" />
+          <menu id="m61" label="その他" >
+            <button id="b6.2" onAction="Designer6_onAction" label="シート追加" imageMso="CreateQueryFromWizard" />
+            <button id="b6.3" onAction="Designer6_onAction" label="マクロ" imageMso="ControlWizards" />
+            <menuSeparator id="s61" />
+            <button id="b6.6" onAction="Designer6_onAction" label="部品追加" imageMso="ShapesMoreShapes" />
+            <button id="b6.7" onAction="Designer6_onAction" label="部品配置" imageMso="ShapesMoreShapes" />
+            <button id="b6.8" onAction="Designer6_onAction" label="パネル追加" imageMso="ShapesMoreShapes" />
+            <menuSeparator id="s62" />
+            <button id="b6.4" onAction="Designer6_onAction" label="読み込み" imageMso="GetExternalDataImportClassic" />
+            <button id="b6.5" onAction="Designer6_onAction" label="エクスポート" imageMso="ExportTextFile" />
+          </menu>
+          <button id="b6.10" onAction="Designer6_onAction" label="サイズ修正" imageMso="GroupPositionLayout" />
+          <button id="b6.11" onAction="Designer6_onAction" label="スケール修正" imageMso="OrgChartScale" />
+          <!-- <editBox id="e6.1" onChange="Designer6_onChange" label="比率" getText="Designer6_getText" sizeString="wwwww" />
+          <checkBox id="c6.1" onAction="Designer6_onChecked" label="A面" getPressed="Designer6_getPressed" />
+          <checkBox id="c6.2" onAction="Designer6_onChecked" label="B面" getPressed="Designer6_getPressed" />
+          <checkBox id="c6.3" onAction="Designer6_onChecked" label="配線制約" getPressed="Designer6_getPressed" />
+          <checkBox id="c6.4" onAction="Designer6_onChecked" label="配置制約" getPressed="Designer6_getPressed" />
+          <checkBox id="c6.5" onAction="Designer6_onChecked" label="PTH" getPressed="Designer6_getPressed" />
+          <checkBox id="c6.6" onAction="Designer6_onChecked" label="Note" getPressed="Designer6_getPressed" /> -->
         </group>
         <!-- <dynamicMenu id="A" label="Menu A" imageMso="FormatPainter" getContent="Designer4_getMenuContent" size="large" /> -->
         <!-- <group id="Designer.g4" label="IDF" imageMso="ComAddInsDialog">
