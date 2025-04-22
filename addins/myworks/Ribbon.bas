@@ -14,30 +14,21 @@ Private g_ribbon As IRibbonUI
 
 'リボンを更新
 Private Sub RefreshRibbon(Optional id As String)
-    If g_ribbon Is Nothing Then Exit Sub
-    If id = "" Then
-        g_ribbon.Invalidate
-    Else
-        g_ribbon.InvalidateControl id
+    If Not g_ribbon Is Nothing Then
+        If id = "" Then
+            g_ribbon.Invalidate
+        Else
+            g_ribbon.InvalidateControl id
+        End If
     End If
     DoEvents
 End Sub
 
 'リボンID番号取得
-Private Function RibbonID(control As IRibbonControl) As Integer
-    Dim s As String
-    s = control.Tag
-    If s = "" Then s = control.id
-    Dim v As Variant
-    For Each v In Array(".", "_")
-        Dim ss() As String
-        ss = Split(s, v)
-        If UBound(ss) >= 0 Then
-            RibbonID = Val("0" & ss(UBound(ss)))
-            Exit Function
-        End If
-    Next v
-    RibbonID = Val(s)
+Private Function RibbonID(control As IRibbonControl, Optional n As Long) As Long
+    Dim vs As Variant
+    vs = Split(re_replace(control.id, "[^0-9.]", ""), ".")
+    If UBound(vs) >= n Then RibbonID = Val("0" & vs(UBound(vs) - n))
 End Function
 
 '----------------------------------------

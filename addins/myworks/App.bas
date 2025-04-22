@@ -9,16 +9,28 @@ Attribute VB_Name = "App"
 Option Explicit
 Option Private Module
 
+Public Sub eof()
+    ScreenUpdateOn
+End Sub
+
 '----------------------------------------
-'common
+'基本
 '----------------------------------------
 
-Private Function SelectRange() As Range
-    If TypeName(Selection) = "Range" Then
-        Set SelectRange = Selection
-        Exit Function
-    End If
-    Set SelectRange = Range(Selection.TopLeftCell, Selection.BottomRightCell)
+'アプリケーション情報
+Public Function app_name() As String
+    app_name = "Works"
 End Function
 
+'----------------------------------------
+'
+'----------------------------------------
+
+'Private Function SelectRange() As Range
+'    If TypeName(Selection) = "Range" Then
+'        Set SelectRange = Selection
+'        Exit Function
+'    End If
+'    Set SelectRange = Range(Selection.TopLeftCell, Selection.BottomRightCell)
+'End Function
 
