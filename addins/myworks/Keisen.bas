@@ -21,7 +21,7 @@ Sub TableSelect(ra As Range, Optional mode As Integer)
     Dim rb As Range
     Set rb = ra.CurrentRegion
     Select Case mode
-    Case 0: rb.Select
+    Case 0: rb = rb.Select
     Case 1: rb(1, 1).Select
     Case 2: rb(rb.Rows.Count + 1, 1).Select
     Case 3: Intersect(rb, ra.EntireRow).Select
@@ -59,12 +59,14 @@ End Sub
 '列追加
 ' mode=1: 番号列追加
 Sub AddColumn(ra As Range, mode As Integer)
+    'テーブルの1列取得
     Dim rb As Range
     Set rb = Intersect(ra.CurrentRegion, ra.EntireColumn)
     If ra.Rows.Count > 1 Then Set rb = ra
     Set rb = rb.Columns(1)
     rb.EntireColumn.Insert shift:=xlShiftToRight
     
+    '1列追加し書式を複製
     Dim rc As Range
     Set rc = rb.Offset(0, -1)
     rb.Copy
@@ -72,14 +74,17 @@ Sub AddColumn(ra As Range, mode As Integer)
         Operation:=xlNone, SkipBlanks:=False, Transpose:=False
     Application.CutCopyMode = 0
     
+    '複数行選択している場合はヘッダ行なしとする
     Dim bhdr As Boolean
     If ra.CurrentRegion.Row = rb.Row Then bhdr = True
     
+    '列に値を入れる
     Select Case mode
     Case 1: AddNoColumn rc, bhdr
-    Case 2: AddRankColumn rc, bhdr
+    'Case 2: AddRankColumn rc, bhdr
     End Select
     
+    '選択範囲を戻す
     ra.Select
 End Sub
 
@@ -158,15 +163,13 @@ End Sub
 Sub AddNoColumn(ra As Range, bhdr As Boolean, Optional shdr As String = "No.")
     Dim arr() As Variant
     arr = ra.Value
-    'ReDim arr(0 To ra.Rows.Count, 1 To 1)
-    
-    arr(0, 1) = shdr
     Dim i As Long, j As Long
-    If bhdr And shdr <> "" Then j = 1
+    If Not bhdr Or shdr = "" Then j = 1
     For i = 1 To ra.Rows.Count
-        arr(j, 1) = i
+        arr(i, 1) = j
         j = j + 1
     Next i
+    If bhdr And shdr <> "" Then arr(1, 1) = shdr
     ra.Value = arr
     ra.EntireColumn.Columns.AutoFit
 End Sub
@@ -186,15 +189,4 @@ Sub AddRankColumn(ra As Range, bhdr As Boolean, Optional shdr As String = "No.")
     ra.Value = arr
     ra.EntireColumn.Columns.AutoFit
 End Sub
-
-
-
-
-Private Function IsLineNo(ra As Range) As Boolean
-    Dim s As String
-    s = ra.Cells(1, 1).Value
-    If s = "No." Or s = "#" Or s = "番号" Then IsLineNo = True
-End Function
-
-
 

@@ -28,7 +28,7 @@ End Sub
 Private Function RibbonID(control As IRibbonControl, Optional n As Long) As Long
     Dim vs As Variant
     vs = Split(re_replace(control.id, "[^0-9.]", ""), ".")
-    If UBound(vs) >= n Then RibbonID = Val("0" & vs(UBound(vs) - n))
+    If UBound(vs) >= n Then RibbonID = Val("0" & vs(n))
 End Function
 
 '----------------------------------------
@@ -73,79 +73,57 @@ End Sub
 '■機能グループ1
 'レポート機能
 '----------------------------------------
-
-'レポートサイン
-Private Sub works11_onAction(ByVal control As IRibbonControl)
-    If TypeName(Selection) <> "Range" Then Exit Sub
-    ReportSign Selection
+Private Sub works1_onAction(ByVal control As IRibbonControl)
+    Select Case RibbonID(control, 1)
+    Case 11:
+        'レポートサイン
+        If TypeName(Selection) <> "Range" Then Exit Sub
+        ReportSign Selection
+    Case 12:
+        'ページフォーマット
+        PagePreview
+    Case 13:
+        'テキスト変換
+        If TypeName(Selection) <> "Range" Then Exit Sub
+        MenuTextConv Selection, RibbonID(control, 2)
+    Case 14:
+        '拡張書式
+        If TypeName(Selection) <> "Range" Then Exit Sub
+        MenuUserFormat Selection, RibbonID(control, 2)
+    Case 15:
+        '定型式挿入
+        If TypeName(Selection) <> "Range" Then Exit Sub
+        MenuUserFormula Selection, RibbonID(control, 2)
+    Case 16:
+        '表示・非表示
+        ShowHide RibbonID(control, 2)
+    Case 17:
+        'パス名
+        PathMenu Selection, RibbonID(control, 2)
+    Case 18:
+        '情報取得
+        AddInfoTable RibbonID(control, 2)
+    Case 19:
+        'エクスポート
+        If TypeName(Selection) <> "Range" Then Exit Sub
+        MenuExport Selection, RibbonID(control, 2)
+    End Select
 End Sub
 
-'ページフォーマット
-Private Sub works12_onAction(ByVal control As IRibbonControl)
-    PagePreview
+Private Sub works1_onChecked(ByRef control As IRibbonControl, ByRef pressed As Boolean)
+    Select Case RibbonID(control)
+    Case 17: SetRtParam "path", RibbonID(control), CStr(pressed)    'パス名
+    Case 18: SetRtParam "info", control.Tag, CStr(pressed)          '情報取得
+    Case 19: SetRtParam "export", RibbonID(control), CStr(pressed)  'エクスポート
+    End Select
 End Sub
 
-'テキスト変換
-Private Sub works13_onAction(ByVal control As IRibbonControl)
-    If TypeName(Selection) <> "Range" Then Exit Sub
-    MenuTextConv Selection, RibbonID(control)
-End Sub
-
-'拡張書式
-Private Sub works14_onAction(ByVal control As IRibbonControl)
-    If TypeName(Selection) <> "Range" Then Exit Sub
-    MenuUserFormat Selection, RibbonID(control)
-End Sub
-
-'定型式挿入
-Private Sub works15_onAction(ByVal control As IRibbonControl)
-    If TypeName(Selection) <> "Range" Then Exit Sub
-    MenuUserFormula Selection, RibbonID(control)
-End Sub
-
-'表示・非表示
-Private Sub works16_onAction(ByVal control As IRibbonControl)
-    ShowHide RibbonID(control)
-End Sub
-
-'パス名
-Private Sub works17_onAction(ByVal control As IRibbonControl)
-    PathMenu Selection, RibbonID(control)
-End Sub
-
-Private Sub works17_onChecked(ByRef control As IRibbonControl, ByRef pressed As Boolean)
-    SetRtParam "path", RibbonID(control), CStr(pressed)
-End Sub
-
-Private Sub works17_getPressed(control As IRibbonControl, ByRef returnedVal)
-    returnedVal = GetRtParamBool("path", RibbonID(control))
-End Sub
-
-'情報取得
-Private Sub works18_onAction(ByVal control As IRibbonControl)
-    AddInfoTable RibbonID(control)
-End Sub
-
-Private Sub works18_onChecked(ByRef control As IRibbonControl, ByRef pressed As Boolean)
-    SetRtParam "info", control.Tag, CStr(pressed)
-End Sub
-
-Private Sub works18_getPressed(control As IRibbonControl, ByRef returnedVal)
-    returnedVal = GetRtParamBool("info", control.Tag)
-End Sub
-
-'エクスポート
-Private Sub works19_onAction(ByVal control As IRibbonControl)
-    If TypeName(Selection) <> "Range" Then Exit Sub
-    MenuExport Selection, RibbonID(control)
-End Sub
-
-Private Sub works19_onChecked(ByRef control As IRibbonControl, ByRef pressed As Boolean)
-    SetRtParam "export", RibbonID(control), CStr(pressed)
-End Sub
-
-Private Sub works19_getPressed(control As IRibbonControl, ByRef returnedVal)
-    returnedVal = GetRtParamBool("export", RibbonID(control))
+Private Sub works1_getPressed(control As IRibbonControl, ByRef returnedVal)
+    Select Case RibbonID(control)
+    Case 17: returnedVal = GetRtParamBool("path", RibbonID(control))    'パス名
+    Case 18: returnedVal = GetRtParamBool("info", control.Tag)          '情報取得
+    Case 19: returnedVal = GetRtParamBool("export", RibbonID(control))  'エクスポート
+    End Select
 End Sub
 
 '----------------------------------------

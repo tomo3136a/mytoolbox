@@ -18,15 +18,19 @@ Sub ReportSign(ra As Range)
     c = ra.Column
     r = ra.Row
     '
+    '書き込み先の空白探索
     Do Until Cells(r, c).Value = ""
         r = r + 1
     Loop
+    
+    '更新なら「更新」を明記
     If r > 1 Then
         If Cells(r - 1, c).Value <> "" Then
             s = "更新 " & s
         End If
     End If
-    '
+    
+    '右詰めにしてサイン書き込み
     With Cells(r, c)
         .HorizontalAlignment = xlRight
         .Value = s
@@ -42,6 +46,13 @@ Sub PagePreview()
     '
     Dim ws As Worksheet
     For Each ws In ActiveWindow.SelectedSheets
+        '最終行が空白行でないなら右下に空白追加
+        Dim ra As Range
+        Set ra = ws.UsedRange
+        Set ra = ra(ra.Rows.Count, ra.Columns.Count)
+        If ra <> " " Then ra.Offset(1, 0) = " "
+        
+        '印刷範囲表示に設定        '
         Dim wnd As Window
         Set wnd = ws.Application.ActiveWindow
         wnd.Zoom = 100
@@ -119,7 +130,7 @@ Private Sub Cells_RemoveSpace( _
         Optional sep As String = " ")
     Dim re1 As Object, re2 As Object, re3 As Object
     Set re1 = regex("[\s\u00A0\u3000]+")
-    Set re2 = regex("[ \t\v\f\u00A0^u3000]+")
+    Set re2 = regex("[ \t\v\f\u00A0\u3000]+")
     Set re3 = regex(sep & "(\r?\n)")
     '
     Dim va As Variant
@@ -142,6 +153,34 @@ Private Sub Cells_RemoveSpace( _
                     s = re3.Replace(s, "$1")
                 End If
                 va(r, c) = Trim(s)
+            End If
+        Next c
+    Next r
+    '
+    ra.Value = va
+End Sub
+
+'スペース削除
+Private Sub Cells_Empty(ra As Range)
+    Dim re1 As Object, re2 As Object, re3 As Object
+    Set re1 = regex("[\s\u00A0\u3000]+")
+    Set re2 = regex("[ \t\v\f\u00A0\u3000]+")
+    Set re3 = regex(sep & "(\r?\n)")
+    '
+    Dim va As Variant
+    va = ra.Formula2
+    If ra.Count = 1 Then
+        ReDim va(1 To 1, 1 To 1)
+        va(1, 1) = ra.Formula2
+    End If
+    '
+    Dim r As Long, c As Long
+    For r = LBound(va, 1) To UBound(va, 1)
+        For c = LBound(va, 2) To UBound(va, 2)
+            If Trim(va(r, c)) = "" Then
+                If Not va(r, c).HasFormula Then
+                    va(r, c) = Empty
+                End If
             End If
         Next c
     Next r
