@@ -160,34 +160,6 @@ Private Sub Cells_RemoveSpace( _
     ra.Value = va
 End Sub
 
-'スペース削除
-Private Sub Cells_Empty(ra As Range)
-    Dim re1 As Object, re2 As Object, re3 As Object
-    Set re1 = regex("[\s\u00A0\u3000]+")
-    Set re2 = regex("[ \t\v\f\u00A0\u3000]+")
-    Set re3 = regex(sep & "(\r?\n)")
-    '
-    Dim va As Variant
-    va = ra.Formula2
-    If ra.Count = 1 Then
-        ReDim va(1 To 1, 1 To 1)
-        va(1, 1) = ra.Formula2
-    End If
-    '
-    Dim r As Long, c As Long
-    For r = LBound(va, 1) To UBound(va, 1)
-        For c = LBound(va, 2) To UBound(va, 2)
-            If Trim(va(r, c)) = "" Then
-                If Not va(r, c).HasFormula Then
-                    va(r, c) = Empty
-                End If
-            End If
-        Next c
-    Next r
-    '
-    ra.Value = va
-End Sub
-
 '文字列変更
 ' vbUpperCase   1   大文字に変換
 ' vbLowerCase   2   小文字に変換
