@@ -563,38 +563,32 @@ End Function
 '----------------------------------------
 
 'パラメータ設定
-Sub SetRtParam(grp As String, k As String, Optional v As String)
+Sub SetRtParam(k As String, Optional v As String)
     Dim dic As Dictionary
     Set dic = rt_param_dict
-    Dim kw As String
-    kw = grp & "_" & k
-    If dic.Exists(kw) Then dic.Remove kw
-    If v <> "" Then dic.Add kw, v
+    If dic.Exists(k) Then dic.Remove k
+    If v <> "" Then dic.Add k, v
 End Sub
 
 'パラメータ有無確認
-Function ExistsRtParam(grp As String, k As String) As Boolean
+Function ExistsRtParam(k As String) As Boolean
     Dim dic As Dictionary
     Set dic = rt_param_dict
-    Dim kw As String
-    kw = grp & "_" & k
-    ExistsRtParam = dic.Exists(kw)
+    ExistsRtParam = dic.Exists(k)
 End Function
 
 'パラメータ取得
-Function GetRtParam(grp As String, k As String, Optional v As String) As String
+Function GetRtParam(k As String, Optional v As String) As String
     Dim dic As Dictionary
     Set dic = rt_param_dict
-    Dim kw As String
-    kw = grp & "_" & k
     GetRtParam = v
-    If dic.Exists(kw) Then GetRtParam = dic.Item(kw)
+    If dic.Exists(k) Then GetRtParam = dic.Item(k)
 End Function
 
 'パラメータ取得(boolean)
-Function GetRtParamBool(grp As String, k As String) As Boolean
+Function GetRtParamBool(k As String) As Boolean
     Dim s As String
-    s = GetRtParam(grp, k)
+    s = GetRtParam(k)
     If s = "" Then s = "False"
     GetRtParamBool = s
 End Function

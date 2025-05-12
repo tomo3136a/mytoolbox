@@ -9,10 +9,6 @@ Attribute VB_Name = "App"
 Option Explicit
 Option Private Module
 
-Public Sub eof()
-    ScreenUpdateOn
-End Sub
-
 '----------------------------------------
 '基本
 '----------------------------------------
@@ -22,9 +18,17 @@ Public Function app_name() As String
     app_name = "Works"
 End Function
 
+'画面更新有効化
+Public Sub eof()
+    ScreenUpdateOn
+End Sub
+
 '----------------------------------------
 '
 '----------------------------------------
+'■セルを選択していない場合はマクロ終了
+'If TypeName(Selection) <> "Range" Then Exit Sub
+'
 
 'Private Function SelectRange() As Range
 '    If TypeName(Selection) = "Range" Then

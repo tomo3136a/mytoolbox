@@ -2,182 +2,191 @@
 <customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" onLoad="works_onLoad">
   <ribbon>
     <tabs>
-      <tab id="TabWorks" label="作業" insertBeforeQ="TabAddIns">
+      <tab id="TabWorks" label="作業" insertAfterQ="TabView">
+      <!--レポート機能-->
         <group id="g1" label="レポート" imageMso="PrintSetupDialog">
-          <button id="b1.11" onAction="works1_onAction" label="編集サイン" imageMso="SignatureLineInsert" size="large"
+          <button id="b1.1" onAction="works1_onAction" label="編集サイン" imageMso="SignatureLineInsert" size="large"
             screentip="編集サインの入力" supertip="現在の日付(yyyy/mm/dd)および編集者名をセルに入力する" />
-          <button id="b1.12" onAction="works1_onAction" label="ページフォーマット" imageMso="PageScaleToFitScale" size="large"
+          <button id="b1.2" onAction="works1_onAction" label="ページフォーマット" imageMso="PageScaleToFitScale" size="large"
             screentip="ページフォーマットを設定" supertip="改ページプレビューに変更する&#10;ズームを 100% にする&#10;開始位置(左上)に移動" />
-          <splitButton id="s1.13" size="large">
-            <button id="b1.13.0" onAction="works1_onAction" label="テキスト整形" imageMso="ContentControlRichText"
+          <splitButton id="s1.3" size="large">
+            <button id="b1.3.10" onAction="works1_onAction" label="テキスト整形" imageMso="ContentControlRichText"
               screentip="テキストを整形" supertip="ASCII文字のみ半角化&#10;冗長なスペース削除" />
-            <menu id="m1.13">
-              <button id="b1.13.1" onAction="works1_onAction" label="トリム" supertip="冗長なスペース削除" />
-              <button id="b1.13.2" onAction="works1_onAction" label="シングルライン" supertip="冗長なスペース削除かつ1行化" />
-              <button id="b1.13.3" onAction="works1_onAction" label="スペース削除" />
-              <menuSeparator id="z1.13.1" />
-              <button id="b1.13.4" onAction="works1_onAction" label="大文字" supertip="文字列変更(大文字に変換)" />
-              <button id="b1.13.5" onAction="works1_onAction" label="小文字" supertip="文字列変更(小文字に変換)" />
-              <button id="b1.13.6" onAction="works1_onAction" label="小文字(先頭大文字)" supertip="文字列変更(各単語の先頭の文字を大文字に変換)" />
-              <button id="b1.13.7" onAction="works1_onAction" label="全角" supertip="文字列変更(半角文字を全角文字に変換)" />
-              <button id="b1.13.8" onAction="works1_onAction" label="半角" supertip="文字列変更(全角文字を半角文字に変換)" />
-              <button id="b1.13.9" onAction="works1_onAction" label="半角(ASCII)" supertip="文字列変更(ASCII文字のみ半角化)" />
+            <menu id="m1.3">
+              <button id="b1.3.1" onAction="works1_onAction" label="トリム" supertip="冗長なスペース削除" />
+              <button id="b1.3.2" onAction="works1_onAction" label="シングルライン" supertip="冗長なスペース削除かつ1行化" />
+              <button id="b1.3.3" onAction="works1_onAction" label="スペース削除" />
+              <menuSeparator id="z1.3.1" />
+              <button id="b1.3.4" onAction="works1_onAction" label="大文字" supertip="文字列変更(大文字に変換)" />
+              <button id="b1.3.5" onAction="works1_onAction" label="小文字" supertip="文字列変更(小文字に変換)" />
+              <button id="b1.3.6" onAction="works1_onAction" label="小文字(先頭大文字)" supertip="文字列変更(各単語の先頭の文字を大文字に変換)" />
+              <button id="b1.3.7" onAction="works1_onAction" label="全角" supertip="文字列変更(半角文字を全角文字に変換)" />
+              <button id="b1.3.8" onAction="works1_onAction" label="半角" supertip="文字列変更(全角文字を半角文字に変換)" />
+              <button id="b1.3.9" onAction="works1_onAction" label="半角(ASCII)" supertip="文字列変更(ASCII文字のみ半角化)" />
             </menu>
           </splitButton>
-          <menu id="m1.14" label="書式" imageMso="ConditionalFormattingMenu" screentip="書式の拡張" >
-            <menuSeparator id="z1.14.1" title="条件書式" />
-            <button id="b1.14.1" onAction="works1_onAction" label="数式" imageMso="ShowFormulas" screentip="数式セルの強調" 
+          <menu id="m1.4" label="書式" imageMso="ConditionalFormattingMenu" screentip="書式の拡張" >
+            <menuSeparator id="z1.4.1" title="条件書式" />
+            <button id="b1.4.1" onAction="works1_onAction" label="数式" imageMso="ShowFormulas" screentip="数式セルの強調" 
               supertip="選択したセルが数式なら色付けして強調する" />
-            <button id="b1.14.2" onAction="works1_onAction" label="数値 0" screentip="数値 0 のセルを強調" 
+            <button id="b1.4.2" onAction="works1_onAction" label="数値 0" screentip="数値 0 のセルを強調" 
               supertip="選択したセルが数値 0 なら色付けして強調する" />
-            <button id="b1.14.3" onAction="works1_onAction" label="ブランク" screentip="ブランクのセルを強調" 
+            <button id="b1.4.3" onAction="works1_onAction" label="ブランク" screentip="ブランクのセルを強調" 
               supertip="選択したセルがブランクなら色付けして強調する" />
-            <menuSeparator id="z1.14.2" title="書式スタイル" />
-            <button id="b1.14.4" onAction="works1_onAction" label="参照" imageMso="ShowFormulas" />
-            <menuSeparator id="z1.14.3" />
+            <menuSeparator id="z1.4.2" title="書式スタイル" />
+            <button id="b1.4.4" onAction="works1_onAction" label="参照" imageMso="ShowFormulas" />
+            <menuSeparator id="z1.4.3" />
             <control idMso="ConditionalFormattingClearSheet" label="条件書式クリア(シート全体)" showLabel="true" />
-            <button id="b1.14.8" onAction="works1_onAction" label="参照クリア" />
+            <button id="b1.4.8" onAction="works1_onAction" label="参照クリア" />
           </menu>
-          <menu id="m1.15" label="数式" imageMso="FunctionWizard" screentip="定型数式の挿入">
-            <menuSeparator id="z1.15.1" title="分析ツール" />
-            <button id="b1.15.1" onAction="works1_onAction" label="文字列分割(英字+数値)" screentip="英字+数値 の文字列の分割" 
+          <menu id="m1.5" label="数式" imageMso="FunctionWizard" screentip="定型数式の挿入">
+            <menuSeparator id="z1.5.1" title="分析ツール" />
+            <button id="b1.5.1" onAction="works1_onAction" label="文字列分割(英字+数値)" screentip="英字+数値 の文字列の分割" 
               supertip="英字+数値のセルの値を分解して右側の2つのセルに反映する" />
-            <button id="b1.15.2" onAction="works1_onAction" label="文字列分割(数値+英字+数値)" screentip="数値+英字+数値 の文字列分割" 
+            <button id="b1.5.2" onAction="works1_onAction" label="文字列分割(数値+英字+数値)" screentip="数値+英字+数値 の文字列分割" 
               supertip="数値+英字+数値のセルの値を分解して右側の3つのセルに反映する" />
-            <menuSeparator id="z1.15.2" title="評価ツール" />
-            <button id="b1.15.3" onAction="works1_onAction" label="差分マーカ" screentip="差分マーカを挿入" 
+            <menuSeparator id="z1.5.2" title="評価ツール" />
+            <button id="b1.5.3" onAction="works1_onAction" label="差分マーカ" screentip="差分マーカを挿入" 
               supertip="右隣2つのセルの値が同じなら「〇」を表示する" />
           </menu>
-          <splitButton id="s1.16">
-            <button id="b1.16.1" onAction="works1_onAction" label="削除" imageMso="TableDeleteRowsAndColumnsMenu" 
+          <splitButton id="s1.6">
+            <button id="b1.6.1" onAction="works1_onAction" label="削除" imageMso="TableDeleteRowsAndColumnsMenu" 
               screentip="非表示の行列削除" supertip="非表示行の削除&#10;​非表示列の削除" />
-            <menu id="m1.16" >
-              <button id="b1.16.2" onAction="works1_onAction" label="非表示削除(行)" />
-              <button id="b1.16.3" onAction="works1_onAction" label="​非表示削除(列)" />
-              <menuSeparator id="z1.16.1" />
-              <button id="b1.16.4" onAction="works1_onAction" label="非表示シート削除" imageMso="SheetDelete" />
-              <menuSeparator id="z1.16.2" />
-              <button id="b1.16.8" onAction="works1_onAction" label="全表示(シート)" imageMso="WindowUnhide" />
-              <button id="b1.16.9" onAction="works1_onAction" label="全表示(名前)" />
+            <menu id="m1.6" >
+              <button id="b1.6.2" onAction="works1_onAction" label="非表示削除(行)" />
+              <button id="b1.6.3" onAction="works1_onAction" label="​非表示削除(列)" />
+              <menuSeparator id="z1.6.1" />
+              <button id="b1.6.4" onAction="works1_onAction" label="非表示シート削除" imageMso="SheetDelete" />
+              <menuSeparator id="z1.6.2" />
+              <button id="b1.6.8" onAction="works1_onAction" label="全表示(シート)" imageMso="WindowUnhide" />
+              <button id="b1.6.9" onAction="works1_onAction" label="全表示(名前)" imageMso="NameDefine" />
             </menu>
           </splitButton>
-          <menu id="m1.17" label="パス" imageMso="CopyToFolder">
-            <button id="b1.17.1" onAction="works1_onAction" label="ファイル一覧" imageMso="HeaderFooterFilePathInsert" />
-            <menuSeparator id="z1.17.1" />
-            <button id="b1.17.2" onAction="works1_onAction" label="フォルダパス" imageMso="Folder" />
-            <button id="b1.17.3" onAction="works1_onAction" label="ファイルリスト" imageMso="FileNew" />
-            <menuSeparator id="z1.17.2" />
-            <toggleButton id="c1.17.1" onAction="works1_onChecked" getPressed="works1_getPressed" label="リンクあり" />
-            <toggleButton id="c1.17.2" onAction="works1_onChecked" getPressed="works1_getPressed" label="フォルダあり" />
-            <toggleButton id="c1.17.3" onAction="works1_onChecked" getPressed="works1_getPressed" label="再帰あり" />
-            <toggleButton id="c1.17.4" onAction="works1_onChecked" getPressed="works1_getPressed" label="無効名表示" />
-            <menuSeparator id="z1.17.3" />
-            <button id="b1.17.4" onAction="works1_onAction" label="パス短縮・展開" />
-            <button id="b1.17.5" onAction="works1_onAction" label="区切り文字変更" />
-            <button id="b1.17.6" onAction="works1_onAction" label="絶対パス" />
-            <button id="b1.17.7" onAction="works1_onAction" label="相対パス" />
-            <button id="b1.17.8" onAction="works1_onAction" label="基準パス" />
-            <button id="b1.17.9" onAction="works1_onAction" label="パスセグメント化" />
+          <menu id="m1.7" label="パス" imageMso="CopyToFolder">
+            <button id="b1.7.1" onAction="works1_onAction" label="ファイル一覧" imageMso="HeaderFooterFilePathInsert" />
+            <menuSeparator id="z1.7.1" />
+            <button id="b1.7.2" onAction="works1_onAction" label="フォルダパス" imageMso="Folder" />
+            <button id="b1.7.3" onAction="works1_onAction" label="ファイルリスト" imageMso="FileNew" />
+            <menuSeparator id="z1.7.2" />
+            <toggleButton id="c1.7.1" onAction="works1_onChecked" getPressed="works1_getPressed" label="リンクあり" />
+            <toggleButton id="c1.7.2" onAction="works1_onChecked" getPressed="works1_getPressed" label="フォルダあり" />
+            <toggleButton id="c1.7.3" onAction="works1_onChecked" getPressed="works1_getPressed" label="再帰あり" />
+            <toggleButton id="c1.7.4" onAction="works1_onChecked" getPressed="works1_getPressed" label="無効名表示" />
+            <menuSeparator id="z1.7.3" />
+            <button id="b1.7.4" onAction="works1_onAction" label="パス短縮・展開" />
+            <button id="b1.7.5" onAction="works1_onAction" label="区切り文字変更" />
+            <button id="b1.7.6" onAction="works1_onAction" label="絶対パス" />
+            <button id="b1.7.7" onAction="works1_onAction" label="相対パス" />
+            <button id="b1.7.8" onAction="works1_onAction" label="基準パス" />
+            <button id="b1.7.9" onAction="works1_onAction" label="パスセグメント化" />
           </menu>
-          <menu id="m1.18" label="情報" imageMso="Info" >
-            <button id="b1.18.1" onAction="works1_onAction" label="目次" imageMso="IndexInsert" />
-            <button id="b1.18.2" onAction="works1_onAction" label="シート一覧" imageMso="RecordsSubdatasheetMenu" />
-            <button id="b1.18.3" onAction="works1_onAction" label="名前一覧" imageMso="NameDefineMenu" />
-            <button id="b1.18.4" onAction="works1_onAction" label="リンク一覧" imageMso="AccessRelinkLists" />
-            <button id="b1.18.5" onAction="works1_onAction" label="プロパティ一覧" imageMso="ShowCustomPropertiesPage" />
-            <button id="b1.18.6" onAction="works1_onAction" label="ノート一覧" imageMso="ShowNotesPage" />
-            <button id="b1.18.7" onAction="works1_onAction" label="コメント一覧" imageMso="ShowNotesPage" />
-            <button id="b1.18.8" onAction="works1_onAction" label="ｘｘｘ一覧" imageMso="SharingOpenWssDocumentList" />
-            <button id="b1.18.9" onAction="works1_onAction" label="ファイル一覧" imageMso="SharingOpenWssDocumentList" />
-            <menuSeparator id="z1.18.1" />
-            <button id="b1.18.0" onAction="works1_onAction" label="調査シート" />
-            <menuSeparator id="z1.18.2" />
-            <toggleButton id="c1.18.1" tag="sheet" onAction="works1_onChecked" getPressed="works1_getPressed" label="シート追加" />
-            <toggleButton id="c1.18.2" tag="info" onAction="works1_onChecked" getPressed="works1_getPressed" label="情報シート含む" />
+          <menu id="m1.8" label="情報" imageMso="Info" >
+            <button id="b1.8.1" onAction="works1_onAction" label="目次" imageMso="IndexInsert" />
+            <button id="b1.8.2" onAction="works1_onAction" label="シート一覧" imageMso="RecordsSubdatasheetMenu" />
+            <button id="b1.8.3" onAction="works1_onAction" label="名前一覧" imageMso="NameDefineMenu" />
+            <button id="b1.8.4" onAction="works1_onAction" label="リンク一覧" imageMso="AccessRelinkLists" />
+            <button id="b1.8.5" onAction="works1_onAction" label="プロパティ一覧" imageMso="ShowCustomPropertiesPage" />
+            <button id="b1.8.6" onAction="works1_onAction" label="ノート一覧" imageMso="ShowNotesPage" />
+            <button id="b1.8.7" onAction="works1_onAction" label="コメント一覧" imageMso="ShowNotesPage" />
+            <button id="b1.8.8" onAction="works1_onAction" label="ｘｘｘ一覧" imageMso="SharingOpenWssDocumentList" />
+            <button id="b1.8.9" onAction="works1_onAction" label="ファイル一覧" imageMso="SharingOpenWssDocumentList" />
+            <menuSeparator id="z1.8.1" />
+            <button id="b1.8.0" onAction="works1_onAction" label="調査シート" />
+            <menuSeparator id="z1.8.2" />
+            <toggleButton id="c1.8.1" tag="sheet" onAction="works1_onChecked" getPressed="works1_getPressed" label="シート追加" />
+            <toggleButton id="c1.8.2" tag="info" onAction="works1_onChecked" getPressed="works1_getPressed" label="情報シート含む" />
           </menu>
-          <menu id="m1.19" label="エクスポート" imageMso="TableExportMenu" >
-            <button id="b1.19.1" onAction="works1_onAction" label="エクスポート(表)" imageMso="TableExportMenu"
+          <menu id="m1.9" label="エクスポート" imageMso="TableExportMenu" >
+            <button id="b1.9.1" onAction="works1_onAction" label="エクスポート(表)" imageMso="TableExportMenu"
               screentip="スープレットシートにエクスポート"
               supertip="表示されている選択範囲をスープレットシートにエクスポートする&#10;* Excelブック&#10;* CSVファイル&#10;* テキストファイル&#10;* XMLファイル" />
-            <button id="b1.19.2" onAction="works1_onAction" label="エクスポート(リスト)" imageMso="ExportTextFile"
+            <button id="b1.9.2" onAction="works1_onAction" label="エクスポート(リスト)" imageMso="ExportTextFile"
               screentip="テキストファイルにエクスポート"
               supertip="表示されている選択範囲をテキストファイルにエクスポートする&#10;(空白行は削除)" />
-            <!-- <button id="b1.19.3" onAction="works1_onAction" label="エクスポート(XML)" imageMso="ExportXmlFile" /> -->
-            <menuSeparator id="z1.19.1" />
-            <toggleButton id="c1.19.1" onAction="works1_onChecked" getPressed="works1_getPressed" label="UTF-8"
+            <!-- <button id="b1.9.3" onAction="works1_onAction" label="エクスポート(XML)" imageMso="ExportXmlFile" /> -->
+            <menuSeparator id="z1.9.1" />
+            <toggleButton id="c1.9.1" onAction="works1_onChecked" getPressed="works1_getPressed" label="UTF-8"
               screentip="出力エンコーディングは UTF-8 を使用" />
           </menu>
         </group>
+
+        <!--マーカ機能-->
         <group id="g4" label="マーカ" imageMso="AppointmentColorDialog">
           <button id="b4.1" onAction="works4_onAction" getLabel="works4_getLabel" getImage="works4_onGetImage" size="large" />
-          <gallery id="g41"  onAction="works41_onAction" label="選択" imageMso="AppointmentColorDialog" itemWidth="32" itemHeight="32" columns="4" >
-            <item id="b41.0" imageMso="AppointmentColor10" />
-            <item id="b41.1" imageMso="AppointmentColor1" />
-            <item id="b41.2" imageMso="AppointmentColor2" />
-            <item id="b41.3" imageMso="AppointmentColor3" />
-            <item id="b41.4" imageMso="AppointmentColor4" />
-            <item id="b41.5" imageMso="AppointmentColor5" />
-            <item id="b41.6" imageMso="AppointmentColor6" />
-            <item id="b41.7" imageMso="AppointmentColor7" />
-            <item id="b41.8" imageMso="AppointmentColor8" />
-            <item id="b41.9" imageMso="AppointmentColor9" />
+          <gallery id="g4.2"  onAction="works4_onSelected" label="選択" imageMso="AppointmentColorDialog" itemWidth="32" itemHeight="32" columns="4" >
+            <item id="b4.2.0" imageMso="AppointmentColor10" />
+            <item id="b4.2.1" imageMso="AppointmentColor1" />
+            <item id="b4.2.2" imageMso="AppointmentColor2" />
+            <item id="b4.2.3" imageMso="AppointmentColor3" />
+            <item id="b4.2.4" imageMso="AppointmentColor4" />
+            <item id="b4.2.5" imageMso="AppointmentColor5" />
+            <item id="b4.2.6" imageMso="AppointmentColor6" />
+            <item id="b4.2.7" imageMso="AppointmentColor7" />
+            <item id="b4.2.8" imageMso="AppointmentColor8" />
+            <item id="b4.2.9" imageMso="AppointmentColor9" />
           </gallery>
-          <button id="b4.2" onAction="works4_onAction" label="リスト" imageMso="MenuView2" />
-          <button id="b4.3" onAction="works4_onAction" label="削除" imageMso="Clear" />
+          <button id="b4.3" onAction="works4_onAction" label="リスト" imageMso="MenuView2" />
+          <button id="b4.4" onAction="works4_onAction" label="削除" imageMso="Clear" />
         </group>
+
+        <!--版数管理-->
         <group id="g5" label="版数マーク" imageMso="AppointmentColorDialog">
           <splitButton id="s5" size="large" >
             <button id="b5.1" onAction="works5_onAction" getLabel="works5_getLabel" imageMso="ShapeIsoscelesTriangle" />
             <menu id="m5" >
-              <button id="b5.2" onAction="works5_onAction" label="マーク配置" />
+              <button id="b5.2" onAction="works5_onAction" label="版数設定" />
               <button id="b5.3" onAction="works5_onAction" label="リスト" />
             </menu>
           </splitButton>
         </group>
+
+        <!--表操作-->
         <group id="g2" label="表操作" imageMso="ReviewAllowUsersToEditRanges">
           <splitButton id="s21" size="large">
-            <button id="b22.0" onAction="works22_onAction" label="囲い" imageMso="DataFormSource"
+            <button id="b2.1.1" onAction="works2_onAction" label="囲い" imageMso="DataFormSource"
               screentip="罫線枠を描く" supertip="表の範囲を選択し、罫線枠を描く" />
             <menu id="m21">
-              <button id="b22.1" onAction="works22_onAction" label="囲いのみ" imageMso="DataFormSource" />
-              <button id="b22.2" onAction="works22_onAction" label="階層構造" imageMso="GroupTableSize" />
-              <menuSeparator id="z21b" />
-              <button id="b22.7" onAction="works22_onAction" label="囲いクリア" imageMso="Clear" />
+              <button id="b2.1.2" onAction="works2_onAction" label="囲いのみ" imageMso="DataFormSource" />
+              <button id="b2.1.3" onAction="works2_onAction" label="階層構造" imageMso="GroupTableSize" />
+              <menuSeparator id="z2.1.1" />
+              <button id="b2.1.8" onAction="works2_onAction" label="囲いクリア" imageMso="Clear" />
             </menu>
           </splitButton>
           <menu id="m22" label="移動。選択" imageMso="TableSelectCell" size="large">
-            <button id="b21.1" onAction="works21_onAction" label="先頭へ移動" imageMso="TableSelectCell"
+            <button id="b2.2.1" onAction="works2_onAction" label="先頭へ移動" imageMso="TableSelectCell"
               screentip="表の左上に移動" />
-            <button id="b21.2" onAction="works21_onAction" label="末尾へ移動" imageMso="TableSelectCell"
+            <button id="b2.2.2" onAction="works2_onAction" label="末尾へ移動" imageMso="TableSelectCell"
               screentip="表の左下に移動" />
-            <menuSeparator id="z21a" />
-            <button id="b21.3" onAction="works21_onAction" label="選択(行)" imageMso="TableStyleRowHeaders"
+            <menuSeparator id="z22" />
+            <button id="b2.2.3" onAction="works2_onAction" label="選択(行)" imageMso="TableStyleRowHeaders"
               screentip="行選択" supertip="セルの左右を調査し、テーブルの行範囲を選択する" />
-            <button id="b21.4" onAction="works21_onAction" label="選択(列)" imageMso="TableStyleFirstColumn"
+            <button id="b2.2.4" onAction="works2_onAction" label="選択(列)" imageMso="TableStyleFirstColumn"
               screentip="列選択" supertip="セルの上下を調査し、テーブルの列範囲を選択する" />
-            <button id="b21.5" onAction="works21_onAction" label="選択(ヘッダ)" imageMso="TableSelect"
+            <button id="b2.2.5" onAction="works2_onAction" label="選択(ヘッダ)" imageMso="TableSelect"
               screentip="テーブルヘッダ選択" supertip="テーブルのヘッダを選択する" />
-            <button id="b21.0" onAction="works21_onAction" label="選択(テーブル)" imageMso="TableSelect"
+            <button id="b2.2.6" onAction="works2_onAction" label="選択(テーブル)" imageMso="TableSelect"
               screentip="テーブル選択" supertip="テーブルを選択する" />
           </menu>
           <menu id="m23" label="列挿入" imageMso="TableColumnsInsertLeftExcel" size="large">
-            <button id="b23.1" onAction="works23_onAction" label="番号列追加" imageMso="TableColumnsInsertLeftExcel" />
-            <button id="b23.2" onAction="works23_onAction" label="ランク列追加" imageMso="TableColumnsInsertLeftExcel" />
+            <button id="b2.3.1" onAction="works2_onAction" label="番号列追加" imageMso="TableColumnsInsertLeftExcel" />
+            <button id="b2.3.2" onAction="works2_onAction" label="ランク列追加" imageMso="TableColumnsInsertLeftExcel" />
           </menu>
-          <button id="b22.3" onAction="works22_onAction" label="フィルタ" imageMso="Filter" />
-          <button id="b22.4" onAction="works22_onAction" label="幅調整" imageMso="TableAutoFitContents" />
-          <button id="b22.5" onAction="works22_onAction" label="枠固定" imageMso="FreezePanes" />
-          <button id="b22.6" onAction="works22_onAction" label="見出し色" imageMso="FontColorCycle" />
+          <button id="b2.1.4" onAction="works2_onAction" label="フィルタ" imageMso="Filter" />
+          <button id="b2.1.5" onAction="works2_onAction" label="幅調整" imageMso="TableAutoFitContents" />
+          <button id="b2.1.6" onAction="works2_onAction" label="枠固定" imageMso="FreezePanes" />
+          <button id="b2.1.7" onAction="works2_onAction" label="見出し色" imageMso="FontColorCycle" />
           <!-- <control idMso="CellFillColorPicker" label="見出し色" showLabel="true" /> -->
           <splitButton id="s27">
-            <button id="b27.2" onAction="works27_onAction" label="データクリア" imageMso="PivotClearCustomOrdering" />
+            <button id="b2.7.2" onAction="works2_onAction" label="データクリア" imageMso="PivotClearCustomOrdering" />
             <menu id="m27">
-              <button id="b27.3" onAction="works27_onAction" label="表クリア" imageMso="TableStyleClear" />
-              <button id="b27.4" onAction="works27_onAction" label="囲い・データクリア" imageMso="PivotClearCustomOrdering" />
+              <button id="b2.7.3" onAction="works2_onAction" label="表クリア" imageMso="TableStyleClear" />
+              <button id="b2.7.4" onAction="works2_onAction" label="囲い・データクリア" imageMso="PivotClearCustomOrdering" />
             </menu>
           </splitButton>
-          <button id="b28" onAction="works28_onAction" getLabel="works28_getLabel" />
+          <button id="b2.8" onAction="works2_onAction" getLabel="works2_getLabel" />
         </group>
+
+        <!--テンプレート-->
         <group id="g3" label="テンプレート" imageMso="ComAddInsDialog">
           <button id="b3.1" onAction="works3_onAction" getEnabled="works3_getEnabled" label="読み込み" imageMso="SheetInsert" size="large" />
           <button id="b3.2" onAction="works3_onAction" getEnabled="works3_getEnabled" label="書き込み" imageMso="GroupMoveData" />
@@ -188,6 +197,14 @@
           <button id="b3.7" onAction="works3_onAction" label="test7" imageMso="CustomTablesGallery" />
           <button id="b3.8" onAction="works3_onAction" label="test8" imageMso="BlackAndWhiteDontShow" />
           <button id="b3.9" onAction="works3_onAction" label="開発" imageMso="AddInManager" />
+        </group>
+
+        <!--テスト-->
+        <group id="g6" label="テスト" imageMso="AppointmentColorDialog">
+          <button id="b6.1" onAction="works6_onAction" label="テスト1" imageMso="ControlWizards" size="large" />
+          <button id="b6.2" onAction="works6_onAction" label="テスト2" imageMso="ControlWizards" size="large" />
+          <button id="b6.3" onAction="works6_onAction" label="テスト3" imageMso="ControlWizards" size="large" />
+          <button id="b6.4" onAction="works6_onAction" label="テスト4" imageMso="ControlWizards" size="large" />
         </group>
       </tab>
     </tabs>

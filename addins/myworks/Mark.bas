@@ -15,19 +15,24 @@ Private rev_comment As String
 '----------------------------------------
 
 Public Sub RevProc(ra As Range, id As Long, Optional ByRef res As Long)
+    Dim msg As String
     Dim v As Variant
     Dim rev As String
+    Call GetRevMark(rev)
     Select Case id
     Case 1
         '版数マーク追加
-        v = InputBox("変更説明を入力してください。", "版数マーク", rev_comment)
+        msg = "版数 " & rev & " のマークを追加します。" & vbLf
+        msg = msg & "変更説明を入力してください。"
+        v = InputBox(msg, "版数マーク", rev_comment)
         If StrPtr(v) = 0 Then Exit Sub
         rev_comment = Trim(v)
         Call AddRevMark(ra, rev_comment)
     Case 2
         '版数設定
-        Call GetRevMark(rev)
-        v = InputBox("版数を入力してください。", "版数マーク", rev)
+        msg = "版数 " & rev & " が設定されています。" & vbLf
+        msg = msg & "版数を入力してください。"
+        v = InputBox(msg, "版数マーク", rev)
         If StrPtr(v) = 0 Then Exit Sub
         rev = Trim(v)
         If rev = "" Then Exit Sub
@@ -35,8 +40,10 @@ Public Sub RevProc(ra As Range, id As Long, Optional ByRef res As Long)
         res = 1
     Case 3
         '版数リスト作成
-        Call GetRevMark(rev)
-        v = InputBox("リストする版数を入力してください。", "版数マーク", rev)
+        msg = "版数 " & rev & " が設定されています。" & vbLf
+        msg = msg & "リストする版数を入力してください。"
+        msg = msg & "(※ワイルドカード指定可)"
+        v = InputBox(msg, "版数マーク", rev)
         If StrPtr(v) = 0 Then Exit Sub
         rev = Trim(v)
         If rev = "" Then Exit Sub
@@ -48,8 +55,8 @@ End Sub
 
 '版数設定値取得
 Public Sub GetRevMark(ByRef v As Variant)
-    If Not ExistsRtParam("rev", "text") Then Call SetRtParam("rev", "text", "1")
-    v = GetRtParam("rev", "text")
+    If Not ExistsRtParam("rev.text") Then Call SetRtParam("rev.text", "1")
+    v = GetRtParam("rev.text")
 End Sub
 
 '版数設定値設定
@@ -57,14 +64,14 @@ Private Sub SetRevMark(v As String, Optional id As Integer)
     Dim s As String
     s = Trim(v)
     If s = "" Then Exit Sub
-    Call SetRtParam("rev", "text", s)
-    Call SetRtParam("rev", "index", CStr(id))
+    Call SetRtParam("rev.text", s)
+    Call SetRtParam("rev.index", CStr(id))
 End Sub
 
 '版数マーク追加
 Private Sub AddRevMark(ra As Range, Comment As String)
     Dim s As String
-    s = GetRtParam("rev", "text")
+    s = GetRtParam("rev.text")
     If s = "" Then Exit Sub
     Call DrawRevMark(Selection, s, 1 + LastRevIndex(s), Comment)
 End Sub

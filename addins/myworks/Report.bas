@@ -97,48 +97,47 @@ End Sub
 '      *: 文字列変更(ASCII文字のみ半角化、冗長なスペース削除)
 '----------------------------------
 
-Sub MenuTextConv(ra As Range, mode As Integer)
-    Dim rb As Range
-    Set rb = ra.Parent.UsedRange
-    Set rb = Intersect(ra, rb)
-    If rb Is Nothing Then Exit Sub
-    '
+Sub TextConvProc(ra As Range, mode As Integer)
     ScreenUpdateOff
     '
-    Select Case mode
-    Case 1: Call Cells_RemoveSpace(rb)
-    Case 2: Call Cells_RemoveSpace(rb, SingleLine:=True)
-    Case 3: Call Cells_RemoveSpace(rb, sep:="")
-    Case 4: Call Cells_StrConv(rb, vbUpperCase)
-    Case 5: Call Cells_StrConv(rb, vbLowerCase)
-    Case 6: Call Cells_StrConv(rb, vbProperCase)
-    Case 7: Call Cells_StrConv(rb, vbWide)
-    Case 8: Call Cells_StrConv(rb, vbNarrow)
-    Case 9: Call Cells_StrConvNarrow(rb)
-    Case Else
-        Call Cells_StrConvNarrow(rb)
-        Call Cells_RemoveSpace(rb)
-    End Select
+    Dim rb As Range
+    For Each rb In ra.Areas
+        Set rb = Intersect(rb, ra.Parent.UsedRange)
+        If rb Is Nothing Then Exit For
+        '
+        Dim va As Variant
+        va = RangeToFormula2(rb)
+        '
+        Select Case mode
+        Case 1: Call Cells_RemoveSpace(va)
+        Case 2: Call Cells_RemoveSpace(va, SingleLine:=True)
+        Case 3: Call Cells_RemoveSpace(va, sep:="")
+        Case 4: Call Cells_StrConv(va, vbUpperCase)
+        Case 5: Call Cells_StrConv(va, vbLowerCase)
+        Case 6: Call Cells_StrConv(va, vbProperCase)
+        Case 7: Call Cells_StrConv(va, vbWide)
+        Case 8: Call Cells_StrConv(va, vbNarrow)
+        Case 9: Call Cells_StrConvNarrow(va)
+        Case Else
+            Call Cells_StrConvNarrow(va)
+            Call Cells_RemoveSpace(va)
+        End Select
+        '
+        rb.Value = va
+    Next rb
     '
     ScreenUpdateOn
 End Sub
 
 'スペース削除
 Private Sub Cells_RemoveSpace( _
-        ra As Range, _
+        va As Variant, _
         Optional SingleLine As Boolean = False, _
         Optional sep As String = " ")
     Dim re1 As Object, re2 As Object, re3 As Object
     Set re1 = regex("[\s\u00A0\u3000]+")
     Set re2 = regex("[ \t\v\f\u00A0\u3000]+")
     Set re3 = regex(sep & "(\r?\n)")
-    '
-    Dim va As Variant
-    va = ra.Formula2
-    If ra.Count = 1 Then
-        ReDim va(1 To 1, 1 To 1)
-        va(1, 1) = ra.Formula2
-    End If
     '
     Dim r As Long, c As Long
     For r = LBound(va, 1) To UBound(va, 1)
@@ -156,8 +155,6 @@ Private Sub Cells_RemoveSpace( _
             End If
         Next c
     Next r
-    '
-    ra.Value = va
 End Sub
 
 '文字列変更
@@ -168,36 +165,48 @@ End Sub
 ' vbNarrow      8   全角文字を半角文字に変換
 ' vbKatakana    16  ひらがなをカタカナに変換
 ' vbHiragana    32  カタカナをひらがなに変換
-Private Sub Cells_StrConv(ra As Range, mode As Integer)
-    Dim ce As Range
-    For Each ce In ra.Cells
-        If Not ce.HasFormula Then
-            If ce.Value <> "" Then
-                ce.Value = StrConv(ce.Value, mode)
+Private Sub Cells_StrConv(va As Variant, mode As Integer)
+    Dim s As String
+    Dim r As Long, c As Long
+    For r = LBound(va, 1) To UBound(va, 1)
+        For c = LBound(va, 2) To UBound(va, 2)
+            s = va(r, c)
+            If s <> "" And Left(s, 1) <> "=" Then
+                va(r, c) = StrConv(s, mode)
             End If
-        End If
-    Next ce
+        Next c
+    Next r
 End Sub
 
 '文字列変更(ASCII文字のみ半角化)
-Private Sub Cells_StrConvNarrow(ra As Range)
+Private Sub Cells_StrConvNarrow(va As Variant)
     Dim re As Object: Set re = regex("[！-～]+")
     '
-    Dim ce As Range
-    For Each ce In ra.Cells
-        If Not ce.HasFormula Then
-            If ce.Value <> "" Then
-                Dim s As String
-                s = ce.Value
+    Dim s As String
+    Dim r As Long, c As Long
+    For r = LBound(va, 1) To UBound(va, 1)
+        For c = LBound(va, 2) To UBound(va, 2)
+            s = va(r, c)
+            If s <> "" And Left(s, 1) <> "=" Then
                 Dim m As Object
                 For Each m In re.Execute(s)
                     s = Replace(s, m.Value, StrConv(m.Value, vbNarrow))
                 Next m
-                ce.Value = s
+                va(r, c) = s
             End If
-        End If
-    Next ce
+        Next c
+    Next r
 End Sub
+
+Private Function RangeToFormula2(ra As Range) As Variant
+    Dim va As Variant
+    va = ra.Formula2
+    If ra.Count = 1 Then
+        ReDim va(1 To 1, 1 To 1)
+        va(1, 1) = ra.Formula2
+    End If
+    RangeToFormula2 = va
+End Function
 
 '---------------------------------------------
 '表示/非表示操作
@@ -219,7 +228,6 @@ Sub ShowHide(mode As Integer)
     Case 4: DeleteHideSheet
     Case 8: VisibleHideSheet
     Case 9: VisibleHideName
-    Case Else
     End Select
     '
     ScreenUpdateOn
@@ -333,7 +341,7 @@ End Sub
 '      8: 参照スタイル削除
 '---------------------------------------------
 
-Sub MenuUserFormat(ra As Range, mode As Integer)
+Sub UserFormatProc(ra As Range, mode As Integer)
     Dim rb As Range
     Set rb = ra.Parent.UsedRange
     Set rb = Intersect(ra, rb)
@@ -480,7 +488,7 @@ End Sub
 '     3: 差分マーカー
 '---------------------------------------------
 
-Sub MenuUserFormula(ra As Range, mode As Integer)
+Sub UserFormulaProc(ra As Range, mode As Integer)
     Dim v1 As Integer, v2 As Integer, v3 As Integer
     Dim r0 As Range, r1 As Range, r2 As Range, r3 As Range
     Select Case mode

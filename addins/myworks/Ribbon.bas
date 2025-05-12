@@ -49,11 +49,11 @@ Private Sub works_onLoad(ByVal Ribbon As IRibbonUI)
     On Error GoTo 0
     '
     '初期化
-    SetRtParam "path", 1, True          'リンクあり
-    SetRtParam "path", 2, True          'フォルダあり
-    SetRtParam "path", 3, True          '再帰あり
-    SetRtParam "info", "sheet", True    'シート追加
-    SetRtParam "mark", "color", 0       'マーカカラーは黄色
+    SetRtParam "path.1", True       'リンクあり
+    SetRtParam "path.2", True       'フォルダあり
+    SetRtParam "path.3", True       '再帰あり
+    SetRtParam "info.sheet", True   'シート追加
+    SetRtParam "mark.color", 0      'マーカカラーは黄色
 End Sub
 
 Private Sub works_ShortcutKey1()
@@ -75,54 +75,55 @@ End Sub
 '----------------------------------------
 Private Sub works1_onAction(ByVal control As IRibbonControl)
     Select Case RibbonID(control, 1)
-    Case 11:
+    Case 1:
         'レポートサイン
         If TypeName(Selection) <> "Range" Then Exit Sub
         ReportSign Selection
-    Case 12:
+    Case 2:
         'ページフォーマット
         PagePreview
-    Case 13:
+    Case 3:
         'テキスト変換
         If TypeName(Selection) <> "Range" Then Exit Sub
-        MenuTextConv Selection, RibbonID(control, 2)
-    Case 14:
+        TextConvProc Selection, RibbonID(control, 2)
+    Case 4:
         '拡張書式
         If TypeName(Selection) <> "Range" Then Exit Sub
-        MenuUserFormat Selection, RibbonID(control, 2)
-    Case 15:
+        UserFormatProc Selection, RibbonID(control, 2)
+    Case 5:
         '定型式挿入
         If TypeName(Selection) <> "Range" Then Exit Sub
-        MenuUserFormula Selection, RibbonID(control, 2)
-    Case 16:
+        UserFormulaProc Selection, RibbonID(control, 2)
+    Case 6:
         '表示・非表示
         ShowHide RibbonID(control, 2)
-    Case 17:
+    Case 7:
         'パス名
-        PathMenu Selection, RibbonID(control, 2)
-    Case 18:
+        If TypeName(Selection) <> "Range" Then Exit Sub
+        PathProc Selection, RibbonID(control, 2)
+    Case 8:
         '情報取得
         AddInfoTable RibbonID(control, 2)
-    Case 19:
+    Case 9:
         'エクスポート
         If TypeName(Selection) <> "Range" Then Exit Sub
-        MenuExport Selection, RibbonID(control, 2)
+        ExportProc Selection, RibbonID(control, 2)
     End Select
 End Sub
 
 Private Sub works1_onChecked(ByRef control As IRibbonControl, ByRef pressed As Boolean)
-    Select Case RibbonID(control)
-    Case 17: SetRtParam "path", RibbonID(control), CStr(pressed)    'パス名
-    Case 18: SetRtParam "info", control.Tag, CStr(pressed)          '情報取得
-    Case 19: SetRtParam "export", RibbonID(control), CStr(pressed)  'エクスポート
+    Select Case RibbonID(control, 1)
+    Case 7: SetRtParam "path." & RibbonID(control, 2), CStr(pressed)    'パス名
+    Case 8: SetRtParam "info." & control.Tag, CStr(pressed)             '情報取得
+    Case 9: SetRtParam "export." & RibbonID(control, 2), CStr(pressed)  'エクスポート
     End Select
 End Sub
 
 Private Sub works1_getPressed(control As IRibbonControl, ByRef returnedVal)
-    Select Case RibbonID(control)
-    Case 17: returnedVal = GetRtParamBool("path", RibbonID(control))    'パス名
-    Case 18: returnedVal = GetRtParamBool("info", control.Tag)          '情報取得
-    Case 19: returnedVal = GetRtParamBool("export", RibbonID(control))  'エクスポート
+    Select Case RibbonID(control, 1)
+    Case 7: returnedVal = GetRtParamBool("path." & RibbonID(control, 2))    'パス名
+    Case 8: returnedVal = GetRtParamBool("info." & control.Tag)             '情報取得
+    Case 9: returnedVal = GetRtParamBool("export." & RibbonID(control, 2))  'エクスポート
     End Select
 End Sub
 
@@ -131,58 +132,32 @@ End Sub
 '罫線枠
 '----------------------------------------
 
-'移動・選択
-Private Sub works21_onAction(ByVal control As IRibbonControl)
-    If TypeName(Selection) <> "Range" Then Exit Sub
-    TableSelect Selection, RibbonID(control)
-End Sub
-
 '枠設定
-Private Sub works22_onAction(ByVal control As IRibbonControl)
+Private Sub works2_onAction(ByVal control As IRibbonControl)
     If TypeName(Selection) <> "Range" Then Exit Sub
-    Application.ScreenUpdating = False
-    Call TableWaku(Selection, RibbonID(control))
-    Application.ScreenUpdating = True
-End Sub
-
-'列追加
-Private Sub works23_onAction(ByVal control As IRibbonControl)
-    If TypeName(Selection) <> "Range" Then Exit Sub
-    Application.ScreenUpdating = False
-    Call AddColumn(Selection, RibbonID(control))
-    Application.ScreenUpdating = True
-End Sub
-
-'囲いクリア
-Private Sub works27_onAction(ByVal control As IRibbonControl)
-    If TypeName(Selection) <> "Range" Then Exit Sub
-    Application.ScreenUpdating = False
-    Select Case RibbonID(control)
-    Case 1
-        '囲いクリア
-        Call TableWaku(Selection, 7)
-    Case 2
-        'データクリア
-        Call TableWaku(Selection, 8)
-    Case 3
-        '表クリア
-        Call TableWaku(Selection, 9)
-    Case Else
-        '囲い・データクリア
-        Call TableWaku(Selection, 7)
-        Call TableWaku(Selection, 9)
+    ScreenUpdateOff
+    Select Case RibbonID(control, 1)
+    Case 1: Call WakuProc(Selection, RibbonID(control, 2))
+    Case 2: Call SelectProc(Selection, RibbonID(control, 2))
+    Case 3: Call AddColumn(Selection, RibbonID(control, 2))
+    Case 7
+        Select Case RibbonID(control, 2)
+        Case 1: Call WakuProc(Selection, 7)    '囲いクリア
+        Case 2: Call WakuProc(Selection, 8)    'データクリア
+        Case 3: Call WakuProc(Selection, 9)    '表クリア
+        Case Else                               '囲い・データクリア
+            Call WakuProc(Selection, 7)
+            Call WakuProc(Selection, 9)
+        End Select
+    Case 8
+        SetTableMargin xlRows
+        SetTableMargin xlColumns
+        RefreshRibbon control.id
     End Select
-    Application.ScreenUpdating = True
+    ScreenUpdateOn
 End Sub
 
-'マージン表示・設定
-Private Sub works28_onAction(ByVal control As IRibbonControl)
-    SetTableMargin xlRows
-    SetTableMargin xlColumns
-    RefreshRibbon control.id
-End Sub
-
-Private Sub works28_getLabel(ByRef control As Office.IRibbonControl, ByRef label As Variant)
+Private Sub works2_getLabel(ByRef control As Office.IRibbonControl, ByRef label As Variant)
    label = "行: " & GetTableMargin(xlRows) & ", 列: " & GetTableMargin(xlColumns)
 End Sub
 
@@ -192,8 +167,8 @@ End Sub
 '----------------------------------------
 
 Private Sub works3_onAction(ByVal control As IRibbonControl)
-    Call TemplateMenu(RibbonID(control))
-    Select Case RibbonID(control)
+    Call TemplateMenu(RibbonID(control, 1))
+    Select Case RibbonID(control, 1)
     'Case 8 '更新
     '    RBTable_Init
     '    g_ribbon.InvalidateControl "b4.1"
@@ -212,7 +187,7 @@ End Sub
 
 Private Sub works3_getLabel(ByRef control As IRibbonControl, ByRef label As Variant)
     If ThisWorkbook.IsAddin Then label = "ブック開く" Else label = "ブック閉じる"
-    g_ribbon.Invalidate
+    RefreshRibbon
     DoEvents
 End Sub
 
@@ -226,42 +201,36 @@ End Sub
 '----------------------------------------
 
 Private Sub works4_getLabel(control As IRibbonControl, ByRef label As Variant)
-    Dim name() As String
-    name = Split("黄色,赤,青,薄緑,灰色,橙,青緑,淡い橙,紫,緑", ",")
-    label = name(Val(GetRtParam("mark", "color")))
+    Dim ss() As String
+    ss = Split("黄色,赤,青,薄緑,灰色,橙,青緑,淡い橙,紫,緑", ",")
+    label = ss(Val(GetRtParam("mark.color")))
 End Sub
 
 Private Sub works4_onGetImage(control As IRibbonControl, ByRef bitmap As Variant)
     Dim id As Integer
-    id = ((Val(GetRtParam("mark", "color")) + 9) Mod 10) + 1
+    id = ((Val(GetRtParam("mark.color")) + 9) Mod 10) + 1
     bitmap = "AppointmentColor" & id
 End Sub
 
 Private Sub works4_onAction(control As IRibbonControl)
-    If TypeName(Selection) <> "Range" Then Exit Sub
-    
-    Select Case RibbonID(control)
+    Select Case RibbonID(control, 1)
     Case 1
-        Call AddMarker(Selection, Val(GetRtParam("mark", "color")))
-    Case 2
-        Call ListMarker(Selection)
+        If TypeName(Selection) <> "Range" Then Exit Sub
+        Call AddMarker(Selection, Val(GetRtParam("mark.color")))
     Case 3
-        ScreenUpdateOff
-        Dim ce As Range
-        For Each ce In Selection.Cells
-            Call DelMarker(ce.Value)
-            ce.Clear
-        Next ce
-        ScreenUpdateOn
+        Call ListMarker
+    Case 4
+        If TypeName(Selection) <> "Range" Then Exit Sub
+        Call DelMarker(Selection)
     End Select
 End Sub
 
-Private Sub works41_onAction(control As IRibbonControl, selectedId As String, selectedIndex As Integer)
-    Call SetRtParam("mark", "color", Mid(selectedId, 1 + InStr(1, selectedId, ".")))
-    If Not g_ribbon Is Nothing Then g_ribbon.Invalidate
+Private Sub works4_onSelected(control As IRibbonControl, selectedId As String, selectedIndex As Integer)
+    Call SetRtParam("mark.color", "" & selectedIndex)
+    RefreshRibbon
     DoEvents
     If TypeName(Selection) <> "Range" Then Exit Sub
-    Call AddMarker(Selection, Val(GetRtParam("mark", "color")))
+    Call AddMarker(Selection, Val(GetRtParam("mark.color")))
 End Sub
 
 '----------------------------------------
@@ -276,9 +245,33 @@ End Sub
 Private Sub works5_onAction(control As IRibbonControl)
     If TypeName(Selection) <> "Range" Then Exit Sub
     Dim res As Long
-    Call RevProc(Selection, RibbonID(control), res)
-    If Not res Then Exit Sub
+    Call RevProc(Selection, RibbonID(control, 1), res)
     RefreshRibbon
+    If Not res Then Exit Sub
     Call RevProc(Selection, 1)
+End Sub
+
+'----------------------------------------
+'■機能グループ6
+'test
+'----------------------------------------
+
+Private Sub works6_onAction(control As IRibbonControl)
+    If TypeName(Selection) <> "Range" Then Exit Sub
+    'ScreenUpdateOff
+    Select Case RibbonID(control, 1)
+    Case 1: Call TestProc(Selection, RibbonID(control, 1))
+    Case 2: Call TestProc(Selection, RibbonID(control, 1))
+    Case 3: Call TestProc(Selection, RibbonID(control, 1))
+    Case 4: Call TestProc(Selection, RibbonID(control, 1))
+    Case 5: Call TestProc(Selection, RibbonID(control, 1))
+    End Select
+    'ScreenUpdateOn
+End Sub
+
+Private Sub TestProc(ra As Range, id As Long)
+    Select Case id
+    Case 1: Call Cells_GenerateValue(ra, 1)
+    End Select
 End Sub
 

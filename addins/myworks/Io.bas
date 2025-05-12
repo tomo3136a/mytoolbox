@@ -12,9 +12,9 @@ Option Private Module
 '     2: 選択範囲をリスト形式でエクスポート
 '----------------------------------------
 
-Sub MenuExport(ra As Range, mode As Integer)
+Sub ExportProc(ra As Range, mode As Integer)
     Dim enc As Boolean
-    enc = GetRtParamBool("export", 1)
+    enc = GetRtParamBool("export.1")
     '
     Select Case mode
     Case 1: Call ExportRangeToSpreadSheet(ra, enc)

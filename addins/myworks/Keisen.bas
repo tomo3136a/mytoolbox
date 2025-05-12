@@ -1,6 +1,6 @@
 Attribute VB_Name = "Keisen"
 '==================================
-'罫線枠操作
+'セル操作
 '==================================
 
 Option Explicit
@@ -10,49 +10,78 @@ Option Private Module
 '機能呼び出し
 '----------------------------------------
 
-'テーブル選択
-' mode=0: テーブル選択
-'      1: 先頭へ移動
+'選択
+' mode=1: 先頭へ移動
 '      2: 末尾へ移動
 '      3: 行選択
 '      4: 列選択
 '      5: ヘッダ行選択
-Sub TableSelect(ra As Range, Optional mode As Integer)
+'      6: テーブル選択
+'
+Sub SelectProc(ra As Range, Optional mode As Integer)
     Dim rb As Range
     Set rb = ra.CurrentRegion
     Select Case mode
-    Case 0: rb = rb.Select
     Case 1: rb(1, 1).Select
     Case 2: rb(rb.Rows.Count + 1, 1).Select
     Case 3: Intersect(rb, ra.EntireRow).Select
     Case 4: Intersect(rb, ra.EntireColumn).Select
     Case 5: rb.Rows(1).Select
+    Case 6: rb.Select
     End Select
 End Sub
 
 '罫線枠
-' mode=0: 罫線枠(標準設定)
-'      1: 罫線枠(標準)
-'      2: 罫線枠(階層構造)
-'      3: ヘッダフィルタ
-'      4: ヘッダ幅合わせ
-'      5: ヘッダ固定
-'      6: ヘッダ色
-'      7: 枠クリア
-'      8: 値クリア
-'      9: テーブルクリア
-Sub TableWaku(ra As Range, Optional mode As Integer)
+' mode=1: 罫線枠(枠,幅合わせ)
+'      2: 罫線枠(標準)
+'      3: 罫線枠(階層構造)
+'      4: ヘッダフィルタ
+'      5: ヘッダ幅合わせ
+'      6: ヘッダ固定
+'      7: ヘッダ色
+'      8: 枠クリア
+'      9: 値クリア
+'      10: テーブルクリア
+'
+Sub WakuProc(ra As Range, Optional mode As Integer)
     Select Case mode
-    Case 0: Waku ra, fit:=True
-    Case 1: Waku ra
-    Case 2: WakuLayered ra
-    Case 3: HeaderFilter ra
-    Case 4: HeaderAutoFit ra
-    Case 5: HeaderFixed ra
-    Case 6: HeaderColor ra
-    Case 7: WakuClear ra: ra.FormatConditions.Delete
-    Case 8: TableRange(TableHeaderRange(TableLeftTop(ra)).Offset(1)).Clear
-    Case 9: TableRange(TableHeaderRange(TableLeftTop(ra))).Clear
+    Case 1: Waku ra, fit:=True
+    Case 2: Waku ra
+    Case 3: WakuLayered ra
+    Case 4: HeaderFilter ra
+    Case 5: HeaderAutoFit ra
+    Case 6: HeaderFixed ra
+    Case 7: HeaderColor ra
+    Case 8: WakuClear ra: ra.FormatConditions.Delete
+    Case 9: TableRange(TableHeaderRange(TableLeftTop(ra)).Offset(1)).Clear
+    Case 10: TableRange(TableHeaderRange(TableLeftTop(ra))).Clear
+    End Select
+End Sub
+
+'罫線枠ヘッダ
+' mode=1: 罫線枠(枠,幅合わせ)
+'      2: 罫線枠(標準)
+'      3: 罫線枠(階層構造)
+'      4: ヘッダフィルタ
+'      5: ヘッダ幅合わせ
+'      6: ヘッダ固定
+'      7: ヘッダ色
+'      8: 枠クリア
+'      9: 値クリア
+'      10: テーブルクリア
+'
+Sub WakuHeaderProc(ra As Range, Optional mode As Integer)
+    Select Case mode
+    Case 1: Waku ra, fit:=True
+    Case 2: Waku ra
+    Case 3: WakuLayered ra
+    Case 4: HeaderFilter ra
+    Case 5: HeaderAutoFit ra
+    Case 6: HeaderFixed ra
+    Case 7: HeaderColor ra
+    Case 8: WakuClear ra: ra.FormatConditions.Delete
+    Case 9: TableRange(TableHeaderRange(TableLeftTop(ra)).Offset(1)).Clear
+    Case 10: TableRange(TableHeaderRange(TableLeftTop(ra))).Clear
     End Select
 End Sub
 
@@ -189,4 +218,56 @@ Sub AddRankColumn(ra As Range, bhdr As Boolean, Optional shdr As String = "No.")
     ra.Value = arr
     ra.EntireColumn.Columns.AutoFit
 End Sub
+
+'----------------------------------------
+'値追加
+'----------------------------------------
+
+Public Sub Cells_GenerateValue(ra As Range, mode As Long)
+    'ScreenUpdateOff
+    '
+    Dim idx As Long
+    idx = 1
+    Dim rb As Range
+    For Each rb In ra.Areas
+        'Set rb = Intersect(rb, ra.Parent.UsedRange)
+        If rb Is Nothing Then Exit For
+        '
+        Dim va As Variant
+        va = RangeToFormula2(rb)
+        '
+        Select Case mode
+        Case Else
+            Cells_GenerateIndex va, idx
+        End Select
+        '
+        rb.Value = va
+    Next rb
+    '
+    ScreenUpdateOn
+End Sub
+
+Public Sub Cells_GenerateIndex(va As Variant, v0 As Long)
+    Dim i As Long
+    i = v0
+    
+    Dim r As Long, c As Long
+    For r = LBound(va, 1) To UBound(va, 1)
+        For c = LBound(va, 2) To UBound(va, 2)
+            va(r, c) = i
+            i = i + 1
+        Next c
+    Next r
+    v0 = i
+End Sub
+
+Private Function RangeToFormula2(ra As Range) As Variant
+    Dim va As Variant
+    va = ra.Formula2
+    If ra.Count = 1 Then
+        ReDim va(1 To 1, 1 To 1)
+        va(1, 1) = ra.Formula2
+    End If
+    RangeToFormula2 = va
+End Function
 

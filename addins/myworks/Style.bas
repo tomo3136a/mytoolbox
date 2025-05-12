@@ -49,21 +49,34 @@ Public Sub AddMarker(ra As Range, id As Integer, Optional ByVal kw As String)
 End Sub
 
 'カラーマーカ削除
-Sub DelMarker(kw As String, Optional ByVal wb As Workbook)
-    
-    If wb Is Nothing Then Set wb = ActiveWorkbook
-    
-    Dim v As Variant
-    For Each v In wb.Styles
-        If CStr(v) Like kw Then wb.Styles(CStr(v)).Delete
-    Next v
+Sub DelMarker(ByVal ra As Range)
+        
+    Dim wb As Workbook
+    Set wb = ra.Worksheet.Parent
+        
+    ScreenUpdateOff
+    Dim ce As Range
+    For Each ce In ra
+        Dim kw As String
+        kw = ce.Value
+        Dim v As Variant
+        For Each v In wb.Styles
+            If CStr(v) Like kw Then
+                wb.Styles(CStr(v)).Delete
+            End If
+        Next v
+    Next ce
+    ScreenUpdateOn
 
 End Sub
 
 'カラーマーカリスト取得
-Sub ListMarker(ByVal ra As Range)
+Sub ListMarker()
     
-    Set ra = ra.Cells(1, 1)
+    Dim ra As Range
+    Set ra = GetCell("リストの出力先を指定してください。")
+    If ra Is Nothing Then Exit Sub
+    
     Dim wb As Workbook
     Set wb = ra.Parent.Parent
     
