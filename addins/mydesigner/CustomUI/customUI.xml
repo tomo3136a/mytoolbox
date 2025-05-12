@@ -2,7 +2,7 @@
 <customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" onLoad="Designer_onLoad">
   <ribbon>
     <tabs>
-      <tab id="TabDesigner" label="作図" insertAfterQ="TabAddIns">
+      <tab id="TabDesigner" label="作図" insertAfterQ="TabView">
         <group id="g1" label="図形操作" imageMso="ComAddInsDialog">
           <splitButton id="g11" size="large" >
             <button id="b1.1" onAction="Designer1_onAction" label="標準図形設定" imageMso="ObjectFormatDialog" />
