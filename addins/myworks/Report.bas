@@ -341,9 +341,9 @@ End Sub
 '      8: 参照スタイル削除
 '---------------------------------------------
 
-Sub UserFormatProc(ra As Range, mode As Integer)
+Sub UserFormatProc(ra As Range, mode As Long)
     Dim rb As Range
-    Set rb = ra.Parent.UsedRange
+    Set rb = ra.Worksheet.UsedRange
     Set rb = Intersect(ra, rb)
     If rb Is Nothing Then Set rb = ra
     '
@@ -352,20 +352,27 @@ Sub UserFormatProc(ra As Range, mode As Integer)
     Case 2: Call AddZeroConditionColor(rb)
     Case 3: Call AddBlankConditionColor(rb)
     Case 4: Call MarkRef(rb)
+    Case 5: Call ListConditionFormat
     Case 8: Call ClearMarkRef
     End Select
 End Sub
 
 Private Sub AddFormulaConditionColor(ra As Range)
+    '条件式設定
     Dim s As String
     s = ra.Cells(1, 1).Address(False, False)
-    ra.FormatConditions.Add Type:=xlExpression, Formula1:="=ISFORMULA(" & s & ")"
-    ra.FormatConditions(ra.FormatConditions.Count).SetFirstPriority
+    s = "=ISFORMULA(" & s & ")"
+    With ra.FormatConditions
+        .Add Type:=xlExpression, Formula1:=s
+        .Item(.Count).SetFirstPriority
+    End With
     
+    '条件時背景色選択
     Dim i As Long
     Call Application.Dialogs(xlDialogEditColor).Show(1)
     i = ActiveWorkbook.Colors(1)
 
+    '条件時背景色指定
     With ra.FormatConditions(1).Interior
         .PatternColorIndex = xlAutomatic
         .Color = i
@@ -375,15 +382,21 @@ Private Sub AddFormulaConditionColor(ra As Range)
 End Sub
 
 Private Sub AddZeroConditionColor(ra As Range)
+    '条件式設定
     Dim s As String
     s = ra.Cells(1, 1).Address(False, False)
-    ra.FormatConditions.Add Type:=xlExpression, Formula1:="=AND(" & s & "<>""""," & s & "=0)"
-    ra.FormatConditions(ra.FormatConditions.Count).SetFirstPriority
+    s = "=AND(" & s & "<>""""," & s & "=0)"
+    With ra.FormatConditions
+        .Add Type:=xlExpression, Formula1:=s
+        .Item(.Count).SetFirstPriority
+    End With
     
+    '条件時背景色選択
     Dim i As Long
     Call Application.Dialogs(xlDialogEditColor).Show(1)
     i = ActiveWorkbook.Colors(1)
 
+    '条件時背景色指定
     With ra.FormatConditions(1).Interior
         .PatternColorIndex = xlAutomatic
         .Color = i
@@ -393,14 +406,21 @@ Private Sub AddZeroConditionColor(ra As Range)
 End Sub
 
 Private Sub AddBlankConditionColor(ra As Range)
+    '条件式設定
     Dim s As String
     s = ra.Cells(1, 1).Address(False, False)
-    ra.FormatConditions.Add Type:=xlExpression, Formula1:="=TRIM(" & s & ")="""""
-    ra.FormatConditions(ra.FormatConditions.Count).SetFirstPriority
+    s = "=TRIM(" & s & ")="""""
+    With ra.FormatConditions
+        .Add Type:=xlExpression, Formula1:=s
+        .Item(.Count).SetFirstPriority
+    End With
     
+    '条件時背景色選択
     Dim i As Long
-    i = RGB(240, 240, 240)
+    Call Application.Dialogs(xlDialogEditColor).Show(1)
+    i = ActiveWorkbook.Colors(1)
 
+    '条件時背景色指定
     With ra.FormatConditions(1).Interior
         .PatternColorIndex = xlAutomatic
         .Color = i
@@ -411,15 +431,15 @@ End Sub
 
 Private Sub MarkRef(ra As Range)
     Dim wb As Workbook
-    Set wb = ra.Parent.Parent
+    Set wb = ra.Worksheet.Parent
     
-    Dim ra2 As Range
+    Dim rb As Range
     On Error Resume Next
-    Set ra2 = ra.DirectPrecedents
+    Set rb = ra.DirectPrecedents
     On Error GoTo 0
-    If ra2 Is Nothing Then Exit Sub
-    Set ra2 = ra2.DirectDependents
-    Set ra2 = Intersect(ra, ra2)
+    If rb Is Nothing Then Exit Sub
+    Set rb = rb.DirectDependents
+    Set rb = Intersect(ra, rb)
     
     Dim s As String
     s = "参照"
@@ -442,7 +462,7 @@ Private Sub MarkRef(ra As Range)
         End With
     End If
     On Error GoTo 0
-    ra2.Style = s
+    rb.Style = s
 End Sub
 
 Private Sub ClearMarkRef()
@@ -452,6 +472,22 @@ Private Sub ClearMarkRef()
     ActiveWorkbook.Styles(s).Delete
     On Error GoTo 0
 End Sub
+
+Private Sub ListConditionFormat()
+    Dim ra As Range
+    Set ra = ActiveCell
+    Dim ws As Worksheet
+    Set ws = ActiveSheet
+    Dim fc As FormatCondition
+    For Each fc In ws.Cells.FormatConditions
+        ra.Value = "'" & fc.Formula1
+        ra.Offset(, 1).Value = fc.PTCondition
+        ra.Offset(, 2).Value = fc.AppliesTo.Address
+        ra.Offset(, 3).Value = fc.Type
+        Set ra = ra.Offset(1)
+    Next fc
+End Sub
+
 
 Private Sub NewStyle(ra As Range, name As String)
     If ra Is Nothing Then Exit Sub

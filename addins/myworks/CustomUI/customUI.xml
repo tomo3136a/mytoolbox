@@ -33,6 +33,8 @@
               supertip="選択したセルが数値 0 なら色付けして強調する" />
             <button id="b1.4.3" onAction="works1_onAction" label="ブランク" screentip="ブランクのセルを強調" 
               supertip="選択したセルがブランクなら色付けして強調する" />
+            <button id="b1.4.5" onAction="works1_onAction" label="条件書式リスト" imageMso="MenuView2" 
+              screentip="条件書式をリスト" supertip="条件リストの一覧を表示する" />
             <menuSeparator id="z1.4.2" title="書式スタイル" />
             <button id="b1.4.4" onAction="works1_onAction" label="参照" imageMso="ShowFormulas" />
             <menuSeparator id="z1.4.3" />
