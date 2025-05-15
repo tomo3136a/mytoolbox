@@ -144,22 +144,22 @@
 
         <!--表操作-->
         <group id="g2" label="表操作" imageMso="ReviewAllowUsersToEditRanges">
-          <splitButton id="s21" size="large">
+          <splitButton id="s2.1" size="large">
             <button id="b2.1.1" onAction="works2_onAction" label="囲い" imageMso="DataFormSource"
               screentip="罫線枠を描く" supertip="表の範囲を選択し、罫線枠を描く" />
-            <menu id="m21">
+            <menu id="m2.1">
               <button id="b2.1.2" onAction="works2_onAction" label="囲いのみ" imageMso="DataFormSource" />
               <button id="b2.1.3" onAction="works2_onAction" label="階層構造" imageMso="GroupTableSize" />
               <menuSeparator id="z2.1.1" />
               <button id="b2.1.8" onAction="works2_onAction" label="囲いクリア" imageMso="Clear" />
             </menu>
           </splitButton>
-          <menu id="m22" label="移動。選択" imageMso="TableSelectCell" size="large">
+          <menu id="m2.2" label="移動。選択" imageMso="TableSelectCell" size="large">
             <button id="b2.2.1" onAction="works2_onAction" label="先頭へ移動" imageMso="TableSelectCell"
               screentip="表の左上に移動" />
             <button id="b2.2.2" onAction="works2_onAction" label="末尾へ移動" imageMso="TableSelectCell"
               screentip="表の左下に移動" />
-            <menuSeparator id="z22" />
+            <menuSeparator id="z2.2" />
             <button id="b2.2.3" onAction="works2_onAction" label="選択(行)" imageMso="TableStyleRowHeaders"
               screentip="行選択" supertip="セルの左右を調査し、テーブルの行範囲を選択する" />
             <button id="b2.2.4" onAction="works2_onAction" label="選択(列)" imageMso="TableStyleFirstColumn"
@@ -169,7 +169,7 @@
             <button id="b2.2.6" onAction="works2_onAction" label="選択(テーブル)" imageMso="TableSelect"
               screentip="テーブル選択" supertip="テーブルを選択する" />
           </menu>
-          <menu id="m23" label="列挿入" imageMso="TableColumnsInsertLeftExcel" size="large">
+          <menu id="m2.3" label="列挿入" imageMso="TableColumnsInsertLeftExcel" size="large">
             <button id="b2.3.1" onAction="works2_onAction" label="番号列追加" imageMso="TableColumnsInsertLeftExcel" />
             <button id="b2.3.2" onAction="works2_onAction" label="ランク列追加" imageMso="TableColumnsInsertLeftExcel" />
           </menu>
@@ -178,9 +178,9 @@
           <button id="b2.1.6" onAction="works2_onAction" label="枠固定" imageMso="FreezePanes" />
           <button id="b2.1.7" onAction="works2_onAction" label="見出し色" imageMso="FontColorCycle" />
           <!-- <control idMso="CellFillColorPicker" label="見出し色" showLabel="true" /> -->
-          <splitButton id="s27">
+          <splitButton id="s2.7">
             <button id="b2.7.2" onAction="works2_onAction" label="データクリア" imageMso="PivotClearCustomOrdering" />
-            <menu id="m27">
+            <menu id="m2.7">
               <button id="b2.7.3" onAction="works2_onAction" label="表クリア" imageMso="TableStyleClear" />
               <button id="b2.7.4" onAction="works2_onAction" label="囲い・データクリア" imageMso="PivotClearCustomOrdering" />
             </menu>
@@ -190,15 +190,26 @@
 
         <!--テンプレート-->
         <group id="g3" label="テンプレート" imageMso="ComAddInsDialog">
-          <button id="b3.1" onAction="works3_onAction" getEnabled="works3_getEnabled" label="読み込み" imageMso="SheetInsert" size="large" />
-          <button id="b3.2" onAction="works3_onAction" getEnabled="works3_getEnabled" label="書き込み" imageMso="GroupMoveData" />
-          <button id="b3.3" onAction="works3_onAction" getLabel="works3_getLabel" imageMso="ListMacros" />
-          <button id="b3.4" onAction="works3_onAction" label="テーブル作成" imageMso="ViewsDatasheetView" />
+          <button id="b3.1" onAction="works3_onAction" getEnabled="works3_getEnabled" label="シート追加" imageMso="SheetInsert" size="large" />
+          <splitButton id="s3.1">
+            <button id="b3.4" onAction="works3_onAction" label="テーブル作成" imageMso="ViewsDatasheetView" />
+            <menu id="m3.1">
+              <button id="b3.4.1" onAction="works3_onAction" label="ヘッダ追加" />
+            </menu>
+          </splitButton>
           <button id="b3.5" onAction="works3_onAction" label="テーブル読み込み" imageMso="NewTableStyleWord" />
-          <button id="b3.6" onAction="works3_onAction" label="テーブル更新" imageMso="TableAutoFormat" />
-          <button id="b3.7" onAction="works3_onAction" label="test7" imageMso="CustomTablesGallery" />
-          <button id="b3.8" onAction="works3_onAction" label="test8" imageMso="BlackAndWhiteDontShow" />
-          <button id="b3.9" onAction="works3_onAction" label="開発" imageMso="AddInManager" />
+          <menu id="m3.2" label="そのほか">
+            <button id="b3.2" onAction="works3_onAction" getEnabled="works3_getEnabled" label="シート登録" imageMso="GroupMoveData" />
+            <button id="b3.3" onAction="works3_onAction" getEnabled="works3_getEnabled" label="シート削除" imageMso="SheetDelete" />
+            <menuSeparator id="z3.1" />
+            <button id="b3.6" onAction="works3_onAction" label="テーブル更新" imageMso="TableAutoFormat" />
+            <button id="b3.7" onAction="works3_onAction" label="ヘッダシート" imageMso="CalculateSheet" />
+            <menuSeparator id="z3.2" />
+            <!-- <button id="b3.7" onAction="works3_onAction" label="test7" imageMso="CustomTablesGallery" /> -->
+            <!-- <button id="b3.8" onAction="works3_onAction" label="test8" imageMso="BlackAndWhiteDontShow" /> -->
+            <button id="b3.8" onAction="works3_onAction" getLabel="works3_getLabel" imageMso="ListMacros" />
+            <button id="b3.9" onAction="works3_onAction" label="開発" imageMso="AddInManager" />
+          </menu>
         </group>
 
         <!--テスト-->
