@@ -5,7 +5,6 @@ $arc = "7z.exe"
 
 ##############################################################################
 #
-$addins_path = "${env:APPDATA}/Microsoft/Addins"
 $name = ""
 $root = ""
 if ($path -ne "") {
@@ -24,10 +23,12 @@ if ($name -eq "") {
 if ($root -eq "") { $root = Join-Path (Get-Location).Path $name }
 if (-not (Test-Path $root)) { [void](mkdir $root) }
 
-$xlam_file = $name + ".xlam"
-$xlam = Join-Path $addins_path $xlam_file
 Write-Host "name: ${name}" -ForegroundColor Yellow
 Write-Host "root: ${root}" -ForegroundColor Yellow
+
+$addins_path = "${env:APPDATA}/Microsoft/Addins"
+$xlam_file = $name + ".xlam"
+$xlam = Join-Path $addins_path $xlam_file
 Write-Host "xlam: ${xlam}" -ForegroundColor Yellow
 Push-Location $root
 
@@ -92,13 +93,13 @@ if (-not (Test-Path $path)) {
     Write-Host "# Creeate customUI/customUI.xml" -ForegroundColor Yellow
     $xml = [xml]@"
 <?xml version="1.0" encoding="UTF-8"?>
-<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui">
+<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" onLoad="${name}_onLoad">
   <ribbon>
     <tabs>
-      <tab id="Tab${name}" label="tab">
-        <group id="${name}.G1" label="group" autoScale="true">
-          <button id="${name}.B1" label="button" imageMso="ListMacros"
-            onAction="${name}.M1" size="large" />
+      <tab id="Tab${name}" label="${name}">
+        <group id="${name}.g1" label="${name}" autoScale="true">
+          <button id="${name}.b1" label="${name}" imageMso="ListMacros"
+            onAction="${name}_onAction" size="large" />
         </group>
       </tab>
     </tabs>
@@ -124,4 +125,3 @@ if (Test-Path $zip) {
 Pop-Location
 
 Write-Host "completed." -ForegroundColor Yellow
-#$host.UI.RawUI.ReadKey() | Out-Null

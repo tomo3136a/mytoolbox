@@ -2,7 +2,6 @@
 
 ##############################################################################
 #
-$addins_path = "${env:APPDATA}/Microsoft/Addins"
 $name = ""
 $root = ""
 if ($path -ne "") {
@@ -20,10 +19,12 @@ if ($name -eq "") {
 if ($root -eq "") { $root = Join-Path (Get-Location).Path $name }
 if (-not (Test-Path $root)) { [void](mkdir $root) }
 
-$xlam_file = $name + ".xlam"
-$xlam = Join-Path $addins_path $xlam_file
 Write-Host "name: ${name}" -ForegroundColor Yellow
 Write-Host "root: ${root}" -ForegroundColor Yellow
+
+$addins_path = "${env:APPDATA}/Microsoft/Addins"
+$xlam_file = $name + ".xlam"
+$xlam = Join-Path $addins_path $xlam_file
 Write-Host "xlam: ${xlam}" -ForegroundColor Yellow
 
 ##############################################################################
