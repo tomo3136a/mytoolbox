@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" xmlns:ad="addindev">
+  <ribbon>
+    <tabs>
+      <tab idQ="ad:TabAddinDev" label="アドイン開発">
+        <group idQ="ad:GrpAddinDev" label="アドイン開発" imageMso="AddInManager">
+          <button id="BtnReload" insertAfterQ="ad:BoxAddinDev" label="AddinDev 配置"
+            imageMso="ReviewDisplayForReview" onAction="AddinDev2_onAction" size="large" />
+        </group>
+      </tab>
+    </tabs>
+  </ribbon>
+</customUI>

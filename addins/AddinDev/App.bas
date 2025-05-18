@@ -16,65 +16,31 @@ Private g_image As String
 'アプリケーションI/F
 '----------------------------------
 
-Sub Invoke(id As Integer)
-    Select Case id
-    Case 11
-        'カレントフォルダを開く
-        OpenCurrentFolder
-    Case 12
-        'アドインフォルダを開く
-        OpenAddinsFolder
-    Case 13
-        'ImageMsoファイルフォルダを開く
-        OpenImageMsoFolder
-    '
-    Case 31
-        'CustomUI 編集
-        EditCustomUI g_addin
-    Case 32
-        'CustomUI マージ
-        On Error Resume Next
-        Workbooks(g_addin).Save
-        On Error GoTo 0
-        MargeCustomUI g_addin
-    Case 33
-        'アドイン配置
-        DeployAddin g_addin
-    Case 34
-        'アドインブック表示・非表示トグル
-        ToggleAddin g_addin
-    Case 35
-        'アドインマネージャ
-        With Application.Dialogs(xlDialogAddinManager)
-            .Show
-        End With
-    Case 36
-        'アドインソースのエクスポート
-        ExportModules g_addin
-    Case 37
-        'アドインソースのインポート
-        ImportModules g_addin
-    Case 38
-        'アドイン再読み込み
-        ReloadAddin g_addin
-    Case 39
-        '閉じる
-        ToggleAddin ActiveWorkbook.name
-    Case 51
-        'ダイアログ呼び出し
-        On Error Resume Next
-        If Application.Dialogs(ActiveCell.Value).Show Then
-            MsgBox True
-        Else
-            MsgBox False
-        End If
-        On Error GoTo 0
-    Case 52
-        If ActiveCell.Value <> "" Then g_image = ActiveCell.Value
-    Case 53
-    Case 54
-    Case Else
-        MsgBox g_addin
+Sub AddinDevProc(id2 As Long, id1 As Long)
+    Select Case id2
+    Case 1:
+        Select Case id1
+            Case 1: OpenCurrentFolder   'カレントフォルダを開く
+            Case 2: OpenAddinsFolder    'アドインフォルダを開く
+            Case 3: OpenImageMsoFolder  'ImageMsoファイルフォルダを開く
+        End Select
+    Case 3:
+        Select Case id1
+        Case 1: EditCustomUI g_addin    'CustomUI 編集
+        Case 2: MargeCustomUI g_addin   'CustomUI マージ
+        Case 3: DeployAddin2 g_addin    'アドイン配置
+        Case 4: ToggleAddin g_addin     'アドインブック表示・非表示トグル
+        Case 5: OpenAddinManager        'アドインマネージャ
+        Case 6: ExportModules g_addin   'アドインソースのエクスポート
+        Case 7: ImportModules g_addin   'アドインソースのインポート
+        Case 8: ReloadAddin g_addin     'アドイン再読み込み
+        Case 9: ToggleAddin ActiveWorkbook.name     '閉じる
+        End Select
+    Case 5:
+        Select Case id1
+        Case 1: CallDialog              'ダイアログ呼び出し
+        Case 2: If ActiveCell.Value <> "" Then g_image = ActiveCell.Value
+        End Select
     End Select
 End Sub
 
@@ -221,6 +187,10 @@ End Sub
 
 'CustomUI マージ
 Private Sub MargeCustomUI(name As String)
+    On Error Resume Next
+    Workbooks(g_addin).Save
+    On Error GoTo 0
+    '
     Dim xlam As String
     xlam = fso.BuildPath(AddinsPath, name)
     If Not fso.FileExists(xlam) Then Exit Sub
@@ -260,51 +230,66 @@ Private Sub MargeCustomUI(name As String)
 End Sub
 
 'アドイン配置
-Private Sub DeployAddin(name As String)
-    Dim xlam As String
-    xlam = fso.BuildPath(AddinsPath, name)
-    '
-    Dim tmp As String
-    tmp = fso.BuildPath(AddinsPath, "tmp")
-    If Not fso.FolderExists(tmp) Then Exit Sub
+Private Sub DeployAddin2(name As String)
+    If name = "" Then Exit Sub
+    If name Like ThisWorkbook.name Then
+        MsgBox name & " アドインは配置できません。" & Chr(10) & _
+        "tmp フォルダの xlam ファイルの" & _
+        "アドインを再インストールしてください。"
+        Application.EnableEvents = False
+        Exit Sub
+    End If
     '
     Dim base As String
     base = fso.GetBaseName(name)
     '
-    Dim zip As String
-    zip = fso.BuildPath(tmp, base & ".zip")
-    If Not fso.FileExists(zip) Then Exit Sub
-    '
-    If name = ThisWorkbook.name Then
-        xlam = fso.BuildPath(tmp, name)
-        If fso.FileExists(xlam) Then fso.DeleteFile xlam
-        fso.MoveFile zip, xlam
-        MsgBox name & " アドインは配置できません。" & Chr(10) & _
-        "tmp フォルダの xlam ファイルの" & _
-        "アドインを再インストールしてください。"
-        OpenAddinsFolder
-        Application.EnableEvents = False
+    Dim src As String
+    src = fso.BuildPath(ThisWorkbook.path, "tmp")
+    src = fso.BuildPath(src, base & ".zip")
+    If Not fso.FileExists(src) Then
+        MsgBox base & ".zip ファイルがありません。"
+        Exit Sub
     End If
-    AddIns(AddinName(name)).Installed = False
-    If fso.FileExists(xlam) Then fso.DeleteFile xlam
-    fso.MoveFile zip, xlam
-    AddIns(AddinName(name)).Installed = True
+    '
+    Dim dst As String
+    dst = fso.BuildPath(ThisWorkbook.path, name)
+    '
+    Dim ai As addin
+    For Each ai In AddIns
+        If ai.name Like name Then Exit For
+    Next ai
+    If ai Is Nothing Then
+        MsgBox name & " アドインの登録がありません。"
+        Exit Sub
+    End If
+    '
+    Dim kw As String
+    kw = ai.Title
+    AddIns(kw).Installed = False
+    If fso.FileExists(dst) Then fso.DeleteFile dst
+    fso.MoveFile src, dst
+    AddIns(kw).Installed = True
 End Sub
 
-'アドイン再読み込み
-Private Sub ReloadAddin(name As String)
-    AddIns(AddinName(name)).Installed = False
-    AddIns(AddinName(name)).Installed = True
+'アドインマネージャオープン
+Private Sub OpenAddinManager()
+    Application.Dialogs(xlDialogAddinManager).Show
 End Sub
 
 'モジュールソースコードエクスポート
-Private Sub ExportModules(Optional name As String)
+Private Sub ExportModules(name As String)
     If name = "" Then Exit Sub
-    name = Replace(name, ".xlam", "")
+    '
+    Dim ai As addin
+    For Each ai In AddIns
+        If ai.name Like name Then Exit For
+    Next ai
+    If ai Is Nothing Then
+        MsgBox name & " アドインの登録がありません。"
+        Exit Sub
+    End If
     '
     On Error Resume Next
-    Dim ai As addin
-    Set ai = Application.AddIns(name)
     Dim wb As Workbook
     Set wb = Application.Workbooks(ai.name)
     On Error GoTo 0
@@ -329,11 +314,11 @@ Private Sub ExportModules(Optional name As String)
     With Application.FileDialog(msoFileDialogFolderPicker)
         .InitialFileName = path
         .AllowMultiSelect = False
-        .Title = "フォルダの選択"
+        .Title = "アドインソースルートフォルダの選択"
         If Not .Show Then Exit Sub
         path = .SelectedItems(1)
     End With
-    path = fso.BuildPath(path, name)
+    path = fso.BuildPath(path, fso.GetBaseName(name))
     If Not fso.FolderExists(path) Then
         fso.CreateFolder path
     End If
@@ -346,23 +331,18 @@ Private Sub ExportModules(Optional name As String)
             '3:vbext_ct_MSForm
             '100:vbext_ct_Document
             Select Case m.Type
-            Case 1
-                Call m.Export(path & "\" & m.name & ".bas")
-            Case 2
-                Call m.Export(path & "\" & m.name & ".cls")
-            Case 3
-                Call m.Export(path & "\" & m.name & ".frm")
-            Case 100
-                Call m.Export(path & "\" & m.name & ".cls")
-            Case Else
-                MsgBox "エクスポート対象外： " & m.Type & ":" & m.name
+            Case 1: Call m.Export(path & "\" & m.name & ".bas")
+            Case 2: Call m.Export(path & "\" & m.name & ".cls")
+            Case 3: Call m.Export(path & "\" & m.name & ".frm")
+            Case 100: Call m.Export(path & "\" & m.name & ".cls")
+            Case Else: MsgBox "エクスポート対象外： " & m.Type & ":" & m.name
             End Select
         End If
     Next m
     '
     Dim src As String
     src = fso.BuildPath(AddinsPath, "tmp")
-    src = fso.BuildPath(src, name)
+    src = fso.BuildPath(src, fso.GetBaseName(name))
     src = fso.BuildPath(src, "CustomUI")
     If fso.FileExists(fso.BuildPath(src, "customUI.xml")) Then
         Dim dst As String
@@ -385,11 +365,12 @@ End Sub
 'モジュールソースコードインポート
 Private Sub ImportModules(Optional name As String)
     If name = "" Then Exit Sub
-    name = fso.GetBaseName(name)
-    name = Replace(name, ".xlam", "")
+    '
+    Dim base As String
+    base = fso.GetBaseName(name)
     '
     Dim wb As Workbook
-    Set wb = Application.Workbooks(Application.AddIns(name).name)
+    Set wb = Application.Workbooks(name)
     '
     On Error Resume Next
     Dim col As Object     'VBComponents
@@ -403,7 +384,7 @@ Private Sub ImportModules(Optional name As String)
     '
     On Error Resume Next
     Dim path As String
-    path = fso.BuildPath(ActiveWorkbook.path, name)
+    path = fso.BuildPath(ActiveWorkbook.path, base)
     With Application.FileDialog(msoFileDialogOpen)
         .AllowMultiSelect = True
         .Filters.Clear
@@ -417,20 +398,35 @@ Private Sub ImportModules(Optional name As String)
             Dim s As String
             s = fso.GetBaseName(fi)
             Select Case LCase(fso.GetExtensionName(fi))
-            Case "bas"
-                col.Remove col(s)
-                col.Import fi
-            Case "frm"
-                col.Remove col(s)
-                col.Import fi
-            Case "cls"
-                col.Remove col(s)
-                col.Import fi
-            Case "cls2"
-                col(s).Item.CodeModule.AddFromFile fi
+            Case "bas": col.Remove col(s): col.Import fi
+            Case "frm": col.Remove col(s): col.Import fi
+            Case "cls": col.Remove col(s): col.Import fi
+            Case "cls2": col(s).Item.CodeModule.AddFromFile fi
             End Select
         Next fi
     End With
+    On Error GoTo 0
+End Sub
+
+'アドイン再読み込み
+Private Sub ReloadAddin(name As String)
+    Dim ai As addin
+    For Each ai In AddIns
+        If ai.name Like name & ".xlam" Then Exit For
+    Next ai
+    If ai Is Nothing Then Exit Sub
+    ai.Installed = False
+    ai.Installed = True
+End Sub
+
+'ダイアログ呼び出し
+Private Sub CallDialog()
+    On Error Resume Next
+    If Application.Dialogs(ActiveCell.Value).Show Then
+        MsgBox True
+    Else
+        MsgBox False
+    End If
     On Error GoTo 0
 End Sub
 

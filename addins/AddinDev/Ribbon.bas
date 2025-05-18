@@ -12,27 +12,23 @@ Private g_ribbon As IRibbonUI
 'ribbon helper
 '----------------------------------------
 
-Private Function RibbonID(control As IRibbonControl) As Integer
-    Dim s As String
-    s = control.Tag
-    If s = "" Then s = control.id
-    Dim vs As Variant
-    vs = Split(s, ".")
-    If UBound(vs) >= 0 Then
-        RibbonID = Val("0" & vs(UBound(vs)))
-        Exit Function
+Private Sub RefreshRibbon(Optional id As String)
+    If Not g_ribbon Is Nothing Then
+        If id = "" Then
+            g_ribbon.Invalidate
+        Else
+            g_ribbon.InvalidateControl id
+        End If
     End If
-    vs = Split(s, "_")
-    If UBound(vs) >= 0 Then
-        RibbonID = Val("0" & vs(UBound(vs)))
-        Exit Function
-    End If
-End Function
-
-Private Sub RefreshRibbon()
-    If Not g_ribbon Is Nothing Then g_ribbon.Invalidate
     DoEvents
 End Sub
+
+Private Function RibbonID(control As IRibbonControl, Optional n As Long) As Long
+    Dim vs As Variant
+    vs = Split(control.id, ".")
+    If UBound(vs) < n Then Exit Function
+    RibbonID = Val("0" & vs(UBound(vs) - n))
+End Function
 
 '----------------------------------------
 'ribbon initialize
@@ -70,48 +66,42 @@ Private Sub AddinDev_onActionDropDown(control As IRibbonControl, id As String, i
 End Sub
 
 '----------------------------------
-'invoke application
+'AddinDevProc application
 '----------------------------------
 
 Private Sub AddinDev_onAction(ByVal control As IRibbonControl)
-    Invoke RibbonID(control)
+    AddinDevProc RibbonID(control, 1), RibbonID(control)
     If g_ribbon Is Nothing Then Exit Sub
-    Select Case RibbonID(control)
-    Case 52
-        g_ribbon.Invalidate
-        DoEvents
-    Case 1
-        g_ribbon.Invalidate
-        DoEvents
-    Case Else
+    
+    Select Case RibbonID(control, 1)
+    Case 3: g_ribbon.Invalidate: DoEvents
+    Case 5: g_ribbon.Invalidate: DoEvents
     End Select
 End Sub
 
 Private Sub AddinDev_getEnabled(ByVal control As IRibbonControl, ByRef enable As Variant)
     Select Case RibbonID(control)
-    Case 39
-        enable = (LCase(Right(ActiveWorkbook.name, 5)) = ".xlam")
-    Case 34
-        enable = (LCase(Right(ActiveWorkbook.name, 5)) <> ".xlam")
+    Case 4: enable = Not (LCase(Right(ActiveWorkbook.name, 5)) Like ".xlam")
+    Case 9: enable = (LCase(Right(ActiveWorkbook.name, 5)) Like ".xlam")
     End Select
 End Sub
 
 Private Sub AddinDev_getImage(ByVal control As IRibbonControl, ByRef image As Variant)
     On Error Resume Next
     Select Case RibbonID(control)
-    Case 53
-        Dim id As Integer
-        id = Val("0" + GetButtonImage)
-        Dim v1 As Variant
-        Set v1 = Application.CommandBars.FindControl(id:=id)
-        Set image = Application.CommandBars.FindControl(id:=id).Picture
-    Case 52
+    Case 2
         If GetButtonImage = "" Then
             image = "About"
         Else
             image = GetButtonImage
         End If
-    Case 54
+    Case 3
+        Dim id As Integer
+        id = Val("0" + GetButtonImage)
+        Dim v1 As Variant
+        Set v1 = Application.CommandBars.FindControl(id:=id)
+        Set image = Application.CommandBars.FindControl(id:=id).Picture
+    Case 4
         Dim v As Integer
         v = Val(ActiveCell.Value)
         If v = 0 Then Exit Sub

@@ -1,39 +1,58 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
-<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" onLoad="AddinDev_onLoad">
+<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" xmlns:ad="addindev"
+  onLoad="AddinDev_onLoad">
   <ribbon>
     <tabs>
-      <tab id="TabAddinDev" label="アドイン開発​​">
-        <group id="g1" label="フォルダ​​" imageMso="AddInManager">
-          <button id="b.11" onAction="AddinDev_onAction" label="カレントフォルダ" imageMso="Folder" size="large" />
-          <button id="b.12" onAction="AddinDev_onAction" label="アドインフォルダ" imageMso="Folder" size="large" />
-          <button id="b.13" onAction="AddinDev_onAction" label="imageMSOフォルダ" imageMso="ControlImage" size="large" />
-        </group>
-        <group id="g3" label="アドイン編集" imageMso="AddInManager">
-          <box id="g31" boxStyle="vertical">
-            <dropDown id="c31" onAction="AddinDev_onActionDropDown" label="アドイン:" sizeString="aaaaaaaaaaaaaaaaaa"
+      <tab idQ="ad:TabAddinDev" label="アドイン開発​​">
+        <group idQ="ad:GrpAddinDev" label="アドイン編集" imageMso="AddInManager">
+          <box idQ="ad:BoxAddinDev" insertBeforeQ="ad:BtnReload" boxStyle="vertical">
+            <dropDown id="c31" onAction="AddinDev_onActionDropDown" label="アドイン:"
+              sizeString="aaaaaaaaaaaaaaaaaa"
               getItemCount="AddinDev_getItemCount" getItemID="AddinDev_getItemID"
               getItemLabel="AddinDev_getItemLabel" getSelectedItemID="AddinDev_getSelectedItemID" />
             <buttonGroup id="g32">
-              <button id="b.31" onAction="AddinDev_onAction" label="編集" imageMso="CodeEdit" />
-              <button id="b.32" onAction="AddinDev_onAction" label="構築" imageMso="ResultsPaneStartFindAndReplace" />
-              <button id="b.33" onAction="AddinDev_onAction" label="配置" imageMso="ReviewDisplayForReview" />
+              <button id="b.3.1" onAction="AddinDev_onAction" label="編集" imageMso="CodeEdit" />
+              <button id="b.3.2" onAction="AddinDev_onAction" label="構築"
+                imageMso="ResultsPaneStartFindAndReplace" />
+              <button id="b.3.3" onAction="AddinDev_onAction" label="配置"
+                imageMso="ReviewDisplayForReview" />
             </buttonGroup>
             <buttonGroup id="g33">
-              <button id="b.34" onAction="AddinDev_onAction" label="シート編集" getEnabled="AddinDev_getEnabled" imageMso="WindowUnhide" />
-              <button id="b.35" onAction="AddinDev_onAction" label="マネージャ" imageMso="Refresh" />
+              <button id="b.3.4" onAction="AddinDev_onAction" label="シート編集"
+                getEnabled="AddinDev_getEnabled" imageMso="WindowUnhide" />
+              <control idQ="AddInManager" visible="true" />
+              <!-- <button id="b.3.5" onAction="AddinDev_onAction" label="マネージャ" imageMso="Refresh"
+              /> -->
             </buttonGroup>
-            <button id="b.36" onAction="AddinDev_onAction" label="エクスポート" imageMso="ExportSavedExports" size="large" />
-            <button id="b.37" onAction="AddinDev_onAction" label="インポート" imageMso="ImportSavedImports" size="large" />
-            <button id="b.38" onAction="AddinDev_onAction" label="再読み込み" imageMso="Recurrence" size="large" />
           </box>
+          <button id="b.3.6" onAction="AddinDev_onAction" label="エクスポート"
+            imageMso="ExportSavedExports" size="large" />
+          <button id="b.3.7" onAction="AddinDev_onAction" label="インポート"
+            imageMso="ImportSavedImports" size="large" />
+          <button id="b.3.8" onAction="AddinDev_onAction" label="再読み込み"
+            imageMso="Recurrence" size="large" />
           <separator id="s31" />
-          <button id="b.39" onAction="AddinDev_onAction" label="閉じる" getEnabled="AddinDev_getEnabled" imageMso="GroupMasterClose" size="large" />
+          <button id="b.3.9" onAction="AddinDev_onAction" label="閉じる"
+            getEnabled="AddinDev_getEnabled" imageMso="GroupMasterClose" size="large" />
+        </group>
+        <group id="g1" label="フォルダ​​" imageMso="AddInManager">
+          <button id="b.1.1" onAction="AddinDev_onAction" label="カレントフォルダ"
+            imageMso="Folder" size="large" />
+          <button id="b.1.2" onAction="AddinDev_onAction" label="アドインフォルダ"
+            imageMso="Folder" size="large" />
+          <button id="b.1.3" onAction="AddinDev_onAction" label="imageMSOフォルダ"
+            imageMso="ControlImage" size="large" />
         </group>
         <group id="g5" label="VBA開発" imageMso="AddInManager">
-          <button id="b.51" onAction="AddinDev_onAction" label="ダイアログ" imageMso="FormsMenu" size="large" />
-          <button id="b.52" onAction="AddinDev_onAction" label="imageMSO" getImage="AddinDev_getImage" size="large" />
-          <!-- <button id="b.53" onAction="AddinDev_onAction" label="imageMSO" getImage="AddinDev_getImage" size="large" /> -->
-          <!-- <button id="b.54" onAction="AddinDev_onAction" label="imageMSO" getImage="AddinDev_getImage" size="large" /> -->
+          <control idQ="VisualBasic" visible="true" size="large" />
+          <button id="b.5.1" onAction="AddinDev_onAction" label="ダイアログ" imageMso="FormsMenu"
+            size="large" />
+          <button id="b.5.2" onAction="AddinDev_onAction" label="imageMSO"
+            getImage="AddinDev_getImage" size="large" />
+          <!-- <button id="b5.3" onAction="AddinDev_onAction" label="imageMSO"
+          getImage="AddinDev_getImage" size="large" /> -->
+          <!-- <button id="b5.4" onAction="AddinDev_onAction" label="imageMSO"
+          getImage="AddinDev_getImage" size="large" /> -->
         </group>
       </tab>
     </tabs>
