@@ -77,7 +77,7 @@ if (-not (Test-Path $path)) {
   $elm.Id=$id
   $elm.Type="http://schemas.microsoft.com/office/2006/relationships/ui/extensibility"
   $elm.Type="http://schemas.microsoft.com/office/2007/relationships/ui/extensibility"
-  $elm.Target="customUI/customUI.xml"
+  $elm.Target="customUI/${id}.xml"
   $xml.Relationships.AppendChild($elm) | Out-Null
   $xml.Save($path)
 }
@@ -88,12 +88,12 @@ if (Test-Path $path) {
 
 ##############################################################################
 #
-$path = Join-Path $root "customUI\customUI.xml"
+$id="customUI"
+$path = Join-Path $root "customUI\${id}.xml"
 if (-not (Test-Path $path)) {
-    Write-Host "# Creeate customUI/customUI.xml" -ForegroundColor Yellow
-    $xml = [xml]@"
-<?xml version="1.0" encoding="UTF-8"?>
-<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" onLoad="${name}_onLoad">
+    Write-Host "# Creeate customUI/${id}.xml" -ForegroundColor Yellow
+
+    $s1 = @"
   <ribbon>
     <tabs>
       <tab id="Tab${name}" label="${name}">
@@ -104,14 +104,60 @@ if (-not (Test-Path $path)) {
       </tab>
     </tabs>
   </ribbon>
+"@
+    $s2 = @"
+  <contextMenus>
+    <contextMenu idMso="ContextMenuWorkbookPly">
+      <button id="${name}.sheet.b1" label="${name}" imageMso="ListMacros" onAction="${name}_onAction" />
+    </contextMenu>
+    <contextMenu idMso="ContextMenuCell">
+      <button id="${name}.cell.b1" label="${name}" insertBeforeMso="Cut" imageMso="ListMacros" onAction="${name}_onAction" />
+      <menuSeparator id="${name}.cell.s1" insertBeforeMso="Cut" />
+    </contextMenu>
+    <contextMenu idMso="ContextMenuCellLayout">
+      <button id="${name}.celllayout.b1" label="${name} layout" insertBeforeMso="Cut" imageMso="ListMacros" onAction="${name}_onAction" />
+      <menuSeparator id="${name}.celllayout.s1" insertBeforeMso="Cut" />
+    </contextMenu>
+    <contextMenu idMso="ContextMenuRow">
+      <button id="${name}.row.b1" label="${name}" insertBeforeMso="Cut" imageMso="ListMacros" onAction="${name}_onAction" />
+      <menuSeparator id="${name}.row.s1" insertBeforeMso="Cut" />
+    </contextMenu>
+    <contextMenu idMso="ContextMenuRowLayout">
+      <button id="${name}.rowlayout.b1" label="${name} layout" insertBeforeMso="Cut" imageMso="ListMacros" onAction="${name}_onAction" />
+      <menuSeparator id="${name}.rowlayout.s1" insertBeforeMso="Cut" />
+    </contextMenu>
+    <contextMenu idMso="ContextMenuColumn">
+      <button id="${name}.col.b1" label="${name}" insertBeforeMso="Cut" imageMso="ListMacros" onAction="${name}_onAction" />
+      <menuSeparator id="${name}.col.s1" insertBeforeMso="Cut" />
+    </contextMenu>
+    <contextMenu idMso="ContextMenuColumnLayout">
+      <button id="${name}.collayout.b1" label="${name} layout" insertBeforeMso="Cut" imageMso="ListMacros" onAction="${name}_onAction" />
+      <menuSeparator id="${name}.collayout.s1" insertBeforeMso="Cut" />
+    </contextMenu>
+    <contextMenu idMso="ContextMenuShape">
+      <button id="${name}.shape.b1" label="${name}" insertBeforeMso="Cut" imageMso="ListMacros" onAction="${name}_onAction" />
+      <menuSeparator id="${name}.shape.s1" insertBeforeMso="Cut" />
+    </contextMenu>
+    <contextMenu idMso="ContextMenuPicture">
+      <button id="${name}.pict.b1" label="${name}" insertBeforeMso="Cut" imageMso="ListMacros" onAction="${name}_onAction" />
+      <menuSeparator id="${name}.pict.s1" insertBeforeMso="Cut" />
+    </contextMenu>
+  </contextMenus>
+"@
+
+    $xml = [xml]@"
+<?xml version="1.0" encoding="UTF-8"?>
+<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" onLoad="${name}_onLoad">
+  ${s1}
+  ${s2}
 </customUI>
 "@
     mkdir -Force ($root + "\customUI") | Out-Null
     $xml.Save($path)
 }
 if (Test-Path $path) {
-  Write-Host "# Add customUI/customUI.xml" -ForegroundColor Yellow
-  . $arc u -ux2 -y $zip "customUI/customUI.xml" | Out-Null
+  Write-Host "# Add customUI/${id}.xml" -ForegroundColor Yellow
+  . $arc u -ux2 -y $zip "customUI/${id}.xml" | Out-Null
 }
 
 ##############################################################################
