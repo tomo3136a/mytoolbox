@@ -16,31 +16,32 @@ Private g_image As String
 'アプリケーションI/F
 '----------------------------------
 
-Sub AddinDevProc(id2 As Long, id1 As Long)
-    Select Case id2
-    Case 1:
-        Select Case id1
-            Case 1: OpenCurrentFolder   'カレントフォルダを開く
-            Case 2: OpenAddinsFolder    'アドインフォルダを開く
-            Case 3: OpenImageMsoFolder  'ImageMsoファイルフォルダを開く
-        End Select
-    Case 3:
-        Select Case id1
-        Case 1: EditCustomUI g_addin    'CustomUI 編集
-        Case 2: MargeCustomUI g_addin   'CustomUI マージ
-        Case 3: DeployAddin2 g_addin    'アドイン配置
-        Case 4: ToggleAddin g_addin     'アドインブック表示・非表示トグル
-        Case 5: OpenAddinManager        'アドインマネージャ
-        Case 6: ExportModules g_addin   'アドインソースのエクスポート
-        Case 7: ImportModules g_addin   'アドインソースのインポート
-        Case 8: ReloadAddin g_addin     'アドイン再読み込み
-        Case 9: ToggleAddin ActiveWorkbook.name     '閉じる
-        End Select
-    Case 5:
-        Select Case id1
-        Case 1: CallDialog              'ダイアログ呼び出し
-        Case 2: If ActiveCell.Value <> "" Then g_image = ActiveCell.Value
-        End Select
+Sub AddinDevFolderProc(id As Long)
+    Select Case id
+        Case 1: OpenCurrentFolder       'カレントフォルダを開く
+        Case 2: OpenAddinsFolder        'アドインフォルダを開く
+        Case 3: OpenImageMsoFolder      'ImageMsoファイルフォルダを開く
+    End Select
+End Sub
+
+Sub AddinDevEditProc(id As Long)
+    Select Case id
+    Case 1: EditCustomUI g_addin        'CustomUI 編集
+    Case 2: MargeCustomUI g_addin       'CustomUI マージ
+    Case 3: DeployAddin g_addin         'アドイン配置
+    Case 4: ToggleAddin g_addin         'アドインブック表示・非表示トグル
+    Case 5: OpenAddinManager            'アドインマネージャ
+    Case 6: ExportModules g_addin       'アドインソースのエクスポート
+    Case 7: ImportModules g_addin       'アドインソースのインポート
+    Case 8: ReloadAddin g_addin         'アドイン再読み込み
+    Case 9: ToggleAddin ActiveWorkbook.name     '閉じる
+    End Select
+End Sub
+
+Sub AddinDevCallProc(id As Long)
+    Select Case id
+    Case 1: CallDialog                  'ダイアログ呼び出し
+    Case 2: If ActiveCell.Value <> "" Then g_image = ActiveCell.Value
     End Select
 End Sub
 
@@ -230,7 +231,7 @@ Private Sub MargeCustomUI(name As String)
 End Sub
 
 'アドイン配置
-Private Sub DeployAddin2(name As String)
+Private Sub DeployAddin(name As String)
     If name = "" Then Exit Sub
     If name Like ThisWorkbook.name Then
         MsgBox name & " アドインは配置できません。" & Chr(10) & _

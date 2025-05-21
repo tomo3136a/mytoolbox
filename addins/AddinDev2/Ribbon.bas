@@ -37,7 +37,6 @@ End Function
 '起動時実行
 Private Sub AddinDev2_onLoad(ByVal Ribbon As IRibbonUI)
     Set g_ribbon = Ribbon
-    MsgBox "AddinDev2_onLoad"
 End Sub
 
 '----------------------------------------
@@ -53,16 +52,24 @@ End Sub
 '----------------------------------------
 
 Private Sub DeployAddin(name As String)
-    If ThisWorkbook.name Like name Then Exit Sub
-    MsgBox "DeployAddin( " & name & " )"
-    
+    If ThisWorkbook.name Like name Then
+        MsgBox name & "は配置できません。"
+        Exit Sub
+    End If
+    '
     Dim fso As Object
     Set fso = CreateObject("Scripting.FileSystemObject")
-
+    '
+    Dim base As String
+    base = fso.GetBaseName(name)
+    '
     Dim src As String
     src = fso.BuildPath(ThisWorkbook.Path, "tmp")
-    src = fso.BuildPath(src, fso.GetBaseName(name) & ".zip")
-    If Not fso.FileExists(src) Then Exit Sub
+    src = fso.BuildPath(src, base & ".zip")
+    If Not fso.FileExists(src) Then
+        MsgBox base & ".zip ファイルがありません。"
+        Exit Sub
+    End If
     '
     Dim dst As String
     dst = fso.BuildPath(ThisWorkbook.Path, name)
@@ -71,8 +78,11 @@ Private Sub DeployAddin(name As String)
     For Each ai In AddIns
         If ai.name Like name Then Exit For
     Next ai
-    If ai Is Nothing Then Exit Sub
-    
+    If ai Is Nothing Then
+        MsgBox name & " アドインの登録がありません。"
+        Exit Sub
+    End If
+    '
     ai.Installed = False
     If fso.FileExists(dst) Then fso.DeleteFile dst
     fso.MoveFile src, dst

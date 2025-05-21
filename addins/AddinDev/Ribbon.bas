@@ -70,13 +70,15 @@ End Sub
 '----------------------------------
 
 Private Sub AddinDev_onAction(ByVal control As IRibbonControl)
-    AddinDevProc RibbonID(control, 1), RibbonID(control)
-    If g_ribbon Is Nothing Then Exit Sub
-    
     Select Case RibbonID(control, 1)
-    Case 3: g_ribbon.Invalidate: DoEvents
-    Case 5: g_ribbon.Invalidate: DoEvents
+    Case 1: AddinDevFolderProc RibbonID(control): Exit Sub
+    Case 3: AddinDevEditProc RibbonID(control)
+    Case 5: AddinDevCallProc RibbonID(control)
     End Select
+    
+    If g_ribbon Is Nothing Then Exit Sub
+    g_ribbon.Invalidate
+    DoEvents
 End Sub
 
 Private Sub AddinDev_getEnabled(ByVal control As IRibbonControl, ByRef enable As Variant)
@@ -87,7 +89,6 @@ Private Sub AddinDev_getEnabled(ByVal control As IRibbonControl, ByRef enable As
 End Sub
 
 Private Sub AddinDev_getImage(ByVal control As IRibbonControl, ByRef image As Variant)
-    On Error Resume Next
     Select Case RibbonID(control)
     Case 2
         If GetButtonImage = "" Then
@@ -108,8 +109,6 @@ Private Sub AddinDev_getImage(ByVal control As IRibbonControl, ByRef image As Va
         Dim pic As IPictureDisp
         Set pic = Application.CommandBars.GetImageMso(v, 32, 32)
         Set image = pic
-    Case Else
-        'Do Nothing
     End Select
-    On Error GoTo 0
 End Sub
+    
