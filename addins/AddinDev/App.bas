@@ -234,9 +234,7 @@ End Sub
 Private Sub DeployAddin(name As String)
     If name = "" Then Exit Sub
     If name Like ThisWorkbook.name Then
-        MsgBox name & " アドインは配置できません。" & Chr(10) & _
-        "tmp フォルダの xlam ファイルの" & _
-        "アドインを再インストールしてください。"
+        MsgBox name & " アドインは配置できません。"
         Application.EnableEvents = False
         Exit Sub
     End If
@@ -411,9 +409,16 @@ End Sub
 
 'アドイン再読み込み
 Private Sub ReloadAddin(name As String)
+    If name = "" Then Exit Sub
+    If name Like ThisWorkbook.name Then
+        MsgBox name & " アドインは再読み込みできません。"
+        Application.EnableEvents = False
+        Exit Sub
+    End If
+    '
     Dim ai As addin
     For Each ai In AddIns
-        If ai.name Like name & ".xlam" Then Exit For
+        If ai.name Like name Then Exit For
     Next ai
     If ai Is Nothing Then Exit Sub
     ai.Installed = False
