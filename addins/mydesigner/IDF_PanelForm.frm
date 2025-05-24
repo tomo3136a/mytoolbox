@@ -2,9 +2,9 @@ VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} IDF_PanelForm 
    Caption         =   "パネル追加"
    ClientHeight    =   4065
-   ClientLeft      =   -45
-   ClientTop       =   -150
-   ClientWidth     =   3525
+   ClientLeft      =   -48
+   ClientTop       =   -156
+   ClientWidth     =   3528
    OleObjectBlob   =   "IDF_PanelForm.frx":0000
    StartUpPosition =   1  'オーナー フォームの中央
 End

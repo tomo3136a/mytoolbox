@@ -2,9 +2,9 @@ VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} IDF_PlaceForm 
    Caption         =   "配置"
    ClientHeight    =   5235
-   ClientLeft      =   -15
-   ClientTop       =   -150
-   ClientWidth     =   3510
+   ClientLeft      =   -12
+   ClientTop       =   -156
+   ClientWidth     =   3504
    OleObjectBlob   =   "IDF_PlaceForm.frx":0000
    StartUpPosition =   1  'オーナー フォームの中央
 End
