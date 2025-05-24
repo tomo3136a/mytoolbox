@@ -1,4 +1,4 @@
-﻿param([string]$path = "")
+﻿param([string]$path = "", [switch]$ctmenu, [switch]$noribbon)
 
 Set-Item env:Path "${env:ProgramFiles}\7-Zip\;${env:Path}"
 $arc = "7z.exe"
@@ -33,7 +33,7 @@ Write-Host "xlam: ${xlam}" -ForegroundColor Yellow
 Push-Location $root
 
 ##############################################################################
-#
+# create addin zip file
 $zip_file = $name + ".zip"
 $zip = Join-Path $root $zip_file
 Write-Host "zip: ${zip}" -ForegroundColor Yellow
@@ -58,12 +58,26 @@ if (-not (Test-Path $zip)) {
       [void][System.Runtime.Interopservices.Marshal]::ReleaseComObject($app)
     }
   }
+
+  #wait for file close
+  Start-Sleep 1
+  if (Test-Path $xlam) {
+    Try {
+        $st = [System.IO.File]::Open($xlam,'Open','Write')
+        $st.Close()
+        $st.Dispose()
+    } Catch {
+        Write-Host "# wait... 10sec" -ForegroundColor Yellow
+        Start-Sleep 10
+    }
+  }
+
   Write-Host "# Load ${xlam}" -ForegroundColor Yellow
   Copy-Item $xlam $zip
 }
 
 ##############################################################################
-#
+# add relationships
 $path = Join-Path $root "_rels\.rels"
 Write-Host "path: ${path}" -ForegroundColor Yellow
 if (-not (Test-Path $path)) {
@@ -88,12 +102,7 @@ if (Test-Path $path) {
 
 ##############################################################################
 #
-$id="customUI"
-$path = Join-Path $root "customUI\${id}.xml"
-if (-not (Test-Path $path)) {
-    Write-Host "# Creeate customUI/${id}.xml" -ForegroundColor Yellow
-
-    $s1 = @"
+$s1 = @"
   <ribbon>
     <tabs>
       <tab id="Tab${name}" label="${name}">
@@ -105,7 +114,7 @@ if (-not (Test-Path $path)) {
     </tabs>
   </ribbon>
 "@
-    $s2 = @"
+$s2 = @"
   <contextMenus>
     <contextMenu idMso="ContextMenuWorkbookPly">
       <button id="${name}.sheet.b1" label="${name}" imageMso="ListMacros" onAction="${name}_onAction" />
@@ -145,13 +154,20 @@ if (-not (Test-Path $path)) {
   </contextMenus>
 "@
 
-    $xml = [xml]@"
+$id="customUI"
+$path = Join-Path $root "customUI\${id}.xml"
+if (-not (Test-Path $path)) {
+    Write-Host "# Creeate customUI/${id}.xml" -ForegroundColor Yellow
+    $src = @"
 <?xml version="1.0" encoding="UTF-8"?>
 <customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" onLoad="${name}_onLoad">
-  ${s1}
-  ${s2}
+"@
+  if (-not $noribbon) { $src = $src + $s1 }
+  if ($ctmenu) { $src = $src + $s2 }
+  $src = $src + @"
 </customUI>
 "@
+    $xml = [xml]$src
     mkdir -Force ($root + "\customUI") | Out-Null
     $xml.Save($path)
 }

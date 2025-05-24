@@ -23,11 +23,9 @@ Write-Host "name: ${name}" -ForegroundColor Yellow
 Write-Host "root: ${root}" -ForegroundColor Yellow
 
 ##############################################################################
-#ribbon.bas
-$path = Join-Path $root "ribbon.bas"
-if (-not (Test-Path $path)) {
-    Write-Host "# Creeate ribbon.bas" -ForegroundColor Yellow
-    $txt = @"
+#
+$file="ribbon.bas"
+$txt = @"
 Option Explicit
 Option Private Module
 
@@ -41,7 +39,6 @@ Private g_ribbon As IRibbonUI
 'ribbon helper
 '----------------------------------------
 
-'リボンを更新
 Private Sub RefreshRibbon(Optional id As String)
     If Not g_ribbon Is Nothing Then
         If id = "" Then
@@ -53,28 +50,30 @@ Private Sub RefreshRibbon(Optional id As String)
     DoEvents
 End Sub
 
-'リボンID取得
-Private Function RibbonID(control As IRibbonControl, Optional n As Long) As String
+Private Function RibbonID(control As IRibbonControl, Optional n As Long) As Long
     Dim vs As Variant
-    vs = Split(re_replace(control.id, "[^0-9.]", ""), ".")
-    If UBound(vs) >= n Then RibbonID = Val("0" & vs(n))
+    vs = Split(control.id, ".")
+    If UBound(vs) < n Then Exit Function
+    RibbonID = Val("0" & vs(UBound(vs) - n))
 End Function
 
 '----------------------------------------
-'イベント
+'medule event
 '----------------------------------------
 
-'起動時実行
 Private Sub ${name}_onLoad(ByVal Ribbon As IRibbonUI)
     Set g_ribbon = Ribbon
 End Sub
 
 '----------------------------------------
-'機能
+'function event
 '----------------------------------------
 Private Sub ${name}_onAction(ByVal control As IRibbonControl)
     MsgBox control.id
 End Sub
 "@
+$path = Join-Path $root $file
+if (-not (Test-Path $path)) {
+  Write-Host "# Creeate ${file}" -ForegroundColor Yellow
   $txt | Set-Content $path
 }

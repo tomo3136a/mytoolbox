@@ -114,7 +114,18 @@ if (-not (Test-Path $xlam)) {
   }
 }
 
+#wait for file close
+Start-Sleep 1
+if (Test-Path $xlam) {
+  Try {
+      $st = [System.IO.File]::Open($xlam,'Open','Write')
+      $st.Close()
+      $st.Dispose()
+  } Catch {
+      Write-Host "# wait... 10sec" -ForegroundColor Yellow
+      Start-Sleep 10
+  }
+}
+
 #Write-Host "open ${xlam_file}." -ForegroundColor Yellow
 #. $xlam
-
-Start-Sleep 10
