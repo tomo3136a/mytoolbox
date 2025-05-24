@@ -31,64 +31,47 @@ Private Function RibbonID(control As IRibbonControl, Optional n As Long) As Long
 End Function
 
 '----------------------------------------
-'イベント
+'module event
 '----------------------------------------
 
-'起動時実行
 Private Sub AddinDev2_onLoad(ByVal Ribbon As IRibbonUI)
     Set g_ribbon = Ribbon
 End Sub
 
 '----------------------------------------
-'ハンドラ
+'function event
 '----------------------------------------
 
 Private Sub AddinDev2_onAction(ByVal control As IRibbonControl)
-    DeployAddin "AddinDev.xlam"
+    ReloadAddin "AddinDev.xlam"
 End Sub
 
 '----------------------------------------
-'機能
+'function
 '----------------------------------------
 
-Private Sub DeployAddin(name As String)
-    If ThisWorkbook.name Like name Then
-        MsgBox name & "は配置できません。"
-        Exit Sub
-    End If
-    '
+Private Sub ReloadAddin(name As String)
+    If ThisWorkbook.name Like name Then Exit Sub
+    
     Dim fso As Object
     Set fso = CreateObject("Scripting.FileSystemObject")
-    '
-    Dim base As String
-    base = fso.GetBaseName(name)
-    '
-    Dim src As String
+    
+    Dim src As String, dst As String
     src = fso.BuildPath(ThisWorkbook.Path, "tmp")
-    src = fso.BuildPath(src, base & ".zip")
-    If Not fso.FileExists(src) Then
-        MsgBox base & ".zip ファイルがありません。"
-        Exit Sub
-    End If
-    '
-    Dim dst As String
+    src = fso.BuildPath(src, fso.GetBaseName(name) & ".zip")
     dst = fso.BuildPath(ThisWorkbook.Path, name)
-    '
+    
     Dim ai As AddIn
     For Each ai In AddIns
         If ai.name Like name Then Exit For
     Next ai
-    If ai Is Nothing Then
-        MsgBox name & " アドインの登録がありません。"
-        Exit Sub
-    End If
-    '
-    ai.Installed = False
-    If fso.FileExists(dst) Then fso.DeleteFile dst
-    fso.MoveFile src, dst
-    ai.Installed = True
+    If ai Is Nothing Then Exit Sub
     
-    Set fso = Nothing
-    MsgBox name & "を更新しました"
+    ai.Installed = False
+    If fso.FileExists(src) Then
+        If fso.FileExists(dst) Then fso.DeleteFile dst
+        fso.MoveFile src, dst
+    End If
+    ai.Installed = True
 End Sub
 
