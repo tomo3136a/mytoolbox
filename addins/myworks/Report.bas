@@ -88,13 +88,16 @@ End Sub
 ' mode=1: トリム(冗長なスペース削除)
 '      2: シングルライン(冗長なスペース削除かつ1行化)
 '      3: スペース削除
-'      4: 文字列変更(大文字に変換)
-'      5: 文字列変更(小文字に変換)
-'      6: 文字列変更(各単語の先頭の文字を大文字に変換)
-'      7: 文字列変更(半角文字を全角文字に変換)
-'      8: 文字列変更(全角文字を半角文字に変換)
-'      9: 文字列変更(ASCII文字のみ半角化)
-'      *: 文字列変更(ASCII文字のみ半角化、冗長なスペース削除)
+'      4: 文字列変更(半角・全角間にスペース追加)
+'      5: 文字列変更(大文字に変換)
+'      6: 文字列変更(小文字に変換)
+'      7: 文字列変更(各単語の先頭の文字を大文字に変換)
+'      8: 文字列変更(半角文字を全角文字に変換)
+'      9: 文字列変更(全角文字を半角文字に変換)
+'      10: 文字列変更(ASCII文字のみ半角化)
+'      11: 音引きをハイフンに変換
+'      12: 罫線統一
+'      0: 文字列変更(ASCII文字のみ半角化、冗長なスペース削除、境界は半角スペース)
 '----------------------------------
 
 Sub TextConvProc(ra As Range, mode As Integer)
@@ -112,15 +115,20 @@ Sub TextConvProc(ra As Range, mode As Integer)
         Case 1: Call Cells_RemoveSpace(va)
         Case 2: Call Cells_RemoveSpace(va, SingleLine:=True)
         Case 3: Call Cells_RemoveSpace(va, sep:="")
-        Case 4: Call Cells_StrConv(va, vbUpperCase)
-        Case 5: Call Cells_StrConv(va, vbLowerCase)
-        Case 6: Call Cells_StrConv(va, vbProperCase)
-        Case 7: Call Cells_StrConv(va, vbWide)
-        Case 8: Call Cells_StrConv(va, vbNarrow)
-        Case 9: Call Cells_StrConvNarrow(va)
+        Case 4: Call Cells_AddSpace(va)
+        Case 5: Call Cells_StrConv(va, vbUpperCase)
+        Case 6: Call Cells_StrConv(va, vbLowerCase)
+        Case 7: Call Cells_StrConv(va, vbProperCase)
+        Case 8: Call Cells_StrConv(va, vbWide)
+        Case 9: Call Cells_StrConv(va, vbNarrow)
+        Case 10: Call Cells_StrConvNarrow(va)
+        Case 11: Call Cells_StrConvOnbiki(va)
+        Case 12: Call Cells_StrConvIgnore(va, rb)
         Case Else
             Call Cells_StrConvNarrow(va)
             Call Cells_RemoveSpace(va)
+            Call Cells_AddSpace(va)
+            Call Cells_StrConvOnbiki(va)
         End Select
         '
         rb.Value = va
@@ -144,13 +152,31 @@ Private Sub Cells_RemoveSpace( _
         For c = LBound(va, 2) To UBound(va, 2)
             Dim s As String
             s = va(r, c)
-            If s <> "" Then
+            If s <> "" And Left(s, 1) <> "=" Then
                 If SingleLine Then
                     s = re1.Replace(s, sep)
                 Else
                     s = re2.Replace(s, sep)
                     s = re3.Replace(s, "$1")
                 End If
+                va(r, c) = Trim(s)
+            End If
+        Next c
+    Next r
+End Sub
+
+'スペース追加
+Private Sub Cells_AddSpace(va As Variant)
+    Dim re As Object
+    Set re = regex("\b\s*")
+    '
+    Dim r As Long, c As Long
+    For r = LBound(va, 1) To UBound(va, 1)
+        For c = LBound(va, 2) To UBound(va, 2)
+            Dim s As String
+            s = va(r, c)
+            If s <> "" And Left(s, 1) <> "=" Then
+                s = re.Replace(s, " ")
                 va(r, c) = Trim(s)
             End If
         Next c
@@ -193,6 +219,42 @@ Private Sub Cells_StrConvNarrow(va As Variant)
                     s = Replace(s, m.Value, StrConv(m.Value, vbNarrow))
                 Next m
                 va(r, c) = s
+            End If
+        Next c
+    Next r
+End Sub
+
+'文字列変更(音引き→ハイフン)
+Private Sub Cells_StrConvOnbiki(va As Variant)
+    Dim s As String
+    Dim r As Long, c As Long
+    For r = LBound(va, 1) To UBound(va, 1)
+        For c = LBound(va, 2) To UBound(va, 2)
+            s = va(r, c)
+            If s <> "" And Left(s, 1) <> "=" Then
+                s = re_replace(Replace(s, "ｰ", "-"), "([｡-ﾟ])-", "$1ｰ")
+                s = re_replace(Replace(s, "ー", "－"), "([\u3040-\u30FA])－", "$1ー")
+                va(r, c) = s
+            End If
+        Next c
+    Next r
+End Sub
+
+'文字列変更(罫線統一)
+Private Sub Cells_StrConvIgnore(va As Variant, ra As Range)
+    Dim re As Object
+    Set re = regex("^\s*(─|[\uFF0D\uFF70\u30FC-])\s*$")
+    Dim s As String
+    Dim r As Long, c As Long
+    For r = LBound(va, 1) To UBound(va, 1)
+        For c = LBound(va, 2) To UBound(va, 2)
+            s = va(r, c)
+            If s <> "" And Left(s, 1) <> "=" Then
+                If re.Test(s) Then
+                    s = "─"
+                    va(r, c) = s
+                    ra(r, c).HorizontalAlignment = xlCenter
+                End If
             End If
         Next c
     Next r
