@@ -53,8 +53,7 @@ End Sub
 Private Function RibbonID(control As IRibbonControl, Optional n As Long) As Long
     Dim vs As Variant
     vs = Split(control.id, ".")
-    If UBound(vs) < n Then Exit Function
-    RibbonID = Val("0" & vs(UBound(vs) - n))
+    If UBound(vs) > n Then RibbonID = Val("0" & vs(n + 1))
 End Function
 
 '----------------------------------------

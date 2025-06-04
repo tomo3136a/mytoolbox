@@ -14,7 +14,7 @@ Option Private Module
 
 Sub ExportProc(ra As Range, mode As Integer)
     Dim enc As Boolean
-    enc = GetRtParamBool("export.1")
+    enc = GetRtBool("export.1")
     '
     Select Case mode
     Case 1: Call ExportRangeToSpreadSheet(ra, enc)

@@ -25,8 +25,8 @@ Sub PathProc(ra As Range, mode As Integer)
     '
     Select Case mode
     Case 1: Call GetFileList(ra)
-    Case 2: Call GetFolderPath(ra, GetRtParamBool("path.1"))
-    Case 3: Call GetFilePath(ra, GetRtParamBool("path.1"))
+    Case 2: Call GetFolderPath(ra, GetRtBool("path.1"))
+    Case 3: Call GetFilePath(ra, GetRtBool("path.1"))
     Case 4: Call ChangePath(ra)
     Case 5: Call ChangePathSepalater(ra)
     Case 6: Call ToAbustoractPath(ra)
@@ -261,10 +261,10 @@ Private Sub GetFileListSubFolder(ByRef ra As Range, path As String, n As Integer
     '
     'フォルダリスト
     For Each obj In fso.GetFolder(path).SubFolders
-        If GetRtParamBool("path.4") Or Not re.Test(obj.name) Then
+        If GetRtBool("path.4") Or Not re.Test(obj.name) Then
             Dim p As String
             p = fso.BuildPath(path, obj.name)
-            If GetRtParamBool("path.2") Then
+            If GetRtBool("path.2") Then
                 no = no + 1
                 ra.Clear
                 ra.Value = no
@@ -279,10 +279,10 @@ Private Sub GetFileListSubFolder(ByRef ra As Range, path As String, n As Integer
                 End With
                 Set ra = ra.Offset(1)
             End If
-            If GetRtParamBool("path.3") Then
+            If GetRtBool("path.3") Then
                 If Left(obj.name, 1) = "." Then
                 ElseIf Left(obj.name, 1) = "_" Then
-                ElseIf GetRtParamBool("path.2") Then
+                ElseIf GetRtBool("path.2") Then
                     Call GetFileListSubFolder(ra, p, n + 1, sp + "    ")
                     no = ra.Offset(-1).Value
                 Else
@@ -295,12 +295,12 @@ Private Sub GetFileListSubFolder(ByRef ra As Range, path As String, n As Integer
     '
     'ファイルリスト
     For Each obj In fso.GetFolder(path).Files
-        If GetRtParamBool("path.4") Or Not re.Test(obj.name) Then
+        If GetRtBool("path.4") Or Not re.Test(obj.name) Then
             no = no + 1
             ra.Value = no
             With obj
                 p = fso.BuildPath(path, .name)
-                If GetRtParamBool("path.2") Then
+                If GetRtBool("path.2") Then
                     ra.Offset(0, 1).Value = sp & .name
                 Else
                     ra.Offset(0, 1).Value = fso.BuildPath(sp, .name)

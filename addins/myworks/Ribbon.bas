@@ -27,8 +27,8 @@ End Sub
 'リボンID番号取得
 Private Function RibbonID(control As IRibbonControl, Optional n As Long) As Long
     Dim vs As Variant
-    vs = Split(re_replace(control.id, "[^0-9.]", ""), ".")
-    If UBound(vs) >= n Then RibbonID = Val("0" & vs(n))
+    vs = Split(control.id, ".")
+    If UBound(vs) > n Then RibbonID = Val("0" & vs(n + 1))
 End Function
 
 '----------------------------------------
@@ -49,11 +49,11 @@ Private Sub works_onLoad(ByVal Ribbon As IRibbonUI)
     On Error GoTo 0
     '
     '初期化
-    SetRtParam "path.1", True       'リンクあり
-    SetRtParam "path.2", True       'フォルダあり
-    SetRtParam "path.3", True       '再帰あり
-    SetRtParam "info.sheet", True   'シート追加
-    SetRtParam "mark.color", 0      'マーカカラーは黄色
+    SetRtStr "path.1", True       'リンクあり
+    SetRtStr "path.2", True       'フォルダあり
+    SetRtStr "path.3", True       '再帰あり
+    SetRtStr "info.sheet", True   'シート追加
+    SetRtStr "mark.color", 0      'マーカカラーは黄色
 End Sub
 
 Private Sub works_ShortcutKey1()
@@ -73,57 +73,56 @@ End Sub
 '■機能グループ1
 'レポート機能
 '----------------------------------------
+
 Private Sub works1_onAction(ByVal control As IRibbonControl)
-    Select Case RibbonID(control, 1)
-    Case 1:
-        'レポートサイン
+    Select Case RibbonID(control)
+    Case 1: 'レポートサイン
         If TypeName(Selection) <> "Range" Then Exit Sub
         ReportSign Selection
-    Case 2:
-        'ページフォーマット
-        PagePreview
-    Case 3:
-        'テキスト変換
+    Case 2: 'ページフォーマット
+        Select Case RibbonID(control, 1)
+        Case 1: AddLastRow
+        Case 2: AddLastColumn
+        Case 3: ResetCellPos
+        Case Else: PagePreview
+        End Select
+    Case 3: 'テキスト変換
         If TypeName(Selection) <> "Range" Then Exit Sub
-        TextConvProc Selection, RibbonID(control, 2)
-    Case 4:
-        '拡張書式
+        TextConvProc Selection, RibbonID(control, 1)
+    Case 4: '拡張書式
         If TypeName(Selection) <> "Range" Then Exit Sub
-        UserFormatProc Selection, RibbonID(control, 2)
-    Case 5:
-        '定型式挿入
+        UserFormatProc Selection, RibbonID(control, 1)
+    Case 5: '定型式挿入
         If TypeName(Selection) <> "Range" Then Exit Sub
-        UserFormulaProc Selection, RibbonID(control, 2)
-    Case 6:
-        '表示・非表示
-        ShowHide RibbonID(control, 2)
-    Case 7:
-        'パス名
+        UserFormulaProc Selection, RibbonID(control, 1)
+    Case 6: '表示・非表示
+        ShowHide RibbonID(control, 1)
+    Case 7: 'パス名
         If TypeName(Selection) <> "Range" Then Exit Sub
-        PathProc Selection, RibbonID(control, 2)
-    Case 8:
-        '情報取得
-        AddInfoTable RibbonID(control, 2)
-    Case 9:
-        'エクスポート
+        PathProc Selection, RibbonID(control, 1)
+    Case 8: '情報取得
+        AddInfoTable RibbonID(control, 1)
+    Case 9: 'エクスポート
         If TypeName(Selection) <> "Range" Then Exit Sub
-        ExportProc Selection, RibbonID(control, 2)
+        ExportProc Selection, RibbonID(control, 1)
     End Select
 End Sub
 
 Private Sub works1_onChecked(ByRef control As IRibbonControl, ByRef pressed As Boolean)
-    Select Case RibbonID(control, 1)
-    Case 7: SetRtParam "path." & RibbonID(control, 2), CStr(pressed)    'パス名
-    Case 8: SetRtParam "info." & control.Tag, CStr(pressed)             '情報取得
-    Case 9: SetRtParam "export." & RibbonID(control, 2), CStr(pressed)  'エクスポート
+    Select Case RibbonID(control)
+    Case 3: SetRtBool "page." & RibbonID(control, 1), pressed   'テキスト変換
+    Case 7: SetRtBool "path." & RibbonID(control, 1), pressed   'パス名
+    Case 8: SetRtBool "info." & control.Tag, pressed            '情報取得
+    Case 9: SetRtBool "export." & RibbonID(control, 1), pressed 'エクスポート
     End Select
 End Sub
 
 Private Sub works1_getPressed(control As IRibbonControl, ByRef returnedVal)
-    Select Case RibbonID(control, 1)
-    Case 7: returnedVal = GetRtParamBool("path." & RibbonID(control, 2))    'パス名
-    Case 8: returnedVal = GetRtParamBool("info." & control.Tag)             '情報取得
-    Case 9: returnedVal = GetRtParamBool("export." & RibbonID(control, 2))  'エクスポート
+    Select Case RibbonID(control)
+    Case 3: returnedVal = GetRtBool("page." & RibbonID(control, 1))    'テキスト変換
+    Case 7: returnedVal = GetRtBool("path." & RibbonID(control, 1))    'パス名
+    Case 8: returnedVal = GetRtBool("info." & control.Tag)             '情報取得
+    Case 9: returnedVal = GetRtBool("export." & RibbonID(control, 1))  'エクスポート
     End Select
 End Sub
 
@@ -136,12 +135,12 @@ End Sub
 Private Sub works2_onAction(ByVal control As IRibbonControl)
     If TypeName(Selection) <> "Range" Then Exit Sub
     ScreenUpdateOff
-    Select Case RibbonID(control, 1)
-    Case 1: Call WakuProc(Selection, RibbonID(control, 2))
-    Case 2: Call SelectProc(Selection, RibbonID(control, 2))
-    Case 3: Call AddColumn(Selection, RibbonID(control, 2))
-    Case 7
-        Select Case RibbonID(control, 2)
+    Select Case RibbonID(control)
+    Case 1: Call WakuProc(Selection, RibbonID(control, 1))
+    Case 2: Call SelectProc(Selection, RibbonID(control, 1))
+    Case 3: Call AddColumn(Selection, RibbonID(control, 1))
+    Case 7:
+        Select Case RibbonID(control, 1)
         Case 1: Call WakuProc(Selection, 7)    '囲いクリア
         Case 2: Call WakuProc(Selection, 8)    'データクリア
         Case 3: Call WakuProc(Selection, 9)    '表クリア
@@ -149,7 +148,7 @@ Private Sub works2_onAction(ByVal control As IRibbonControl)
             Call WakuProc(Selection, 7)
             Call WakuProc(Selection, 9)
         End Select
-    Case 8
+    Case 8:
         SetTableMargin xlRows
         SetTableMargin xlColumns
         RefreshRibbon control.id
@@ -157,7 +156,7 @@ Private Sub works2_onAction(ByVal control As IRibbonControl)
     ScreenUpdateOn
 End Sub
 
-Private Sub works2_getLabel(ByRef control As Office.IRibbonControl, ByRef label As Variant)
+Private Sub works2_getLabel(ByRef control As IRibbonControl, ByRef label As Variant)
    label = "行: " & GetTableMargin(xlRows) & ", 列: " & GetTableMargin(xlColumns)
 End Sub
 
@@ -167,9 +166,9 @@ End Sub
 '----------------------------------------
 
 Private Sub works3_onAction(ByVal control As IRibbonControl)
-    Select Case RibbonID(control, 1)
+    Select Case RibbonID(control)
     Case 9: RefreshRibbon                        '開発
-    Case Else: Call TemplateProc(RibbonID(control, 1), RibbonID(control, 2))
+    Case Else: Call TemplateProc(RibbonID(control), RibbonID(control, 1))
     End Select
 End Sub
 
@@ -191,20 +190,20 @@ End Sub
 Private Sub works4_getLabel(control As IRibbonControl, ByRef label As Variant)
     Dim ss() As String
     ss = Split("黄色,赤,青,薄緑,灰色,橙,青緑,淡い橙,紫,緑", ",")
-    label = ss(Val(GetRtParam("mark.color")))
+    label = ss(Val(GetRtStr("mark.color")))
 End Sub
 
 Private Sub works4_onGetImage(control As IRibbonControl, ByRef bitmap As Variant)
     Dim id As Integer
-    id = ((Val(GetRtParam("mark.color")) + 9) Mod 10) + 1
+    id = ((Val(GetRtStr("mark.color")) + 9) Mod 10) + 1
     bitmap = "AppointmentColor" & id
 End Sub
 
 Private Sub works4_onAction(control As IRibbonControl)
-    Select Case RibbonID(control, 1)
+    Select Case RibbonID(control)
     Case 1
         If TypeName(Selection) <> "Range" Then Exit Sub
-        Call AddMarker(Selection, Val(GetRtParam("mark.color")))
+        Call AddMarker(Selection, Val(GetRtStr("mark.color")))
     Case 3
         Call ListMarker
     Case 4
@@ -214,11 +213,11 @@ Private Sub works4_onAction(control As IRibbonControl)
 End Sub
 
 Private Sub works4_onSelected(control As IRibbonControl, selectedId As String, selectedIndex As Integer)
-    Call SetRtParam("mark.color", "" & selectedIndex)
+    Call SetRtStr("mark.color", "" & selectedIndex)
     RefreshRibbon
     DoEvents
     If TypeName(Selection) <> "Range" Then Exit Sub
-    Call AddMarker(Selection, Val(GetRtParam("mark.color")))
+    Call AddMarker(Selection, Val(GetRtStr("mark.color")))
 End Sub
 
 '----------------------------------------
@@ -233,7 +232,7 @@ End Sub
 Private Sub works5_onAction(control As IRibbonControl)
     If TypeName(Selection) <> "Range" Then Exit Sub
     Dim res As Long
-    Call RevProc(Selection, RibbonID(control, 1), res)
+    Call RevProc(Selection, RibbonID(control), res)
     RefreshRibbon
     If Not res Then Exit Sub
     Call RevProc(Selection, 1)
@@ -247,8 +246,8 @@ End Sub
 Private Sub works6_onAction(control As IRibbonControl)
     If TypeName(Selection) <> "Range" Then Exit Sub
     'ScreenUpdateOff
-    Select Case RibbonID(control, 1)
-    Case 1: Call TestProc(Selection, RibbonID(control, 1))
+    Select Case RibbonID(control)
+    Case 1: Call Cells_GenerateValue(Selection, 1)
     Case 2: Call TestProc(Selection, RibbonID(control, 1))
     Case 3: Call TestProc(Selection, RibbonID(control, 1))
     Case 4: Call TestProc(Selection, RibbonID(control, 1))

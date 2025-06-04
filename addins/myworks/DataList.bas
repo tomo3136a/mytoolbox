@@ -34,7 +34,7 @@ Sub AddInfoTable(mode As Integer)
     'シート選択
     Dim ce As Range
     Set ce = ActiveCell
-    If GetRtParamBool("info.sheet") Then
+    If GetRtBool("info.sheet") Then
         Dim ws As Worksheet
         Set ws = wb.Worksheets.Add
         ws.name = UniqueSheetName(wb, GetInfoTitle(mode))
@@ -557,7 +557,7 @@ End Sub
 Private Sub FileList(ByRef ra As Range, path As String)
     Dim v As Variant
     v = Application.InputBox("タイプを入力してください。(0: 階層表示, 1: 絶対パス, 2: 相対パス)", Type:=1)
-    Call SetRtParam("path.5", CLng(v))
+    Call SetRtStr("path.5", CLng(v))
     '
     path = SelectFolder(path)
     If path = "" Then Exit Sub
@@ -574,7 +574,7 @@ Private Sub FileList(ByRef ra As Range, path As String)
     p = GetShortPath(path)
     path = GetAbstructPath(p, ce.Parent.Parent.path & "\")
     Dim sp As String
-    Select Case CLng(GetRtParam("path.5"))
+    Select Case CLng(GetRtStr("path.5"))
     Case 1: sp = Replace(path, "\", "/") & "/"
     Case 2: sp = ""
     Case Else: sp = ""
@@ -597,8 +597,8 @@ Private Sub FileListSubFolder( _
     '
     Dim obj As Variant
     For Each obj In fso.GetFolder(path).SubFolders
-        If GetRtParamBool("path.4") Or Not re.Test(obj.name) Then
-            If GetRtParamBool("path.2") Then
+        If GetRtBool("path.4") Or Not re.Test(obj.name) Then
+            If GetRtBool("path.2") Then
                 i = i + 1
                 j = j + 1
                 va(i, 1) = j
@@ -612,14 +612,14 @@ Private Sub FileListSubFolder( _
                     Set ce = ce.Offset(i)
                     i = 0
                 End If
-                If GetRtParamBool("path.3") Then
+                If GetRtBool("path.3") Then
                     Dim p As String
                     p = fso.BuildPath(path, obj.name)
                     If Left(obj.name, 1) = "." Then
                     ElseIf Left(obj.name, 1) = "_" Then
                     Else
                         Dim sp2 As String
-                        Select Case CLng(GetRtParam("path.5"))
+                        Select Case CLng(GetRtStr("path.5"))
                         Case 1: sp2 = sp & obj.name & "/"
                         Case 2: sp2 = sp & obj.name & "/"
                         Case Else: sp2 = sp + "    "
@@ -659,7 +659,7 @@ Private Sub SetInfoSheet(Optional ws As Worksheet, Optional v As String = "")
 End Sub
 
 Private Function TestInfoSheet(ws As Worksheet) As Boolean
-    If GetRtParamBool("info.info") Then Exit Function
-    If SheetPropertyIndex(ws, "info") > 0 Then TestInfoSheet = True
+    If GetRtBool("info.info") Then Exit Function
+    If SheetPropIndex(ws, "info") > 0 Then TestInfoSheet = True
 End Function
 

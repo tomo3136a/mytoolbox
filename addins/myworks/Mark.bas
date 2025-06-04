@@ -55,8 +55,8 @@ End Sub
 
 '版数設定値取得
 Public Sub GetRevMark(ByRef v As Variant)
-    If Not ExistsRtParam("rev.text") Then Call SetRtParam("rev.text", "1")
-    v = GetRtParam("rev.text")
+    If Not ExistRt("rev.text") Then Call SetRtStr("rev.text", "1")
+    v = GetRtStr("rev.text")
 End Sub
 
 '版数設定値設定
@@ -64,14 +64,14 @@ Private Sub SetRevMark(v As String, Optional id As Integer)
     Dim s As String
     s = Trim(v)
     If s = "" Then Exit Sub
-    Call SetRtParam("rev.text", s)
-    Call SetRtParam("rev.index", CStr(id))
+    Call SetRtStr("rev.text", s)
+    Call SetRtStr("rev.index", CStr(id))
 End Sub
 
 '版数マーク追加
 Private Sub AddRevMark(ra As Range, Comment As String)
     Dim s As String
-    s = GetRtParam("rev.text")
+    s = GetRtStr("rev.text")
     If s = "" Then Exit Sub
     Call DrawRevMark(Selection, s, 1 + LastRevIndex(s), Comment)
 End Sub

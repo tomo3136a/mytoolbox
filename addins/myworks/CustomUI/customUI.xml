@@ -3,16 +3,25 @@
   <ribbon>
     <tabs>
       <tab id="TabWorks" label="作業" insertAfterQ="TabView">
+
         <!--レポート機能-->
         <group id="g1" label="レポート" imageMso="PrintSetupDialog">
           <button id="b1.1" onAction="works1_onAction" label="編集サイン" imageMso="SignatureLineInsert"
             size="large"
             screentip="編集サインの入力" supertip="現在の日付(yyyy/mm/dd)および編集者名をセルに入力する" />
-          <button id="b1.2" onAction="works1_onAction" label="ページフォーマット"
-            imageMso="PageScaleToFitScale" size="large"
-            screentip="ページフォーマットを設定" supertip="改ページプレビューに変更する&#10;ズームを 100% にする&#10;開始位置(左上)に移動" />
+          <splitButton id="s1.2" size="large">
+            <button id="b1.2" onAction="works1_onAction" label="ページフォーマット"
+              imageMso="PageScaleToFitScale"
+              screentip="ページフォーマットを設定" supertip="改ページプレビューに変更する&#10;ズームを 100% にする&#10;開始位置(左上)に移動" />
+            <menu id="m1.2">
+              <button id="b1.2.1" onAction="works1_onAction" label="最終行+1" />
+              <button id="b1.2.2" onAction="works1_onAction" label="最終列+1" />
+              <menuSeparator id="z1.2.1" />
+              <button id="b1.2.3" onAction="works1_onAction" label="初期位置移動" />
+            </menu>
+          </splitButton>
           <splitButton id="s1.3" size="large">
-            <button id="b1.3.0" onAction="works1_onAction" label="テキスト整形"
+            <button id="b1.3" onAction="works1_onAction" label="テキスト整形"
               imageMso="ContentControlRichText"
               screentip="テキストを整形" supertip="ASCII文字のみ半角化&#10;冗長なスペース削除&#10;境界は半角スペース化" />
             <menu id="m1.3">
@@ -36,6 +45,19 @@
               <menuSeparator id="z1.3.3" />
               <button id="b1.3.11" onAction="works1_onAction" label="音引き→ハイフン" />
               <button id="b1.3.12" onAction="works1_onAction" label="罫線統一" />
+              <menuSeparator id="z1.3.4" />
+              <menu id="m1.3.1">
+                <toggleButton id="c1.3.1" label="ASCII文字のみ半角化" onAction="works1_onChecked"
+                  getPressed="works1_getPressed" />
+                <toggleButton id="c1.3.2" label="冗長なスペース削除" onAction="works1_onhecked"
+                  getPressed="works1_getPressed" />
+                <toggleButton id="c1.3.3" label="境界は半角スペース化" onAction="works1_onhecked"
+                  getPressed="works1_getPressed" />
+                <toggleButton id="c1.3.4" label="音引き→ハイフン" onAction="works1_onhecked"
+                  getPressed="works1_getPressed" />
+                <toggleButton id="c1.3.5" label="罫線統一" onAction="works1_onhecked"
+                  getPressed="works1_getPressed" />
+              </menu>
             </menu>
           </splitButton>
           <menu id="m1.4" label="書式" imageMso="ConditionalFormattingMenu" screentip="書式の拡張">
@@ -47,10 +69,10 @@
               supertip="選択したセルが数値 0 なら色付けして強調する" />
             <button id="b1.4.3" onAction="works1_onAction" label="ブランク" screentip="ブランクのセルを強調"
               supertip="選択したセルがブランクなら色付けして強調する" />
-            <button id="b1.4.5" onAction="works1_onAction" label="条件書式リスト" imageMso="MenuView2"
+            <button id="b1.4.4" onAction="works1_onAction" label="条件書式リスト" imageMso="MenuView2"
               screentip="条件書式をリスト" supertip="条件リストの一覧を表示する" />
             <menuSeparator id="z1.4.2" title="書式スタイル" />
-            <button id="b1.4.4" onAction="works1_onAction" label="参照" imageMso="ShowFormulas" />
+            <button id="b1.4.5" onAction="works1_onAction" label="参照" imageMso="ShowFormulas" />
             <menuSeparator id="z1.4.3" />
             <control idMso="ConditionalFormattingClearSheet" label="条件書式クリア(シート全体)" showLabel="true" />
             <button id="b1.4.8" onAction="works1_onAction" label="参照クリア" />

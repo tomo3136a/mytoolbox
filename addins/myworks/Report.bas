@@ -46,11 +46,7 @@ Sub PagePreview()
     '
     Dim ws As Worksheet
     For Each ws In ActiveWindow.SelectedSheets
-        '最終行が空白行でないなら右下に空白追加
-        Dim ra As Range
-        Set ra = ws.UsedRange
-        Set ra = ra(ra.Rows.Count, ra.Columns.Count)
-        If ra <> " " Then ra.Offset(1, 0) = " "
+        AddLastRow
         
         '印刷範囲表示に設定        '
         Dim wnd As Window
@@ -80,6 +76,40 @@ Sub PagePreview()
         wnd.Zoom = 100
     Next ws
     '
+    ScreenUpdateOn
+End Sub
+
+'最終空白行追加
+Sub AddLastRow()
+    Dim ra As Range
+    Set ra = ActiveSheet.UsedRange
+    Set ra = ra(ra.Rows.Count, 1)
+    If ra <> " " Then ra.Offset(1, 0) = " "
+End Sub
+
+'最終空白列追加
+Sub AddLastColumn()
+    Dim ra As Range
+    Set ra = ActiveSheet.UsedRange
+    Set ra = ra(1, ra.Columns.Count)
+    If ra <> " " Then ra.Offset(0, 1) = " "
+End Sub
+
+'左上に移動
+Sub ResetCellPos()
+    Dim old As Worksheet
+    Set old = ActiveSheet
+    Dim ws As Worksheet
+    ScreenUpdateOff
+    For Each ws In ActiveWorkbook.Worksheets
+        If ws.Visible Then
+            ws.Activate
+            ws.Cells(1, 1).Select
+            ActiveWindow.ScrollColumn = 1
+            ActiveWindow.ScrollRow = 1
+        End If
+    Next ws
+    old.Activate
     ScreenUpdateOn
 End Sub
 
@@ -399,7 +429,8 @@ End Sub
 ' mode=1: 数式に条件付き書式を追加
 '      2: 0に条件付き書式を追加
 '      3: 空白に条件付き書式を追加
-'      4: 参照に色を付ける
+'      4: 条件付き書式リスト作成
+'      5: 参照に色を付ける
 '      8: 参照スタイル削除
 '---------------------------------------------
 
@@ -413,8 +444,8 @@ Sub UserFormatProc(ra As Range, mode As Long)
     Case 1: Call AddFormulaConditionColor(rb)
     Case 2: Call AddZeroConditionColor(rb)
     Case 3: Call AddBlankConditionColor(rb)
-    Case 4: Call MarkRef(rb)
-    Case 5: Call ListConditionFormat
+    Case 4: Call ListConditionFormat
+    Case 5: Call MarkRef(rb)
     Case 8: Call ClearMarkRef
     End Select
 End Sub
@@ -549,7 +580,6 @@ Private Sub ListConditionFormat()
         Set ra = ra.Offset(1)
     Next fc
 End Sub
-
 
 Private Sub NewStyle(ra As Range, name As String)
     If ra Is Nothing Then Exit Sub

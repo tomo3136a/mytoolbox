@@ -32,14 +32,14 @@ Function regex( _
     End With
 End Function
 
-'文字列有無
+'マッチ文字列有無
 Function re_test(s As String, ptn As String) As Boolean
     On Error Resume Next
     re_test = regex(ptn).Test(s)
     On Error GoTo 0
 End Function
 
-'文字列抽出
+'マッチ文字列抽出
 Function re_match(s As String, ptn As String, _
         Optional idx As Integer = 0, _
         Optional idx2 As Integer = -1) As Variant
@@ -63,14 +63,14 @@ Function re_match(s As String, ptn As String, _
     On Error GoTo 0
 End Function
 
-'文字列置き換え
+'マッチ文字列置き換え
 Function re_replace(s As String, ptn As String, rep As String) As String
     On Error Resume Next
     re_replace = regex(ptn).Replace(s, rep)
     On Error GoTo 0
 End Function
 
-'文字列分割
+'マッチ文字列分割
 Function re_split(s As String, ptn As String) As String()
     re_split = Split(regex(ptn).Replace(s, Chr(7)), Chr(7))
 End Function
@@ -104,10 +104,10 @@ End Function
 '----------------------------------------
 
 'コレクションから名前を指定して検索(配列は除く)
-Function SearchName(col As Object, sname As String) As Object
+Function SearchName(col As Object, s As String) As Object
     Dim v As Object
     For Each v In col
-        If v.name = sname Then
+        If v.name = s Then
             Set SearchName = v
             Exit Function
         End If
@@ -559,48 +559,6 @@ Function GetRelatedPath(path As String, Base As String) As String
 End Function
 
 '----------------------------------------
-'実行時パラメータ機能
-'----------------------------------------
-
-'パラメータ設定
-Sub SetRtParam(k As String, Optional v As String)
-    Dim dic As Dictionary
-    Set dic = rt_param_dict
-    If dic.Exists(k) Then dic.Remove k
-    If v <> "" Then dic.Add k, v
-End Sub
-
-'パラメータ有無確認
-Function ExistsRtParam(k As String) As Boolean
-    Dim dic As Dictionary
-    Set dic = rt_param_dict
-    ExistsRtParam = dic.Exists(k)
-End Function
-
-'パラメータ取得
-Function GetRtParam(k As String, Optional v As String) As String
-    Dim dic As Dictionary
-    Set dic = rt_param_dict
-    GetRtParam = v
-    If dic.Exists(k) Then GetRtParam = dic.Item(k)
-End Function
-
-'パラメータ取得(boolean)
-Function GetRtParamBool(k As String) As Boolean
-    Dim s As String
-    s = GetRtParam(k)
-    If s = "" Then s = "False"
-    GetRtParamBool = s
-End Function
-
-'パラメータディクショナリ
-Private Function rt_param_dict() As Dictionary
-    Static dic As Dictionary
-    If dic Is Nothing Then Set dic = New Dictionary
-    Set rt_param_dict = dic
-End Function
-
-'----------------------------------------
 'シート名操作
 '----------------------------------------
 
@@ -627,52 +585,183 @@ Function UniqueSheetName(wb As Workbook, name As String) As String
 End Function
 
 '----------------------------------------
-'シートプロパティ操作
+'実行時プロパティ機能
+'----------------------------------------
+
+'プロパティ有無確認
+Function ExistRt(k As String) As Boolean
+    ExistRt = rt_dict.Exists(k)
+End Function
+
+'プロパティ取得
+Function GetRtStr(k As String, Optional v As String) As String
+    With rt_dict
+        GetRtStr = v
+        If .Exists(k) Then GetRtStr = .Item(k)
+    End With
+End Function
+
+'プロパティ取得(boolean)
+Function GetRtBool(k As String) As Boolean
+    Dim s As String
+    s = GetRtStr(k)
+    If s <> "" And Not s Like "False" And s <> "0" Then GetRtBool = True
+End Function
+
+'プロパティ設定
+Sub SetRtStr(k As String, Optional v As String)
+    With rt_dict
+        If .Exists(k) Then .Remove k
+        If v <> "" Then .Add k, v
+    End With
+End Sub
+
+Sub SetRtBool(k As String, v As Boolean)
+    SetRtStr k, CStr(v)
+End Sub
+
+'パラメータディクショナリ
+Private Function rt_dict() As Dictionary
+    Static dic As Dictionary
+    If dic Is Nothing Then Set dic = New Dictionary
+    Set rt_dict = dic
+End Function
+
+'----------------------------------------
+'シートプロパティ機能
 '----------------------------------------
 
 'シートプロパティ名リストを取得
-Function GetSheetPropertyNames(ws As Worksheet) As String()
+Function SheetPropNames(ws As Worksheet) As String()
     Dim lst() As String
     ReDim Preserve lst(ws.CustomProperties.Count)
-    Dim i As Integer
+    Dim i As Long
     For i = 1 To ws.CustomProperties.Count
         lst(i) = ws.CustomProperties(i).name
     Next i
-    GetSheetPropertyNames = lst
+    SheetPropNames = lst
 End Function
 
 'シートプロパティ数を取得
-Function SheetPropertyCount(ws As Worksheet) As Integer
-    SheetPropertyCount = ws.CustomProperties.Count
+Function SheetPropCount(ws As Worksheet) As Long
+    SheetPropCount = ws.CustomProperties.Count
 End Function
 
 'シートプロパティ名から番号取得
-Function SheetPropertyIndex(ws As Worksheet, name As String) As Integer
-    Dim i As Integer
+Function SheetPropIndex(ws As Worksheet, k As String) As Long
+    Dim i As Long
     For i = 1 To ws.CustomProperties.Count
-        If ws.CustomProperties(i).name = name Then
-            SheetPropertyIndex = i
+        If ws.CustomProperties(i).name Like k Then
+            SheetPropIndex = i
             Exit Function
         End If
     Next i
 End Function
 
 'シートプロパティ名からプロパティ値取得
-Function GetSheetProperty(ws As Worksheet, name As String) As CustomProperty
-    Dim idx As Integer
-    idx = SheetPropertyIndex(ws, name)
-    If idx > 0 Then
-        Set GetSheetProperty = ws.CustomProperties(idx)
+Private Function GetSheetProp(ws As Worksheet, k As String) As CustomProperty
+    Dim i As Long
+    i = SheetPropIndex(ws, k)
+    If i > 0 Then
+        Set GetSheetProp = ws.CustomProperties(i)
         Exit Function
     End If
-    Set GetSheetProperty = ws.CustomProperties.Add(name, "")
+    'Set GetSheetProp = ws.CustomProperties.Add(k, "")
 End Function
 
-'シートプロパティ名から値取得
-Function StrSheetProperty(ws As Worksheet, name As String) As String
-    Dim idx As Integer
-    idx = SheetPropertyIndex(ws, name)
-    If idx > 0 Then StrSheetProperty = ws.CustomProperties(idx).Value
+'シートプロパティ値取得
+Function GetSheetStr(ws As Worksheet, k As String) As String
+    Dim i As Long
+    For i = 1 To ws.CustomProperties.Count
+        If ws.CustomProperties(i).name Like k Then
+            GetSheetStr = ws.CustomProperties(i).Value
+            Exit Function
+        End If
+    Next i
+End Function
+
+Function GetSheetBool(ws As Worksheet, k As String) As Boolean
+    GetSheetBool = CBool(GetSheetStr(ws, k))
+End Function
+
+Function GetSheetNum(ws As Worksheet, k As String) As Long
+    GetSheetNum = CLng(GetSheetStr(ws, k))
+End Function
+
+'シートプロパティ設定
+Sub SetSheetStr(ws As Worksheet, k As String, v As String)
+    With ws
+        Dim i As Long
+        For i = 1 To .CustomProperties.Count
+            If .CustomProperties(i).name Like k Then
+                If .CustomProperties(i) = v Then Exit Sub
+                .CustomProperties(i).Delete
+                Exit For
+            End If
+        Next i
+        .CustomProperties.Add k, v
+    End With
+End Sub
+
+Sub SetSheetBool(ws As Worksheet, k As String, v As Boolean)
+    SetSheetStr ws, k, CStr(v)
+End Sub
+
+Sub SetSheetNum(ws As Worksheet, k As String, v As Long)
+    SetSheetStr ws, k, CStr(v)
+End Sub
+
+'----------------------------------------
+'book properties
+'----------------------------------------
+
+'Get Property value
+Function GetBookStr(k As String, Optional wb As Workbook) As String
+    GetBookStr = CStr(GetWorkbook(wb).CustomDocumentProperties(k))
+End Function
+
+Function GetBookBool(k As String, Optional wb As Workbook) As Boolean
+    GetBookBool = CBool(GetWorkbook(wb).CustomDocumentProperties(k))
+End Function
+
+Function GetBookNum(k As String, Optional wb As Workbook) As Long
+    GetBookNum = CLng(GetWorkbook(wb).CustomDocumentProperties(k))
+End Function
+
+'Set Property
+Sub SetBookStr(k As String, v As String, _
+        Optional saved As Boolean, Optional wb As Workbook)
+    SetBookProp k, msoPropertyTypeString, v, saved, wb
+End Sub
+
+Sub SetBookBool(k As String, v As Boolean, _
+        Optional saved As Boolean, Optional wb As Workbook)
+    SetBookProp k, msoPropertyTypeBoolean, v, saved, wb
+End Sub
+
+Sub SetBookNum(k As String, v As Long, _
+        Optional saved As Boolean, Optional wb As Workbook)
+    SetBookProp k, msoPropertyTypeNumber, v, saved, wb
+End Sub
+
+Private Sub SetBookProp(k As String, t As Long, v As Variant, _
+        saved As Boolean, wb As Workbook)
+    With GetWorkbook(wb)
+        Dim i As Long
+        For i = 1 To .CustomDocumentProperties.Count
+            If .CustomDocumentProperties(i).name Like k Then
+                If .CustomDocumentProperties(i) = v Then Exit Sub
+                .CustomDocumentProperties(i).Delete
+                Exit For
+            End If
+        Next i
+        .CustomDocumentProperties.Add k, False, t, v
+        If saved Then .Save
+    End With
+End Sub
+
+Private Function GetWorkbook(wb As Workbook) As Workbook
+    Set GetWorkbook = IIf(wb Is Nothing, ThisWorkbook, wb)
 End Function
 
 '----------------------------------------
@@ -715,27 +804,11 @@ Sub ProgressStatusBar(Optional i As Long = 1, Optional cnt As Long = 1)
         Exit Sub
     End If
     Dim p As Double: p = i / cnt
-    Dim s As String: s = "進捗状況(" & Int(p * 100) & "%)"
-    s = s & " : " & ProgressBar(p)
+    Dim s As String: s = Mid("■■■■■□□□□□", 6 - CInt(5 * p), 5)
+    s = "進捗状況(" & Int(p * 100) & "%) : " & s
     Dim TM As Double: TM = (Timer - tm_start) / p * (1 - p)
     Application.StatusBar = s & " : 残り" & Int(TM) & "秒"
 End Sub
-
-Private Function ProgressBar(p As Double) As String
-    If p < 0.2 Then
-        ProgressBar = "□□□□□"
-    ElseIf p < 0.4 Then
-        ProgressBar = "■□□□□"
-    ElseIf p < 0.6 Then
-        ProgressBar = "■■□□□"
-    ElseIf p < 0.8 Then
-        ProgressBar = "■■■□□"
-    ElseIf p < 1 Then
-        ProgressBar = "■■■■□"
-    Else
-        ProgressBar = "■■■■■"
-    End If
-End Function
 
 '----------------------------------------
 'アドインブック
