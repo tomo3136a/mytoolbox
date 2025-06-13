@@ -193,7 +193,7 @@ End Function
 '選択ダイアログ
 '----------------------------------------
 
-'ワークブック選択
+'ブック選択
 Function SelectBook(Optional ptn As String) As Workbook
     SelectForm.reset "ブック", ptn
     SelectForm.AddNames Workbooks
@@ -204,7 +204,7 @@ Function SelectBook(Optional ptn As String) As Workbook
     If s <> "" Then Set SelectBook = Workbooks(s)
 End Function
 
-'ワークシート選択
+'シート選択
 Function SelectSheet(Optional wb As Workbook, Optional ptn As String) As Worksheet
     If wb Is Nothing Then Set wb = ActiveWorkbook
     SelectForm.reset "シート", ptn
@@ -215,7 +215,6 @@ Function SelectSheet(Optional wb As Workbook, Optional ptn As String) As Workshe
     Unload SelectForm
     If s <> "" Then Set SelectSheet = wb.Worksheets(s)
 End Function
-
 
 Public Function SelectSheetCB(Optional wb As Workbook) As Worksheet
     Dim fsu As Boolean
@@ -255,20 +254,21 @@ Function SelectCell(Optional ra As Range, Optional s As String, Optional ptn As 
     SelectForm.reset s, ptn
     SelectForm.AddValues ra
     SelectForm.Show
-    Dim i As Integer
-    i = SelectForm.Index
-    Dim v As Variant
-    For Each v In ra
-        If i = 0 Then Exit For
-        i = i - 1
-    Next v
-    If Not v = Empty Then Set SelectCell = v
+    If SelectForm.Result <> "" Then
+        Dim i As Integer
+        i = SelectForm.Index
+        Dim v As Variant
+        For Each v In ra
+            If i = 0 Then Exit For
+            i = i - 1
+        Next v
+        If Not v = Empty Then Set SelectCell = v
+    End If
     Unload SelectForm
 End Function
 
 'セル取得
 Function GetCell(Optional msg As String, Optional Title As String) As Range
-    
     Dim ce As Range
     Do
         On Error Resume Next
@@ -277,7 +277,6 @@ Function GetCell(Optional msg As String, Optional Title As String) As Range
         If ce Is Nothing Then Exit Function
     Loop Until ce.Count = 1
     Set GetCell = ce
-
 End Function
 
 'アドイン選択
@@ -287,7 +286,6 @@ Function SelectAddin(Optional ptn As String) As addin
     For Each v In AddIns
         SelectForm.AddItem v.Title
     Next v
-    'SelectForm.AddNames AddIns
     SelectForm.Show
     Dim s As String
     s = SelectForm.Result
@@ -373,3 +371,4 @@ Function SelectAddinsSheet() As Worksheet
     ws.Select
     Application.ScreenUpdating = True
 End Function
+

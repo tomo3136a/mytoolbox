@@ -55,7 +55,7 @@ End Sub
 
 '”Å”İ’è’læ“¾
 Public Sub GetRevMark(ByRef v As Variant)
-    If Not ExistRt("rev.text") Then Call SetRtStr("rev.text", "1")
+    If Not ExistRt("rev.text") Then Call StrNum("rev.text", 1)
     v = GetRtStr("rev.text")
 End Sub
 

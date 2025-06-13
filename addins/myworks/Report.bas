@@ -97,19 +97,29 @@ End Sub
 
 'ç∂è„Ç…à⁄ìÆ
 Sub ResetCellPos()
-    Dim old As Worksheet
-    Set old = ActiveSheet
-    Dim ws As Worksheet
     ScreenUpdateOff
+    Dim last_ws As Worksheet
+    Set last_ws = ActiveSheet
+    '
+    Dim ws As Worksheet
     For Each ws In ActiveWorkbook.Worksheets
         If ws.Visible Then
             ws.Activate
-            ws.Cells(1, 1).Select
+            If Trim(ws.Cells(1, 1)) = "" Then
+                ws.Cells(1, 1).Select
+            ElseIf Trim(ws.Cells(2, 1)) = "" Then
+                ws.Cells(2, 1).Select
+            ElseIf Trim(ws.Cells(3, 1)) = "" Then
+                ws.Cells(3, 1).Select
+            Else
+                ws.Cells(1, 1).Select
+            End If
             ActiveWindow.ScrollColumn = 1
             ActiveWindow.ScrollRow = 1
         End If
     Next ws
-    old.Activate
+    '
+    last_ws.Activate
     ScreenUpdateOn
 End Sub
 

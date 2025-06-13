@@ -14,7 +14,7 @@ Option Private Module
 
 Sub ExportProc(ra As Range, mode As Integer)
     Dim enc As Boolean
-    enc = GetRtBool("export.1")
+    enc = GetBookBool("export.1")
     '
     Select Case mode
     Case 1: Call ExportRangeToSpreadSheet(ra, enc)
@@ -39,6 +39,17 @@ Private Sub ExportRangeToSpreadSheet(ra As Range, utf8 As Boolean)
     path = GetIoSaveAsFilename("", "csv", flt)
     If path = "" Then Exit Sub
     '
+    Dim fmt As Integer
+    Select Case LCase(fso.GetExtensionName(path))
+    Case "txt": fmt = IIf(utf8, xlUnicodeText, xlText)
+    Case "xml": fmt = xlXMLSpreadsheet
+    Case "xlsx": fmt = xlOpenXMLWorkbook
+    Case "xlsm": fmt = xlOpenXMLWorkbookMacroEnabled
+    Case Else: fmt = IIf(utf8, xlCSVUTF8, xlCSV)
+    End Select
+    '
+    ra.SpecialCells(xlCellTypeVisible).Copy
+    '
     ScreenUpdateOff
     On Error Resume Next
     '
@@ -48,46 +59,12 @@ Private Sub ExportRangeToSpreadSheet(ra As Range, utf8 As Boolean)
     Dim wb As Workbook
     Set wb = Application.Workbooks.Add
     Application.SheetsInNewWorkbook = n
-    '
-    Dim rb As Range
-    Set rb = ra.SpecialCells(xlCellTypeVisible)
-    rb.Copy
     wb.Worksheets(1).Paste
-    '
-    Select Case LCase(fso.GetExtensionName(path))
-    Case "txt": n = xlText: If utf8 Then n = xlUnicodeText
-    Case "xml": n = xlXMLSpreadsheet
-    Case "xlsx": n = xlOpenXMLWorkbook
-    Case "xlsm": n = xlOpenXMLWorkbookMacroEnabled
-    Case Else: n = xlCSV: If utf8 Then n = xlCSVUTF8
-    End Select
-    '
-    wb.SaveAs Filename:=path, FileFormat:=n
+    wb.SaveAs Filename:=path, FileFormat:=fmt
     wb.Close
     '
     On Error GoTo 0
     ScreenUpdateOn
-End Sub
-
-'選択範囲をリスト形式でエクスポート
-Private Sub ExportRangeToText_old(ra As Range, utf8 As Boolean)
-    If Not IsArray(ra.Value) Then Exit Sub
-    '
-    Dim flt As String
-    flt = "テキストファイル,*.txt"
-    '
-    Dim path As String
-    path = GetIoSaveAsFilename(ActiveSheet.name, "txt", flt)
-    If path = "" Then Exit Sub
-    '
-    Open path For Output As #1
-    Dim rs As Variant
-    For Each rs In wsf.Transpose(ra.Value)
-        Dim line As String
-        line = Trim(rs)
-        If line <> "" Then Print #1, line
-    Next rs
-    Close #1
 End Sub
 
 '選択範囲をリスト形式でエクスポート
@@ -139,18 +116,38 @@ Private Function GetIoSaveAsFilename( _
         Optional path As String, _
         Optional ext As String, _
         Optional flt As String)
-    If path = "" Then path = fso.GetBaseName(ActiveWorkbook.name) & "_" & ActiveSheet.name
-    If fso.GetExtensionName(path) = "" Then path = path & "." & ext
-    path = fso.BuildPath(ActiveWorkbook.path, path)
-    If fso.GetExtensionName(path) <> ext Then
-        ext = LCase(fso.GetExtensionName(path))
-        flt = UCase(ext) & "ファイル,*." & ext
+    Dim p As String, e As String, n As String
+    p = fso.GetFileName(path)
+    e = ext
+    If p = "" Then
+        p = ActiveSheet.name
+        n = fso.GetBaseName(ActiveWorkbook.name)
+        If fso.GetExtensionName(p) <> "" Then
+            e = fso.GetExtensionName(p)
+            p = fso.GetBaseName(p)
+        ElseIf LCase(n) <> LCase(p) Then
+            p = n & "_" & p
+        End If
     End If
-    If flt = "" Then flt = UCase(ext) & "ファイル,*." & ext
-    flt = flt + ",すべてのファイル,*.*"
-    path = Application.GetSaveAsFilename(path, flt)
-    If path = "False" Then Exit Function
     '
-    GetIoSaveAsFilename = path
+    If fso.GetExtensionName(p) = "" Then p = p & "." & e
+    p = fso.BuildPath(ActiveWorkbook.path, p)
+    e = LCase(e)
+    '
+    Dim f As String
+    f = flt
+    Dim v As Variant
+    For Each v In Split(flt, ",", , vbTextCompare)
+        If "*." & e = LCase(v) Then Exit For
+    Next v
+    If TypeName(v) <> "String" Then
+        f = UCase(e) & " ファイル,*." & e & "," & f
+    End If
+    f = f + ",すべてのファイル,*.*"
+    '
+    p = Application.GetSaveAsFilename(p, f)
+    If p = "False" Then Exit Function
+    '
+    GetIoSaveAsFilename = p
 End Function
 

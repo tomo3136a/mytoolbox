@@ -107,7 +107,7 @@ End Function
 Function SearchName(col As Object, s As String) As Object
     Dim v As Object
     For Each v In col
-        If v.name = s Then
+        If CStr(v.name) = s Then
             Set SearchName = v
             Exit Function
         End If
@@ -409,8 +409,8 @@ End Function
 '----------------------------------------
 
 'filesystemobject
-Function fso() As Object
-    Static obj As Object
+Function fso() As FileSystemObject
+    Static obj As FileSystemObject
     If obj Is Nothing Then
         Set obj = CreateObject("Scripting.FileSystemObject")
     End If
@@ -419,10 +419,32 @@ End Function
 
 '基本名取得
 '  パス削除、拡張子削除、複製情報削除
-Function BaseName(s As String) As String
+Function CoreName(s As String) As String
     Dim re As Object
     Set re = regex("[\(（]\d+[\)）]|\s*-\s*コピー")
-    BaseName = re.Replace(fso.GetBaseName(s), "")
+    CoreName = re.Replace(fso.GetBaseName(s), "")
+End Function
+
+'重複しないファイル名取得
+Function UniqueFileName(s As String) As String
+    Dim p As String
+    p = s
+    If fso.FileExists(p) Then
+        Dim r As String, e As String, b As String
+        r = fso.GetParentFolderName(p)
+        p = CoreName(fso.GetFileName(p))
+        e = fso.GetExtensionName(p)
+        b = fso.GetBaseName(p)
+        If e <> "" Then e = "." & e
+        If r <> "" Then b = fso.BuildPath(r, b)
+        '
+        Dim i As Long
+        For i = 1 To 100
+            p = b & "(" & i & ")" & e
+            If Not fso.FileExists(p) Then Exit For
+        Next i
+    End If
+    UniqueFileName = p
 End Function
 
 '短縮パス取得
@@ -595,17 +617,20 @@ End Function
 
 'プロパティ取得
 Function GetRtStr(k As String, Optional v As String) As String
+    GetRtStr = v
     With rt_dict
-        GetRtStr = v
         If .Exists(k) Then GetRtStr = .Item(k)
     End With
 End Function
 
-'プロパティ取得(boolean)
 Function GetRtBool(k As String) As Boolean
     Dim s As String
     s = GetRtStr(k)
     If s <> "" And Not s Like "False" And s <> "0" Then GetRtBool = True
+End Function
+
+Function GetRtNum(k As String) As Long
+    GetRtNum = CLng(GetRtStr(k))
 End Function
 
 'プロパティ設定
@@ -617,6 +642,10 @@ Sub SetRtStr(k As String, Optional v As String)
 End Sub
 
 Sub SetRtBool(k As String, v As Boolean)
+    SetRtStr k, CStr(v)
+End Sub
+
+Sub StrNum(k As String, v As Long)
     SetRtStr k, CStr(v)
 End Sub
 
@@ -717,15 +746,25 @@ End Sub
 
 'Get Property value
 Function GetBookStr(k As String, Optional wb As Workbook) As String
+    On Error Resume Next
     GetBookStr = CStr(GetWorkbook(wb).CustomDocumentProperties(k))
+    On Error GoTo 0
 End Function
 
 Function GetBookBool(k As String, Optional wb As Workbook) As Boolean
+    On Error Resume Next
     GetBookBool = CBool(GetWorkbook(wb).CustomDocumentProperties(k))
+    On Error GoTo 0
 End Function
 
 Function GetBookNum(k As String, Optional wb As Workbook) As Long
+    On Error Resume Next
     GetBookNum = CLng(GetWorkbook(wb).CustomDocumentProperties(k))
+    On Error GoTo 0
+End Function
+
+Private Function GetWorkbook(wb As Workbook) As Workbook
+    Set GetWorkbook = IIf(wb Is Nothing, ThisWorkbook, wb)
 End Function
 
 'Set Property
@@ -760,9 +799,18 @@ Private Sub SetBookProp(k As String, t As Long, v As Variant, _
     End With
 End Sub
 
-Private Function GetWorkbook(wb As Workbook) As Workbook
-    Set GetWorkbook = IIf(wb Is Nothing, ThisWorkbook, wb)
-End Function
+'get book properties
+Sub WriteBookKeys(Optional wb As Workbook)
+    Dim ce As Range
+    Set ce = ActiveCell
+    Dim p As Object
+    For Each p In GetWorkbook(wb).CustomDocumentProperties
+        ce.Offset(0, 0).Value = p.name
+        ce.Offset(0, 1).Value = p.Type
+        ce.Offset(0, 2).Value = p.Value
+        Set ce = ce.Offset(1)
+    Next
+End Sub
 
 '----------------------------------------
 '画面チラつき防止
@@ -789,9 +837,10 @@ Public Sub ScreenUpdateOn()
 End Sub
 
 '----------------------------------------
-'進行状況表示(status-bar)
+'進行状況表示
 '----------------------------------------
 
+'進行状況表示ステータスバー
 Sub ProgressStatusBar(Optional i As Long = 1, Optional cnt As Long = 1)
     Static tm_start As Double
     If i < 1 Then
@@ -809,55 +858,4 @@ Sub ProgressStatusBar(Optional i As Long = 1, Optional cnt As Long = 1)
     Dim TM As Double: TM = (Timer - tm_start) / p * (1 - p)
     Application.StatusBar = s & " : 残り" & Int(TM) & "秒"
 End Sub
-
-'----------------------------------------
-'アドインブック
-'----------------------------------------
-
-'アドインブック表示トグル
-Sub ToggleAddinBook()
-    If ThisWorkbook.IsAddin Then
-        ThisWorkbook.IsAddin = False
-        ThisWorkbook.Activate
-    Else
-        ThisWorkbook.IsAddin = True
-        ThisWorkbook.Save
-    End If
-End Sub
-
-'アドインブックからテンプレートシートを複製
-Sub CopyAddinSheet()
-    Dim ws As Worksheet
-    Set ws = SelectSheet(ThisWorkbook, "^[^#]")
-    If ws Is Nothing Then Exit Sub
-    ws.Copy After:=ActiveSheet
-End Sub
-
-'アドインブックのテンプレートシート更新
-Function UpdateAddinSheet(ws As Worksheet)
-    Dim asu As Boolean
-    asu = Application.ScreenUpdating
-    Application.ScreenUpdating = False
-    '
-    Dim ws2 As Worksheet
-    For Each ws2 In ThisWorkbook.Sheets
-        If ws2.name = ws.name Then Exit For
-    Next ws2
-    If ws2 Is Nothing Then
-        ThisWorkbook.IsAddin = False
-        ws.Copy After:=ThisWorkbook.Sheets(1)
-        ThisWorkbook.IsAddin = True
-    Else
-        Dim old As Range
-        Set old = Selection
-        ws.Cells.Select
-        Selection.Copy
-        Set ws2 = ThisWorkbook.Sheets(ws.name)
-        ws2.Paste ws2.Cells(1, 1)
-        Application.CutCopyMode = False
-        old.Select
-    End If
-    '
-    Application.ScreenUpdating = asu
-End Function
 

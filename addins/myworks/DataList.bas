@@ -557,7 +557,7 @@ End Sub
 Private Sub FileList(ByRef ra As Range, path As String)
     Dim v As Variant
     v = Application.InputBox("タイプを入力してください。(0: 階層表示, 1: 絶対パス, 2: 相対パス)", Type:=1)
-    Call SetRtStr("path.5", CLng(v))
+    Call StrNum("path.5", CLng(v))
     '
     path = SelectFolder(path)
     If path = "" Then Exit Sub
@@ -574,7 +574,7 @@ Private Sub FileList(ByRef ra As Range, path As String)
     p = GetShortPath(path)
     path = GetAbstructPath(p, ce.Parent.Parent.path & "\")
     Dim sp As String
-    Select Case CLng(GetRtStr("path.5"))
+    Select Case GetRtNum("path.5")
     Case 1: sp = Replace(path, "\", "/") & "/"
     Case 2: sp = ""
     Case Else: sp = ""
@@ -619,7 +619,7 @@ Private Sub FileListSubFolder( _
                     ElseIf Left(obj.name, 1) = "_" Then
                     Else
                         Dim sp2 As String
-                        Select Case CLng(GetRtStr("path.5"))
+                        Select Case GetRtNum("path.5")
                         Case 1: sp2 = sp & obj.name & "/"
                         Case 2: sp2 = sp & obj.name & "/"
                         Case Else: sp2 = sp + "    "

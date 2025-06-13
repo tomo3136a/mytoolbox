@@ -49,11 +49,11 @@ Private Sub works_onLoad(ByVal Ribbon As IRibbonUI)
     On Error GoTo 0
     '
     '初期化
-    SetRtStr "path.1", True       'リンクあり
-    SetRtStr "path.2", True       'フォルダあり
-    SetRtStr "path.3", True       '再帰あり
-    SetRtStr "info.sheet", True   'シート追加
-    SetRtStr "mark.color", 0      'マーカカラーは黄色
+    SetRtBool "path.1", True        'リンクあり
+    SetRtBool "path.2", True        'フォルダあり
+    SetRtBool "path.3", True        '再帰あり
+    SetRtBool "info.sheet", True    'シート追加
+    StrNum "mark.color", 0       'マーカカラーは黄色
 End Sub
 
 Private Sub works_ShortcutKey1()
@@ -87,6 +87,10 @@ Private Sub works1_onAction(ByVal control As IRibbonControl)
         Case Else: PagePreview
         End Select
     Case 3: 'テキスト変換
+        If RibbonID(control, 1) = 13 Then
+            WriteBookKeys
+            Exit Sub
+        End If
         If TypeName(Selection) <> "Range" Then Exit Sub
         TextConvProc Selection, RibbonID(control, 1)
     Case 4: '拡張書式
@@ -110,19 +114,19 @@ End Sub
 
 Private Sub works1_onChecked(ByRef control As IRibbonControl, ByRef pressed As Boolean)
     Select Case RibbonID(control)
-    Case 3: SetRtBool "page." & RibbonID(control, 1), pressed   'テキスト変換
-    Case 7: SetRtBool "path." & RibbonID(control, 1), pressed   'パス名
-    Case 8: SetRtBool "info." & control.Tag, pressed            '情報取得
-    Case 9: SetRtBool "export." & RibbonID(control, 1), pressed 'エクスポート
+    Case 3: SetBookBool "page." & RibbonID(control, 1), pressed   'テキスト変換
+    Case 7: SetBookBool "path." & RibbonID(control, 1), pressed   'パス名
+    Case 8: SetBookBool "info." & control.Tag, pressed            '情報取得
+    Case 9: SetBookBool "export." & RibbonID(control, 1), pressed 'エクスポート
     End Select
 End Sub
 
 Private Sub works1_getPressed(control As IRibbonControl, ByRef returnedVal)
     Select Case RibbonID(control)
-    Case 3: returnedVal = GetRtBool("page." & RibbonID(control, 1))    'テキスト変換
-    Case 7: returnedVal = GetRtBool("path." & RibbonID(control, 1))    'パス名
-    Case 8: returnedVal = GetRtBool("info." & control.Tag)             '情報取得
-    Case 9: returnedVal = GetRtBool("export." & RibbonID(control, 1))  'エクスポート
+    Case 3: returnedVal = GetBookBool("page." & RibbonID(control, 1))    'テキスト変換
+    Case 7: returnedVal = GetBookBool("path." & RibbonID(control, 1))    'パス名
+    Case 8: returnedVal = GetBookBool("info." & control.Tag)             '情報取得
+    Case 9: returnedVal = GetBookBool("export." & RibbonID(control, 1))  'エクスポート
     End Select
 End Sub
 
@@ -166,19 +170,31 @@ End Sub
 '----------------------------------------
 
 Private Sub works3_onAction(ByVal control As IRibbonControl)
+    Call TemplateProc(RibbonID(control), RibbonID(control, 1))
+End Sub
+
+Private Sub works3_getEnabled(control As IRibbonControl, ByRef enable As Variant)
+    enable = ThisWorkbook.IsAddin
+End Sub
+
+'----------------------------------------
+'■機能グループ9
+'アドイン機能
+'----------------------------------------
+
+Private Sub works9_onAction(ByVal control As IRibbonControl)
     Select Case RibbonID(control)
-    Case 9: RefreshRibbon                        '開発
-    Case Else: Call TemplateProc(RibbonID(control), RibbonID(control, 1))
+    Case 1: RefreshRibbon
     End Select
 End Sub
 
-Private Sub works3_getLabel(ByRef control As IRibbonControl, ByRef label As Variant)
+Private Sub works9_getLabel(ByRef control As IRibbonControl, ByRef label As Variant)
     If ThisWorkbook.IsAddin Then label = "ブック開く" Else label = "ブック閉じる"
     RefreshRibbon
     DoEvents
 End Sub
 
-Private Sub works3_getEnabled(control As IRibbonControl, ByRef enable As Variant)
+Private Sub works9_getEnabled(control As IRibbonControl, ByRef enable As Variant)
     enable = ThisWorkbook.IsAddin
 End Sub
 

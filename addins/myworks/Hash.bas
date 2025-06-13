@@ -1,6 +1,6 @@
 Attribute VB_Name = "Hash"
 Option Explicit
-Option Private Module
+'Option Private Module
 
 '========================================
 '汎用計算モジュール

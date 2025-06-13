@@ -8,15 +8,9 @@ Option Private Module
 
 '設定シート取得
 Function ConfigSheet(Optional name As String = "#config") As Worksheet
-    Dim wb As Workbook
-    Dim ws As Worksheet
-    Set wb = ActiveWorkbook
-    Set ws = wb.Sheets(name)
-    If ws Is Nothing Then
-        Set wb = ThisWorkbook
-        Set ws = wb.Sheets(name)
-    End If
-    Set ConfigSheet = ws
+    Set ConfigSheet = ActiveWorkbook.Sheets(name)
+    If Not ConfigSheet Is Nothing Then Exit Function
+    Set ConfigSheet = ThisWorkbook.Sheets(name)
 End Function
 
 'セクション一覧を取得
@@ -26,11 +20,14 @@ Function SectionRange(ra As Range) As Range
     Dim cnt As Long
     For Each ce In ra
         Dim s As String
-        s = ce
-        If Left(ce.Value, 1) = "[" And Right(ce.Value, 1) = "]" Then
-            If cnt = 0 Then Set arr = ce Else Set arr = Union(arr, ce)
-            cnt = cnt + 1
-        End If
+        Dim ce2 As Range
+        For Each ce2 In ce.Cells
+            s = ce2.Value
+            If Left(ce2.Value, 1) = "[" And Right(ce2.Value, 1) = "]" Then
+                If cnt = 0 Then Set arr = ce2 Else Set arr = Union(arr, ce2)
+                cnt = cnt + 1
+            End If
+        Next ce2
     Next ce
     Set SectionRange = arr
 End Function
