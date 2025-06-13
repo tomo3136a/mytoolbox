@@ -26,6 +26,13 @@ End Sub
 '----------------------------------------
 '
 '----------------------------------------
+
+Sub Auto_Close()
+    If ThisWorkbook.saved = False Then
+        ThisWorkbook.Save
+    End If
+End Sub
+
 '■セルを選択していない場合はマクロ終了
 'If TypeName(Selection) <> "Range" Then Exit Sub
 '
