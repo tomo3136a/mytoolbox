@@ -4,7 +4,7 @@
     <tabs>
       <tab idQ="ad:TabAddinDev" label="アドイン開発">
         <group idQ="ad:GrpAddinDev" label="アドイン開発" imageMso="AddInManager">
-          <button id="BtnReload" insertAfterQ="ad:BoxAddinDev" label="AddinDev 配置"
+          <button id="BtnReload" insertAfterQ="ad:BoxAddinDev" label="AddinDev 更新"
             imageMso="ReviewDisplayForReview" onAction="AddinDev2_onAction" size="large" />
         </group>
       </tab>

@@ -14,7 +14,7 @@
               <button id="b.3.1" onAction="AddinDev_onAction" label="編集" imageMso="CodeEdit" />
               <button id="b.3.2" onAction="AddinDev_onAction" label="構築"
                 imageMso="ResultsPaneStartFindAndReplace" />
-              <button id="b.3.3" onAction="AddinDev_onAction" label="配置"
+              <button id="b.3.3" onAction="AddinDev_onAction" label="更新"
                 imageMso="ReviewDisplayForReview" />
             </buttonGroup>
             <buttonGroup id="g33">
@@ -45,9 +45,9 @@
         </group>
         <group id="g5" label="VBA開発" imageMso="AddInManager">
           <control idQ="VisualBasic" visible="true" size="large" />
-          <button id="b.5.1" onAction="AddinDev_onAction" label="ダイアログ" imageMso="FormsMenu"
+          <button id="b.5.1" onAction="AddinDev_onAction" label="Dialog" imageMso="FormsMenu"
             size="large" />
-          <button id="b.5.2" onAction="AddinDev_onAction" label="imageMSO"
+          <button id="b.5.2" onAction="AddinDev_onAction" label="Image MSO"
             getImage="AddinDev_getImage" size="large" />
           <!-- <button id="b5.3" onAction="AddinDev_onAction" label="imageMSO"
           getImage="AddinDev_getImage" size="large" /> -->

@@ -2,16 +2,19 @@
 <customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" onLoad="Designer_onLoad">
   <ribbon>
     <tabs>
-      <tab id="TabDesigner" label="作図" insertAfterQ="TabView">
+      <tab id="TabDesigner" label="作図" insertBeforeQ="TabDeveloper">
         <group id="g1" label="図形操作" imageMso="ComAddInsDialog">
-          <splitButton id="g11" size="large" >
-            <button id="b1.1" onAction="Designer1_onAction" label="標準図形設定" imageMso="ObjectFormatDialog" />
+          <splitButton id="g11" size="large">
+            <button id="b1.1" onAction="Designer1_onAction" label="標準図形設定"
+              imageMso="ObjectFormatDialog" />
             <menu id="m11">
-              <button id="b1.5" onAction="Designer1_onAction" label="テキストボックス基本設定" imageMso="SObjectFormatDialog" />
+              <button id="b1.5" onAction="Designer1_onAction" label="テキストボックス基本設定"
+                imageMso="SObjectFormatDialog" />
             </menu>
           </splitButton>
           <button id="b1.4" onAction="Designer1_onAction" label="絵に変換" imageMso="SelectionPane" />
-          <button id="b1.6" onAction="Designer1_onAction" label="塗りつぶし表示ON/OFF" imageMso="SObjectFormatDialog" />
+          <button id="b1.6" onAction="Designer1_onAction" label="塗りつぶし表示ON/OFF"
+            imageMso="SObjectFormatDialog" />
           <splitButton id="g12">
             <button id="b1.7" onAction="Designer1_onAction" label="3D" imageMso="SelectionPane" />
             <menu id="m12">
@@ -20,7 +23,8 @@
           </splitButton>
           <control idQ="ObjectFlipHorizontal" visible="true" />
           <control idQ="ObjectFlipVertical" visible="true" />
-          <button id="b1.10" onAction="Designer1_onAction" label="表裏反転" imageMso="DiagramReverseClassic" />
+          <button id="b1.10" onAction="Designer1_onAction" label="表裏反転"
+            imageMso="DiagramReverseClassic" />
           <button id="b1.8" onAction="Designer1_onAction" label="原点合わせ" imageMso="SelectionPane" />
           <button id="b1.9" onAction="Designer1_onAction" label="図形名更新" imageMso="SelectionPane" />
           <control idQ="ObjectsSelect" visible="true" />
@@ -30,14 +34,17 @@
         </group>
         <group id="g2" label="図形情報" imageMso="ComAddInsDialog">
           <box id="g21" boxStyle="vertical">
-            <editBox id="c2.1" onChange="Designer_onChange" label="名前:" getText="Designer_getText" sizeString="wwwwwwwwwww" />
+            <editBox id="c2.1" onChange="Designer_onChange" label="名前:" getText="Designer_getText"
+              sizeString="wwwwwwwwwww" />
             <buttonGroup id="g22">
-              <button id="b2.1" onAction="Designer2_onAction" label="一覧" imageMso="CreateTableInDesignView" />
+              <button id="b2.1" onAction="Designer2_onAction" label="一覧"
+                imageMso="CreateTableInDesignView" />
               <button id="b2.3" onAction="Designer2_onAction" label="更新" imageMso="Refresh" />
               <button id="b2.4" onAction="Designer2_onAction" label="選択" imageMso="SelectionPane" />
             </buttonGroup>
             <buttonGroup id="g3">
-              <button id="b2.5" onAction="Designer2_onAction" label="データ取得" imageMso="CreateTableInDesignView" />
+              <button id="b2.5" onAction="Designer2_onAction" label="データ取得"
+                imageMso="CreateTableInDesignView" />
               <menu id="m211" label="項目追加">
                 <button id="b2.2" onAction="Designer2_onAction" label="名前" imageMso="PlayMacro" />
                 <menuSeparator id="s31" />
@@ -56,20 +63,23 @@
         </group>
         <group id="g4" label="部品" imageMso="ComAddInsDialog">
           <box id="g41" boxStyle="vertical">
-            <dropDown id="c41" onAction="Designer4_onActionDropDown" label="名前:" sizeString="aaaaaaaaaaaaaaaaaa"
+            <dropDown id="c41" onAction="Designer4_onActionDropDown" label="名前:"
+              sizeString="aaaaaaaaaaaaaaaaaa"
               getItemCount="Designer4_getItemCount" getItemID="Designer4_getItemID"
               getItemLabel="Designer4_getItemLabel" getSelectedItemID="Designer4_getSelectedItemID" />
             <buttonGroup id="g42">
               <button id="b4.1" onAction="Designer4_onAction" label="配置" imageMso="ShapesDuplicate" />
               <button id="b4.2" onAction="Designer4_onAction" label="コピー" imageMso="Copy" />
-              <menu id="m41" label="その他" >
-                <button id="b4.3" onAction="Designer4_onAction" label="登録" imageMso="SourceControlAddObjects" />
+              <menu id="m41" label="その他">
+                <button id="b4.3" onAction="Designer4_onAction" label="登録"
+                  imageMso="SourceControlAddObjects" />
                 <button id="b4.4" onAction="Designer4_onAction" label="削除" imageMso="Clear" />
                 <menuSeparator id="s41" />
                 <button id="b4.5" onAction="Designer4_onAction" label="シート複製" />
                 <button id="b4.6" onAction="Designer4_onAction" label="シート取込" />
                 <menuSeparator id="s42" />
-                <button id="b4.7" onAction="Designer4_onAction" label="リスト更新" imageMso="ObjectRotateFree" />
+                <button id="b4.7" onAction="Designer4_onAction" label="リスト更新"
+                  imageMso="ObjectRotateFree" />
               </menu>
             </buttonGroup>
           </box>
@@ -99,51 +109,73 @@
               <!-- <button id="b5.39" onAction="Designer5_onAction" label="エッジ検出" /> -->
             </menu>
             <menuSeparator id="s52" />
-            <button id="b5.7" onAction="Designer5_onAction" label="方眼紙シート" imageMso="AccessTableEvents" />
+            <button id="b5.7" onAction="Designer5_onAction" label="方眼紙シート"
+              imageMso="AccessTableEvents" />
             <menuSeparator id="s53" />
-            <button id="b5.8" onAction="Designer5_onAction" label="描画" imageMso="ShapeConnectorStyleElbow" />
-            <button id="b5.9" onAction="Designer5_onAction" label="描画(図形)" imageMso="ShapeConnectorStyleElbow" />
+            <button id="b5.8" onAction="Designer5_onAction" label="描画"
+              imageMso="ShapeConnectorStyleElbow" />
+            <button id="b5.9" onAction="Designer5_onAction" label="描画(図形)"
+              imageMso="ShapeConnectorStyleElbow" />
             <menuSeparator id="s54" />
             <button id="b5.99" onAction="Designer5_onAction" label="ヘルプ" imageMso="Help" />
           </menu>
         </group>
         <group id="g6" label="IDF" imageMso="ComAddInsDialog">
-          <button id="b6.1" onAction="Designer6_onAction" label="描画" imageMso="ShapesMoreShapes" size="large" />
-          <menu id="m61" label="その他" >
-            <button id="b6.2" onAction="Designer6_onAction" label="シート追加" imageMso="CreateQueryFromWizard" />
+          <button id="b6.1" onAction="Designer6_onAction" label="描画" imageMso="ShapesMoreShapes"
+            size="large" />
+          <menu id="m61" label="その他">
+            <button id="b6.2" onAction="Designer6_onAction" label="シート追加"
+              imageMso="CreateQueryFromWizard" />
             <button id="b6.3" onAction="Designer6_onAction" label="マクロ" imageMso="ControlWizards" />
             <menuSeparator id="s61" />
             <button id="b6.6" onAction="Designer6_onAction" label="部品追加" imageMso="ShapesMoreShapes" />
             <button id="b6.7" onAction="Designer6_onAction" label="部品配置" imageMso="ShapesMoreShapes" />
-            <button id="b6.8" onAction="Designer6_onAction" label="パネル追加" imageMso="ShapesMoreShapes" />
+            <button id="b6.8" onAction="Designer6_onAction" label="パネル追加"
+              imageMso="ShapesMoreShapes" />
             <menuSeparator id="s62" />
-            <button id="b6.4" onAction="Designer6_onAction" label="読み込み" imageMso="GetExternalDataImportClassic" />
+            <button id="b6.4" onAction="Designer6_onAction" label="読み込み"
+              imageMso="GetExternalDataImportClassic" />
             <button id="b6.5" onAction="Designer6_onAction" label="エクスポート" imageMso="ExportTextFile" />
           </menu>
-          <button id="b6.10" onAction="Designer6_onAction" label="サイズ修正" imageMso="GroupPositionLayout" />
+          <button id="b6.10" onAction="Designer6_onAction" label="サイズ修正"
+            imageMso="GroupPositionLayout" />
           <button id="b6.11" onAction="Designer6_onAction" label="スケール修正" imageMso="OrgChartScale" />
-          <!-- <editBox id="e6.1" onChange="Designer6_onChange" label="比率" getText="Designer6_getText" sizeString="wwwww" />
+          <!-- <editBox id="e6.1" onChange="Designer6_onChange" label="比率"
+          getText="Designer6_getText" sizeString="wwwww" />
           <checkBox id="c6.1" onAction="Designer6_onChecked" label="A面" getPressed="Designer6_getPressed" />
           <checkBox id="c6.2" onAction="Designer6_onChecked" label="B面" getPressed="Designer6_getPressed" />
-          <checkBox id="c6.3" onAction="Designer6_onChecked" label="配線制約" getPressed="Designer6_getPressed" />
-          <checkBox id="c6.4" onAction="Designer6_onChecked" label="配置制約" getPressed="Designer6_getPressed" />
+          <checkBox id="c6.3" onAction="Designer6_onChecked" label="配線制約" getPressed="Designer6_getPressed"
+          />
+          <checkBox id="c6.4" onAction="Designer6_onChecked" label="配置制約" getPressed="Designer6_getPressed"
+          />
           <checkBox id="c6.5" onAction="Designer6_onChecked" label="PTH" getPressed="Designer6_getPressed" />
-          <checkBox id="c6.6" onAction="Designer6_onChecked" label="Note" getPressed="Designer6_getPressed" /> -->
+          <checkBox id="c6.6" onAction="Designer6_onChecked" label="Note" getPressed="Designer6_getPressed"
+          /> -->
         </group>
-        <!-- <dynamicMenu id="A" label="Menu A" imageMso="FormatPainter" getContent="Designer4_getMenuContent" size="large" /> -->
+        <!-- <dynamicMenu id="A" label="Menu A" imageMso="FormatPainter"
+        getContent="Designer4_getMenuContent" size="large" /> -->
         <!-- <group id="Designer.g4" label="IDF" imageMso="ComAddInsDialog">
-          <button id="RD14" onAction="RD58_onAction" label="​ｘｘｘ" imageMso="GetExternalDataFromText" size="large" />
-          <button id="RD15" onAction="RD59_onAction" label="​ｘｘｘ" imageMso="ObjectFormatDialog" size="large" />
-          <button id="RD16" onAction="RD60_onAction" label="​ｘｘｘ" imageMso="ShapeStylesGallery" size="large" />
+          <button id="RD14" onAction="RD58_onAction" label="​ｘｘｘ" imageMso="GetExternalDataFromText"
+        size="large" />
+          <button id="RD15" onAction="RD59_onAction" label="​ｘｘｘ" imageMso="ObjectFormatDialog" size="large"
+        />
+          <button id="RD16" onAction="RD60_onAction" label="​ｘｘｘ" imageMso="ShapeStylesGallery" size="large"
+        />
           <button id="RD17" onAction="RD61_onAction" label="​ｘｘｘ" imageMso="ShowTrackingPage" size="large" />
-          <button id="RD18" onAction="RD62_onAction" label="​ｘｘｘ" imageMso="ViewGridlinesToggleExcel" size="large" />
+          <button id="RD18" onAction="RD62_onAction" label="​ｘｘｘ" imageMso="ViewGridlinesToggleExcel"
+        size="large" />
           <button id="RD19" onAction="RD63_onAction" label="​ｘｘｘ" imageMso="ShapesMoreShapes" size="large" />
           <button id="RD20" onAction="RD64_onAction" label="​ｘｘｘ" imageMso="ShowDetailsPage" size="large" />
         </group> -->
-          <!--   ShowDetailsPage -->
-          <!-- <dropDown id="RD31" onAction="RD31_onAction" label="シート名" getItemCount="RD31_getItemCount" getItemID="RD31_getItemID" getItemLabel="RD31_getItemLabel" getSelectedItemID="RD31_getSelectedItemID" /> -->
-          <!-- <button id="RD21d" onAction="RD21_onAction" tag="8" label="見出し色" getImage="RD21a_onGetImage" /> -->
-          <!--<editBox id="RD36" onChange="RD26_onChange" label="名前" getText="RD16_getText" sizeString="wwwwwwwwwww" />-->
+        <!--   ShowDetailsPage -->
+        <!-- <dropDown id="RD31" onAction="RD31_onAction" label="シート名"
+        getItemCount="RD31_getItemCount" getItemID="RD31_getItemID" getItemLabel="RD31_getItemLabel"
+        getSelectedItemID="RD31_getSelectedItemID" /> -->
+        <!-- <button id="RD21d" onAction="RD21_onAction" tag="8" label="見出し色"
+        getImage="RD21a_onGetImage" /> -->
+        <!--<editBox
+        id="RD36" onChange="RD26_onChange" label="名前" getText="RD16_getText"
+        sizeString="wwwwwwwwwww" />-->
       </tab>
     </tabs>
   </ribbon>
