@@ -34,7 +34,7 @@ Sub AddInfoTable(mode As Integer)
     'シート選択
     Dim ce As Range
     Set ce = ActiveCell
-    If GetRtBool("info.sheet") Then
+    If GetBookBool("info.sheet") Then
         Dim ws As Worksheet
         Set ws = wb.Worksheets.Add
         ws.name = UniqueSheetName(wb, GetInfoTitle(mode))
@@ -147,14 +147,16 @@ Private Sub IndexList(ByRef ra As Range, wb As Workbook)
     '
     'hyperlink
     Set ws = ra.Worksheet
-    For Each ce In ra.Offset(0, 2).Resize(j, 1)
-        ws.Hyperlinks.Add _
-            Anchor:=ce, _
-            Address:="", _
-            SubAddress:=ce.Value, _
-            TextToDisplay:="シート", _
-            ScreenTip:=ce.Offset(, -1).Value
-    Next ce
+    If j > 0 Then
+        For Each ce In ra.Offset(0, 2).Resize(j, 1)
+            ws.Hyperlinks.Add _
+                Anchor:=ce, _
+                Address:="", _
+                SubAddress:=ce.Value, _
+                TextToDisplay:="シート", _
+                ScreenTip:=ce.Offset(, -1).Value
+        Next ce
+    End If
     '
     Set ra = ra.Offset(j)
 End Sub
@@ -202,14 +204,16 @@ Private Sub SheetList(ByRef ra As Range, wb As Workbook)
     '
     'hyperlink
     Set ws = ra.Worksheet
-    For Each ce In ra.Offset(0, 1).Resize(j, 1)
-        ws.Hyperlinks.Add _
-            Anchor:=ce, _
-            Address:=wb.path & "\" & wb.name, _
-            SubAddress:="'" & ce.Value & "'!A1", _
-            TextToDisplay:=ce.Value, _
-            ScreenTip:=wb.path & Chr(10) & wb.name & Chr(10) & ce.Value & "!A1"
-    Next ce
+    If j > 0 Then
+        For Each ce In ra.Offset(0, 1).Resize(j, 1)
+            ws.Hyperlinks.Add _
+                Anchor:=ce, _
+                Address:=wb.path & "\" & wb.name, _
+                SubAddress:="'" & ce.Value & "'!A1", _
+                TextToDisplay:=ce.Value, _
+                ScreenTip:=wb.path & Chr(10) & wb.name & Chr(10) & ce.Value & "!A1"
+        Next ce
+    End If
     '
     Set ra = ra.Offset(j)
 End Sub
@@ -464,13 +468,15 @@ Private Sub NoteList(ByRef ra As Range, wb As Workbook)
     '
     'hyperlink
     Set ws = ra.Worksheet
-    For Each ce In ra.Offset(0, 5).Resize(j, 1)
-        ws.Hyperlinks.Add _
-            Anchor:=ce, _
-            Address:=wb.path & "\" & wb.name, _
-            SubAddress:="'" & ce.Offset(0, -1).Value & "'!" & ce.Value, _
-            TextToDisplay:=ce.Value
-    Next ce
+    If j > 0 Then
+        For Each ce In ra.Offset(0, 5).Resize(j, 1)
+            ws.Hyperlinks.Add _
+                Anchor:=ce, _
+                Address:=wb.path & "\" & wb.name, _
+                SubAddress:="'" & ce.Offset(0, -1).Value & "'!" & ce.Value, _
+                TextToDisplay:=ce.Value
+        Next ce
+    End If
     '
     Set ra = ra.Offset(j)
 End Sub
@@ -497,13 +503,15 @@ Private Sub CommentList(ByRef ra As Range, wb As Workbook)
     'hyperlink
     On Error Resume Next
     Set ws = ra.Worksheet
-    For Each ce In ra.Offset(0, 2).Resize(j, 1)
-        ws.Hyperlinks.Add _
-            Anchor:=ce, _
-            Address:=wb.path & "\" & wb.name, _
-            SubAddress:="'" & ce.Offset(0, -1).Value & "'!" & ce.Value, _
-            TextToDisplay:=ce.Value
-    Next ce
+    If j > 0 Then
+        For Each ce In ra.Offset(0, 2).Resize(j, 1)
+            ws.Hyperlinks.Add _
+                Anchor:=ce, _
+                Address:=wb.path & "\" & wb.name, _
+                SubAddress:="'" & ce.Offset(0, -1).Value & "'!" & ce.Value, _
+                TextToDisplay:=ce.Value
+        Next ce
+    End If
     On Error GoTo 0
     '
     Set ra = ra.Offset(j)
@@ -557,7 +565,7 @@ End Sub
 Private Sub FileList(ByRef ra As Range, path As String)
     Dim v As Variant
     v = Application.InputBox("タイプを入力してください。(0: 階層表示, 1: 絶対パス, 2: 相対パス)", Type:=1)
-    Call StrNum("path.5", CLng(v))
+    Call SetBookNum("path.5", CLng(v))
     '
     path = SelectFolder(path)
     If path = "" Then Exit Sub
@@ -574,7 +582,7 @@ Private Sub FileList(ByRef ra As Range, path As String)
     p = GetShortPath(path)
     path = GetAbstructPath(p, ce.Parent.Parent.path & "\")
     Dim sp As String
-    Select Case GetRtNum("path.5")
+    Select Case GetBookNum("path.5")
     Case 1: sp = Replace(path, "\", "/") & "/"
     Case 2: sp = ""
     Case Else: sp = ""
@@ -597,8 +605,8 @@ Private Sub FileListSubFolder( _
     '
     Dim obj As Variant
     For Each obj In fso.GetFolder(path).SubFolders
-        If GetRtBool("path.4") Or Not re.Test(obj.name) Then
-            If GetRtBool("path.2") Then
+        If GetBookBool("path.4") Or Not re.Test(obj.name) Then
+            If GetBookBool("path.2") Then
                 i = i + 1
                 j = j + 1
                 va(i, 1) = j
@@ -612,14 +620,14 @@ Private Sub FileListSubFolder( _
                     Set ce = ce.Offset(i)
                     i = 0
                 End If
-                If GetRtBool("path.3") Then
+                If GetBookBool("path.3") Then
                     Dim p As String
                     p = fso.BuildPath(path, obj.name)
                     If Left(obj.name, 1) = "." Then
                     ElseIf Left(obj.name, 1) = "_" Then
                     Else
                         Dim sp2 As String
-                        Select Case GetRtNum("path.5")
+                        Select Case GetBookNum("path.5")
                         Case 1: sp2 = sp & obj.name & "/"
                         Case 2: sp2 = sp & obj.name & "/"
                         Case Else: sp2 = sp + "    "
@@ -659,7 +667,7 @@ Private Sub SetInfoSheet(Optional ws As Worksheet, Optional v As String = "")
 End Sub
 
 Private Function TestInfoSheet(ws As Worksheet) As Boolean
-    If GetRtBool("info.info") Then Exit Function
+    If GetBookBool("info.info") Then Exit Function
     If SheetPropIndex(ws, "info") > 0 Then TestInfoSheet = True
 End Function
 

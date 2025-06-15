@@ -165,10 +165,10 @@ Sub TextConvProc(ra As Range, mode As Integer)
         Case 11: Call Cells_StrConvOnbiki(va)
         Case 12: Call Cells_StrConvIgnore(va, rb)
         Case Else
-            Call Cells_StrConvNarrow(va)
-            Call Cells_RemoveSpace(va)
-            Call Cells_AddSpace(va)
-            Call Cells_StrConvOnbiki(va)
+            If GetBookBool("conv.1") Then Call Cells_StrConvNarrow(va)
+            If GetBookBool("conv.2") Then Call Cells_RemoveSpace(va)
+            If GetBookBool("conv.3") Then Call Cells_AddSpace(va)
+            If GetBookBool("conv.4") Then Call Cells_StrConvOnbiki(va)
         End Select
         '
         rb.Value = va
@@ -207,8 +207,9 @@ End Sub
 
 'スペース追加
 Private Sub Cells_AddSpace(va As Variant)
-    Dim re As Object
-    Set re = regex("\b\s*")
+    Dim re1 As Object, re2 As Object
+    Set re1 = regex("([\u0021-\u00FF])([^\u0000-\u00FF])")
+    Set re2 = regex("([^\u0000-\u00FF])([\u0021-\u00FF])")
     '
     Dim r As Long, c As Long
     For r = LBound(va, 1) To UBound(va, 1)
@@ -216,7 +217,8 @@ Private Sub Cells_AddSpace(va As Variant)
             Dim s As String
             s = va(r, c)
             If s <> "" And Left(s, 1) <> "=" Then
-                s = re.Replace(s, " ")
+                s = re1.Replace(s, "$1 $2")
+                s = re2.Replace(s, "$1 $2")
                 va(r, c) = Trim(s)
             End If
         Next c

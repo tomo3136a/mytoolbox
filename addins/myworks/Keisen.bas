@@ -11,23 +11,23 @@ Option Private Module
 '----------------------------------------
 
 '選択
-' mode=1: 先頭へ移動
-'      2: 末尾へ移動
-'      3: 行選択
-'      4: 列選択
-'      5: ヘッダ行選択
-'      6: テーブル選択
+' mode=1,2: 先頭へ移動
+'      3: 末尾へ移動
+'      4: 行選択
+'      5: 列選択
+'      6: ヘッダ行選択
+'      7: テーブル選択
 '
 Sub SelectProc(ra As Range, Optional mode As Integer)
     Dim rb As Range
     Set rb = ra.CurrentRegion
     Select Case mode
-    Case 1: rb(1, 1).Select
-    Case 2: rb(rb.Rows.Count + 1, 1).Select
-    Case 3: Intersect(rb, ra.EntireRow).Select
-    Case 4: Intersect(rb, ra.EntireColumn).Select
-    Case 5: rb.Rows(1).Select
-    Case 6: rb.Select
+    Case 1, 2: rb(1, 1).Select
+    Case 3: rb(rb.Rows.Count + 1, 1).Select
+    Case 4: Intersect(rb, ra.EntireRow).Select
+    Case 5: Intersect(rb, ra.EntireColumn).Select
+    Case 6: rb.Rows(1).Select
+    Case 7: rb.Select
     End Select
 End Sub
 

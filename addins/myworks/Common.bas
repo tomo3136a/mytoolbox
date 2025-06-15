@@ -107,7 +107,7 @@ End Function
 Function SearchName(col As Object, s As String) As Object
     Dim v As Object
     For Each v In col
-        If CStr(v.name) = s Then
+        If v.name = s Then
             Set SearchName = v
             Exit Function
         End If
@@ -116,10 +116,10 @@ Function SearchName(col As Object, s As String) As Object
 End Function
 
 '----------------------------------------
-'共通文字列変換
+'文字列変換
 '----------------------------------------
 
-'キーワード文字列
+'キーワード文字列化(スペースはまとめて置換,半角,大文字)
 Function StrConvWord(ByVal s As String, Optional sp As String = "_")
     s = Trim(re_replace(s, "[\s\u00A0\u3000]+", " "))
     s = re_replace(s, "[ _]+", sp)
@@ -384,6 +384,7 @@ End Function
 '領域の値文字列取得
 '----------------------------------------
 
+'領域の値文字列取得
 Function StrRange(s As String) As String
     If Range(s).Count = 1 Then
         StrRange = s
@@ -417,12 +418,11 @@ Function fso() As FileSystemObject
     Set fso = obj
 End Function
 
-'基本名取得
-'  パス削除、拡張子削除、複製情報削除
+'基本名取得(パス削除、拡張子削除、複製情報削除)
 Function CoreName(s As String) As String
-    Dim re As Object
-    Set re = regex("[\(（]\d+[\)）]|\s*-\s*コピー")
-    CoreName = re.Replace(fso.GetBaseName(s), "")
+    Dim ptn As String
+    ptn = "[\(（]\d+[\)）]|\s*-\s*コピー"
+    CoreName = regex(ptn).Replace(fso.GetBaseName(s), "")
 End Function
 
 '重複しないファイル名取得
@@ -645,7 +645,7 @@ Sub SetRtBool(k As String, v As Boolean)
     SetRtStr k, CStr(v)
 End Sub
 
-Sub StrNum(k As String, v As Long)
+Sub SetRtNum(k As String, v As Long)
     SetRtStr k, CStr(v)
 End Sub
 
@@ -655,6 +655,95 @@ Private Function rt_dict() As Dictionary
     If dic Is Nothing Then Set dic = New Dictionary
     Set rt_dict = dic
 End Function
+
+'----------------------------------------
+'book properties
+'----------------------------------------
+
+'Property Exists
+Function BookPropExists(k As String, Optional wb As Workbook) As Boolean
+    Dim p As DocumentProperty
+    Set p = SearchName(GetWorkbook(wb).CustomDocumentProperties, k)
+    BookPropExists = Not p Is Nothing
+End Function
+
+'Get Property value
+Function GetBookStr(k As String, Optional wb As Workbook) As String
+    On Error Resume Next
+    GetBookStr = CStr(GetWorkbook(wb).CustomDocumentProperties(k))
+    On Error GoTo 0
+End Function
+
+Function GetBookBool(k As String, Optional wb As Workbook) As Boolean
+    On Error Resume Next
+    GetBookBool = CBool(GetWorkbook(wb).CustomDocumentProperties(k))
+    On Error GoTo 0
+End Function
+
+Function GetBookNum(k As String, Optional wb As Workbook) As Long
+    On Error Resume Next
+    GetBookNum = CLng(GetWorkbook(wb).CustomDocumentProperties(k))
+    On Error GoTo 0
+End Function
+
+Private Function GetWorkbook(wb As Workbook) As Workbook
+    Set GetWorkbook = IIf(wb Is Nothing, ThisWorkbook, wb)
+End Function
+
+'Set Property
+Sub SetBookStr(k As String, v As String, _
+    Optional week As Boolean, Optional wb As Workbook)
+    SetBookProp k, v, msoPropertyTypeString, week, wb
+End Sub
+
+Sub SetBookBool(k As String, v As Boolean, _
+    Optional week As Boolean, Optional wb As Workbook)
+    SetBookProp k, v, msoPropertyTypeBoolean, week, wb
+End Sub
+
+Sub SetBookNum(k As String, v As Long, _
+    Optional week As Boolean, Optional wb As Workbook)
+    SetBookProp k, v, msoPropertyTypeNumber, week, wb
+End Sub
+
+Private Sub SetBookProp(k As String, v As Variant, _
+    t As Long, week As Boolean, wb As Workbook)
+    With GetWorkbook(wb)
+        Dim p As DocumentProperty
+        Set p = SearchName(.CustomDocumentProperties, k)
+        If Not p Is Nothing Then
+            If week Then Exit Sub
+            If p.Value = v Then Exit Sub
+            p.Delete
+        End If
+        .CustomDocumentProperties.Add k, False, t, v
+    End With
+End Sub
+
+'remove property
+Sub RemoveBookProp(Optional k As String = "*", Optional wb As Workbook)
+    Dim ptn As String
+    ptn = IIf(InStr(1, k, "*", vbTextCompare), k, k & "*")
+    With GetWorkbook(wb)
+        Dim p As DocumentProperty
+        For Each p In .CustomDocumentProperties
+            If p.name Like ptn Then p.Delete
+        Next p
+    End With
+End Sub
+
+'get book properties
+Sub WriteBookKeys(Optional wb As Workbook)
+    Dim ce As Range
+    Set ce = ActiveCell
+    Dim p As Object
+    For Each p In GetWorkbook(wb).CustomDocumentProperties
+        ce.Offset(0, 0).Value = p.name
+        ce.Offset(0, 1).Value = p.Type
+        ce.Offset(0, 2).Value = p.Value
+        Set ce = ce.Offset(1)
+    Next
+End Sub
 
 '----------------------------------------
 'シートプロパティ機能
@@ -738,78 +827,6 @@ End Sub
 
 Sub SetSheetNum(ws As Worksheet, k As String, v As Long)
     SetSheetStr ws, k, CStr(v)
-End Sub
-
-'----------------------------------------
-'book properties
-'----------------------------------------
-
-'Get Property value
-Function GetBookStr(k As String, Optional wb As Workbook) As String
-    On Error Resume Next
-    GetBookStr = CStr(GetWorkbook(wb).CustomDocumentProperties(k))
-    On Error GoTo 0
-End Function
-
-Function GetBookBool(k As String, Optional wb As Workbook) As Boolean
-    On Error Resume Next
-    GetBookBool = CBool(GetWorkbook(wb).CustomDocumentProperties(k))
-    On Error GoTo 0
-End Function
-
-Function GetBookNum(k As String, Optional wb As Workbook) As Long
-    On Error Resume Next
-    GetBookNum = CLng(GetWorkbook(wb).CustomDocumentProperties(k))
-    On Error GoTo 0
-End Function
-
-Private Function GetWorkbook(wb As Workbook) As Workbook
-    Set GetWorkbook = IIf(wb Is Nothing, ThisWorkbook, wb)
-End Function
-
-'Set Property
-Sub SetBookStr(k As String, v As String, _
-        Optional saved As Boolean, Optional wb As Workbook)
-    SetBookProp k, msoPropertyTypeString, v, saved, wb
-End Sub
-
-Sub SetBookBool(k As String, v As Boolean, _
-        Optional saved As Boolean, Optional wb As Workbook)
-    SetBookProp k, msoPropertyTypeBoolean, v, saved, wb
-End Sub
-
-Sub SetBookNum(k As String, v As Long, _
-        Optional saved As Boolean, Optional wb As Workbook)
-    SetBookProp k, msoPropertyTypeNumber, v, saved, wb
-End Sub
-
-Private Sub SetBookProp(k As String, t As Long, v As Variant, _
-        saved As Boolean, wb As Workbook)
-    With GetWorkbook(wb)
-        Dim i As Long
-        For i = 1 To .CustomDocumentProperties.Count
-            If .CustomDocumentProperties(i).name Like k Then
-                If .CustomDocumentProperties(i) = v Then Exit Sub
-                .CustomDocumentProperties(i).Delete
-                Exit For
-            End If
-        Next i
-        .CustomDocumentProperties.Add k, False, t, v
-        If saved Then .Save
-    End With
-End Sub
-
-'get book properties
-Sub WriteBookKeys(Optional wb As Workbook)
-    Dim ce As Range
-    Set ce = ActiveCell
-    Dim p As Object
-    For Each p In GetWorkbook(wb).CustomDocumentProperties
-        ce.Offset(0, 0).Value = p.name
-        ce.Offset(0, 1).Value = p.Type
-        ce.Offset(0, 2).Value = p.Value
-        Set ce = ce.Offset(1)
-    Next
 End Sub
 
 '----------------------------------------
