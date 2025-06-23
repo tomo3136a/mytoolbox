@@ -100,7 +100,10 @@ Private Sub works1_onAction(ByVal control As IRibbonControl)
         If TypeName(Selection) <> "Range" Then Exit Sub
         UserFormulaProc Selection, RibbonID(control, 1)
     Case 7: '削除
-        ShowHide RibbonID(control, 1)
+        Select Case RibbonID(control, 1)
+        Case 5: ProcStyle RibbonID(control, 2)
+        Case Else: ShowHide RibbonID(control, 1)
+        End Select
     End Select
 End Sub
 
@@ -188,10 +191,11 @@ End Sub
 
 Private Sub works3_onAction(ByVal control As IRibbonControl)
     Select Case RibbonID(control)
-    Case 9: 'エクスポート
+    Case 9  'エクスポート
         If TypeName(Selection) <> "Range" Then Exit Sub
         ExportProc Selection, RibbonID(control, 1)
-    Case Else: Call TemplateProc(RibbonID(control), RibbonID(control, 1))
+    Case Else
+        Call TemplateProc(RibbonID(control), RibbonID(control, 1))
     End Select
 End Sub
 

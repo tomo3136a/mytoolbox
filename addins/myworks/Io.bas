@@ -13,12 +13,15 @@ Option Private Module
 '----------------------------------------
 
 Sub ExportProc(ra As Range, mode As Integer)
-    Dim enc As Boolean
+    Dim enc As Boolean, apd As Boolean
     enc = GetBookBool("export.1")
+    apd = GetBookBool("export.2")
+    Dim enc_name As String
+    enc_name = IIf(enc, "UTF-8", "Shift_JIS")
     '
     Select Case mode
     Case 1: Call ExportRangeToSpreadSheet(ra, enc)
-    Case 2: Call ExportRangeToText(ra, enc)
+    Case 2: Call ExportRangeToText(ra, apd, False, enc_name)
     End Select
 End Sub
 
@@ -35,12 +38,12 @@ Private Sub ExportRangeToSpreadSheet(ra As Range, utf8 As Boolean)
     flt = flt & ",テキストファイル,*.txt"
     flt = flt & ",XML データ,*.xml"
     '
-    Dim path As String
-    path = GetIoSaveAsFilename("", "csv", flt)
-    If path = "" Then Exit Sub
+    Dim pth As String
+    pth = GetIoSaveAsFilename("", "csv", flt)
+    If pth = "" Then Exit Sub
     '
     Dim fmt As Integer
-    Select Case LCase(fso.GetExtensionName(path))
+    Select Case LCase(fso.GetExtensionName(pth))
     Case "txt": fmt = IIf(utf8, xlUnicodeText, xlText)
     Case "xml": fmt = xlXMLSpreadsheet
     Case "xlsx": fmt = xlOpenXMLWorkbook
@@ -48,10 +51,13 @@ Private Sub ExportRangeToSpreadSheet(ra As Range, utf8 As Boolean)
     Case Else: fmt = IIf(utf8, xlCSVUTF8, xlCSV)
     End Select
     '
-    ra.SpecialCells(xlCellTypeVisible).Copy
+    Dim ra2 As Range
+    Set ra2 = ra
+    If ra2.Count = 1 Then Set ra2 = ra.Worksheet.UsedRange
     '
     ScreenUpdateOff
     On Error Resume Next
+    Application.Visible = False
     '
     Dim n As Integer
     n = Application.SheetsInNewWorkbook
@@ -59,25 +65,32 @@ Private Sub ExportRangeToSpreadSheet(ra As Range, utf8 As Boolean)
     Dim wb As Workbook
     Set wb = Application.Workbooks.Add
     Application.SheetsInNewWorkbook = n
-    wb.Worksheets(1).Paste
-    wb.SaveAs Filename:=path, FileFormat:=fmt
+    '
+    ra2.Copy Destination:=wb.Worksheets(1).Cells(1, 1)
+    '
+    wb.SaveAs Filename:=pth, FileFormat:=fmt
     wb.Close
     '
+    Application.Visible = True
     On Error GoTo 0
     ScreenUpdateOn
 End Sub
 
 '選択範囲をリスト形式でエクスポート
-' apnd:  追加の場合は True
+' apd:   追加の場合は True
 ' frc:   強制上書きの場合は True
 ' enc:   文字コード指定 Shift_JIS, UTF-8, EUC-JP, ISO-2022-JP
 ' eol:   改行コード指定 -1:CRLF, 10:LF, 13:CR
       
 Private Sub ExportRangeToText(ra As Range, _
-        Optional ByVal apnd As Boolean, _
+        Optional ByVal apd As Boolean, _
         Optional ByVal frc As Boolean, _
         Optional ByVal enc As String = "Shift_JIS", _
         Optional ByVal eol As Integer = -1)
+    If ra.Count < 2 Then
+        MsgBox "複数のセルを選択してください。"
+        Exit Sub
+    End If
     If Not IsArray(ra.Value) Then Exit Sub
     '
     Dim flt As String, pth As String
@@ -85,26 +98,58 @@ Private Sub ExportRangeToText(ra As Range, _
     pth = GetIoSaveAsFilename(ActiveSheet.name, "txt", flt)
     If pth = "" Then Exit Sub
     '
+    Dim msg As String
     Dim res As Variant
     If fso.FileExists(pth) Then
-        res = MsgBox("既存ファイルがあります。上書きしますか？", vbYesNoCancel Or vbDefaultButton2)
-        If res = vbCancel Then Exit Sub
-        If res = vbYes Then frc = True
-        '
-        res = MsgBox("既存ファイルがあります。既存ファイルに追加しますか？", vbYesNoCancel Or vbDefaultButton2)
-        If res = vbCancel Then Exit Sub
-        If res = vbYes Then apnd = True
+        If (Not apd) And (Not frc) Then
+            msg = "既存ファイルがあります。上書きしますか？"
+            res = MsgBox(msg, vbYesNoCancel Or vbDefaultButton1)
+            If res = vbCancel Then Exit Sub
+            If res = vbYes Then
+                frc = True
+            Else
+                msg = "既存ファイルに追加しますか？"
+                res = MsgBox(msg, vbYesNoCancel Or vbDefaultButton1)
+                If res = vbCancel Then Exit Sub
+                If res = vbYes Then apd = True
+            End If
+        End If
+    Else
+        apd = False
+        frc = False
     End If
     '
-    res = MsgBox("文字コードはUTF-8ですか？", vbYesNoCancel Or vbDefaultButton2)
+    msg = "文字コードはUTF-8ですか？"
+    res = MsgBox(msg, vbYesNoCancel Or vbDefaultButton2)
     If res = vbCancel Then Exit Sub
-    If res = vbYes Then enc = "UTF-8"
+    enc = IIf(res = vbYes, "UTF-8", "Shift_JIS")
     '
-    res = MsgBox("改行コードはLFですか？", vbYesNoCancel Or vbDefaultButton2)
+    msg = "改行コードはLFですか？"
+    res = MsgBox(msg, vbYesNoCancel Or vbDefaultButton2)
     If res = vbCancel Then Exit Sub
-    If res = vbYes Then eol = 10
-    
-    WriteText ra, pth, apnd, frc, enc, eol
+    eol = IIf(res = vbYes, 10, -1)
+    '
+    Dim sep As String
+    sep = " "
+    msg = "分割文字はTABですか？"
+    res = MsgBox(msg, vbYesNoCancel Or vbDefaultButton1)
+    If res = vbCancel Then Exit Sub
+    If res = vbYes Then
+        sep = Chr(9)
+    Else
+        msg = "分割文字は改行ですか？"
+        res = MsgBox(msg, vbYesNoCancel Or vbDefaultButton1)
+        If res = vbCancel Then Exit Sub
+        If res = vbYes Then sep = IIf(eol = 10, Chr(10), Chr(13) & Chr(10))
+    End If
+    '
+    Dim blank As Boolean
+    msg = "空行は無視しますか？"
+    res = MsgBox(msg, vbYesNoCancel Or vbDefaultButton1)
+    If res = vbCancel Then Exit Sub
+    If res <> vbYes Then blank = True
+    '
+    WriteText ra, pth, apd, frc, enc, sep, blank, eol
 End Sub
 
 '----------------------------------
@@ -113,11 +158,11 @@ End Sub
 
 '保存ファイル名選択
 Private Function GetIoSaveAsFilename( _
-        Optional path As String, _
+        Optional pth As String, _
         Optional ext As String, _
         Optional flt As String)
     Dim p As String, e As String, n As String
-    p = fso.GetFileName(path)
+    p = fso.GetFileName(pth)
     e = ext
     If p = "" Then
         p = ActiveSheet.name

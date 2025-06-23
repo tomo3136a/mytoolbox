@@ -32,21 +32,25 @@
               getItemLabel="works1_getItemLabel" getSelectedItemID="works1_getSelectedItemID" />
             <buttonGroup id="g1.1.1">
               <menu id="m1.4" label="整形" imageMso="ContentControlRichText">
-                <button id="b1.4" onAction="works1_onAction" label="テキスト整形"
-                  imageMso="ContentControlRichText"
-                  screentip="テキストを整形" supertip="ASCII文字のみ半角化&#10;冗長なスペース削除&#10;境界は半角スペース化" />
-                <menu id="m1.4.1" label="設定">
-                  <toggleButton id="c1.4.1" label="ASCII文字のみ半角化" onAction="works1_onChecked"
-                    getPressed="works1_getPressed" />
-                  <toggleButton id="c1.4.2" label="冗長なスペース削除" onAction="works1_onChecked"
-                    getPressed="works1_getPressed" />
-                  <toggleButton id="c1.4.3" label="境界は半角スペース化" onAction="works1_onChecked"
-                    getPressed="works1_getPressed" />
-                  <toggleButton id="c1.4.4" label="音引き→ハイフン" onAction="works1_onChecked"
-                    getPressed="works1_getPressed" />
-                  <toggleButton id="c1.4.5" label="罫線統一" onAction="works1_onChecked"
-                    getPressed="works1_getPressed" />
-                </menu>
+                <splitButton id="s1.4">
+                  <button id="b1.4" onAction="works1_onAction" label="テキスト整形"
+                    imageMso="ContentControlRichText" />
+                  <!-- <button id="b1.4" onAction="works1_onAction" label="テキスト整形"
+                    imageMso="ContentControlRichText"
+                    screentip="テキストを整形" supertip="ASCII文字のみ半角化&#10;冗長なスペース削除&#10;境界は半角スペース化" /> -->
+                  <menu id="m1.4.1">
+                    <toggleButton id="c1.4.1" label="ASCII文字のみ半角化" onAction="works1_onChecked"
+                      getPressed="works1_getPressed" />
+                    <toggleButton id="c1.4.2" label="冗長なスペース削除" onAction="works1_onChecked"
+                      getPressed="works1_getPressed" />
+                    <toggleButton id="c1.4.3" label="境界は半角スペース化" onAction="works1_onChecked"
+                      getPressed="works1_getPressed" />
+                    <toggleButton id="c1.4.4" label="音引き→ハイフン" onAction="works1_onChecked"
+                      getPressed="works1_getPressed" />
+                    <toggleButton id="c1.4.5" label="罫線統一" onAction="works1_onChecked"
+                      getPressed="works1_getPressed" />
+                  </menu>
+                </splitButton>
                 <menuSeparator id="z1.4.1" />
                 <button id="b1.4.1" onAction="works1_onAction" label="トリム" supertip="冗長なスペース削除" />
                 <button id="b1.4.2" onAction="works1_onAction" label="シングルライン"
@@ -103,16 +107,25 @@
                 <button id="b1.6.3" onAction="works1_onAction" label="差分マーカ" screentip="差分マーカを挿入"
                   supertip="右隣2つのセルの値が同じなら「〇」を表示する" />
               </menu>
-              <menu id="m1.7" label="削除" imageMso="Clear">
+              <menu id="m1.7" label="そのほか" imageMso="AddinManager">
+                <menu id="m1.7.5" label="スタイル">
+                  <button id="b1.7.5.1" onAction="works1_onAction" label="スタイル1" />
+                  <menuSeparator id="z1.7.5.1" />
+                  <button id="b1.7.5.2" onAction="works1_onAction" label="プロパティ：移動・サイズ変更なし" />
+                  <button id="b1.7.5.3" onAction="works1_onAction" label="はみ出し表示" />
+                  <button id="b1.7.5.4" onAction="works1_onAction" label="はみ出し表示（幅自動）" />
+                  <button id="b1.7.5.5" onAction="works1_onAction" label="左上揃え" />
+                </menu>
+                <menuSeparator id="z1.7.1" />
                 <button id="b1.7.1" onAction="works1_onAction" label="削除"
                   imageMso="TableDeleteRowsAndColumnsMenu"
                   screentip="非表示の行列削除" supertip="非表示行の削除&#10;​非表示列の削除" />
                 <button id="b1.7.2" onAction="works1_onAction" label="非表示削除(行)" />
                 <button id="b1.7.3" onAction="works1_onAction" label="​非表示削除(列)" />
-                <menuSeparator id="z1.7.1" />
+                <menuSeparator id="z1.7.2" />
                 <button id="b1.7.4" onAction="works1_onAction" label="非表示シート削除"
                   imageMso="SheetDelete" />
-                <menuSeparator id="z1.7.2" />
+                <menuSeparator id="z1.7.3" />
                 <button id="b1.7.8" onAction="works1_onAction" label="全表示(シート)"
                   imageMso="WindowUnhide" />
                 <button id="b1.7.9" onAction="works1_onAction" label="全表示(名前)" imageMso="NameDefine" />
@@ -323,4 +336,32 @@
       </tab>
     </tabs>
   </ribbon>
+
+  <!--contextmenu-->
+  <contextMenus>
+    <contextMenu idMso="ContextMenuShape">
+      <menu id="cm1.1" label="スタイル" insertBeforeMso="Cut">
+        <button id="cb1.7.5.2" onAction="works1_onAction" label="プロパティ：移動・サイズ変更なし" />
+        <button id="cb1.7.5.3" onAction="works1_onAction" label="はみ出し表示" />
+        <button id="cb1.7.5.4" onAction="works1_onAction" label="はみ出し表示（幅自動）" />
+        <button id="cb1.7.5.5" onAction="works1_onAction" label="左上揃え" />
+      </menu>
+    </contextMenu>
+    <contextMenu idMso="ContextMenuShapeConnector">
+      <menu id="cm2.1" label="スタイル" insertBeforeMso="Cut">
+        <button id="cb2.7.5.2" onAction="works1_onAction" label="プロパティ：移動・サイズ変更なし" />
+        <button id="cb2.7.5.3" onAction="works1_onAction" label="はみ出し表示" />
+        <button id="cb2.7.5.4" onAction="works1_onAction" label="はみ出し表示（幅自動）" />
+        <button id="cb2.7.5.5" onAction="works1_onAction" label="左上揃え" />
+      </menu>
+    </contextMenu>
+    <contextMenu idMso="ContextMenuShapeFreeform">
+      <menu id="cm3.1" label="スタイル" insertBeforeMso="Cut">
+        <button id="cb3.7.5.2" onAction="works1_onAction" label="プロパティ：移動・サイズ変更なし" />
+        <button id="cb3.7.5.3" onAction="works1_onAction" label="はみ出し表示" />
+        <button id="cb3.7.5.4" onAction="works1_onAction" label="はみ出し表示（幅自動）" />
+        <button id="cb3.7.5.5" onAction="works1_onAction" label="左上揃え" />
+      </menu>
+    </contextMenu>
+  </contextMenus>
 </customUI>

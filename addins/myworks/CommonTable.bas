@@ -477,19 +477,23 @@ End Sub
 '選択範囲をリスト形式でエクスポート
 ' ra:    書き出し範囲
 ' pth:   聞き出しファイル名
-' apnd:  追加の場合は True
+' apd:   追加の場合は True
 ' force: 強制上書きの場合は True
 ' enc:   文字コード指定 Shift_JIS, UTF-8, EUC-JP, ISO-2022-JP
+' sep:   分割文字 スペース
+' blank: 空行も含める場合は True
 ' eol:   改行コード指定 -1:CRLF, 10:LF, 13:CR
 
 Public Sub WriteText( _
         ra As Range, _
         pth As String, _
-        Optional apnd As Boolean, _
+        Optional apd As Boolean, _
         Optional frc As Boolean, _
         Optional enc As String = "Shift_JIS", _
+        Optional sep As String = " ", _
+        Optional blank As Boolean, _
         Optional eol As Integer = -1)
-    
+    '
     On Error GoTo WriteError
     Dim ost As Object
     Set ost = CreateObject("ADODB.Stream")
@@ -498,17 +502,31 @@ Public Sub WriteText( _
     ost.LineSeparator = eol
     '
     ost.Open
-    If apnd Then
+    If apd Then
         ost.LoadFromFile pth
         ost.Position = ost.Size
     End If
     '
-    Dim rs As Variant
-    For Each rs In wsf.Transpose(ra.Value)
-        Dim line As String
-        line = Trim(rs)
-        If line <> "" Then ost.WriteText line, 1
-    Next rs
+    Dim arr As Variant
+    arr = ra.Value
+    '
+    Dim r As Long, line As String, s As String, b As Boolean
+    Dim c As Long, c1 As Long, c2 As Long
+    c1 = LBound(arr, 2)
+    c2 = UBound(arr, 2)
+    For r = LBound(arr, 1) To UBound(arr, 1)
+        b = False
+        line = ""
+        For c = c1 To c2 - 1
+            s = Trim(arr(r, c))
+            If s <> "" Then b = True
+            line = line & s & sep
+        Next c
+        s = Trim(arr(r, c))
+        If s <> "" Then b = True
+        line = line & s
+        If blank Or b Then ost.WriteText line, 1
+    Next r
     '
     ost.SaveToFile pth, IIf(frc, 2, 1)
     ost.Close
