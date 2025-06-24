@@ -5,12 +5,13 @@ Attribute VB_Name = "App"
 
 '[参照設定]
 '「Microsoft Scripting Runtime」
+'「Microsoft VBScript Regular Expressions」
 
 Option Explicit
 Option Private Module
 
 '----------------------------------------
-'基本
+'基本処理
 '----------------------------------------
 
 'アプリケーション情報
@@ -24,14 +25,19 @@ Public Sub eof()
 End Sub
 
 '----------------------------------------
-'
+'自動化処理
 '----------------------------------------
 
+'クローズ時自動保存
 Sub Auto_Close()
     If ThisWorkbook.saved = False Then
         ThisWorkbook.Save
     End If
 End Sub
+
+'----------------------------------------
+'設計メモ
+'----------------------------------------
 
 '■セルを選択していない場合はマクロ終了
 'If TypeName(Selection) <> "Range" Then Exit Sub

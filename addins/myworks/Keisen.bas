@@ -224,13 +224,12 @@ End Sub
 '----------------------------------------
 
 Public Sub Cells_GenerateValue(ra As Range, mode As Long)
-    'ScreenUpdateOff
+    ScreenUpdateOff
     '
     Dim idx As Long
     idx = 1
     Dim rb As Range
     For Each rb In ra.Areas
-        'Set rb = Intersect(rb, ra.Parent.UsedRange)
         If rb Is Nothing Then Exit For
         '
         Dim va As Variant
@@ -247,12 +246,30 @@ Public Sub Cells_GenerateValue(ra As Range, mode As Long)
     ScreenUpdateOn
 End Sub
 
+Function ColumnName(idx As Long) As String
+    Dim s As String
+    Dim i As Long, j As Long
+    i = idx - 1
+    Do While i >= 0
+        j = i Mod 26
+        s = Chr(65 + j) + s
+        i = (i - j) / 26 - 1
+    Loop
+    ColumnName = s
+End Function
+
 Public Sub Cells_GenerateIndex(va As Variant, v0 As Long)
     Dim i As Long
-    i = v0
-    
     Dim r As Long, c As Long
-    For r = LBound(va, 1) To UBound(va, 1)
+    'header
+    r = LBound(va, 1)
+    For c = LBound(va, 2) To UBound(va, 2)
+        va(r, c) = ColumnName(c)
+        i = i + 1
+    Next c
+    'array
+    i = v0
+    For r = LBound(va, 1) + 1 To UBound(va, 1)
         For c = LBound(va, 2) To UBound(va, 2)
             va(r, c) = i
             i = i + 1
