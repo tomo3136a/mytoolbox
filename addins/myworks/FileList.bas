@@ -45,12 +45,12 @@ Private Sub ToPathSegment(ra As Range)
         Dim p As String, s As String
         p = ce.Value
         If Right(p, 1) = "\" Or Right(p, 1) = "/" Then
-            s = re_match(p, "[^\\/]+[\\/]$")
-            p = re_replace(p, "[^\\/]+[\\/]", "    ")
+            s = RE_MATCH(p, "[^\\/]+[\\/]$")
+            p = RE_REPLACE(p, "[^\\/]+[\\/]", "    ")
             p = p & s
             p = Mid(p, 5)
         Else
-            p = re_replace(p, "[^\\/]+[\\/]", "    ")
+            p = RE_REPLACE(p, "[^\\/]+[\\/]", "    ")
         End If
         If p <> ce.Value Then ce.Value = p
     Next ce

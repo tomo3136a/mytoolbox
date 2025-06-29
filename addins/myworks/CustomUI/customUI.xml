@@ -14,8 +14,9 @@
               imageMso="PageScaleToFitScale"
               screentip="ページフォーマットを設定" supertip="改ページプレビューに変更する&#10;ズームを 100% にする&#10;開始位置(左上)に移動" />
             <menu id="m1.2">
-              <button id="b1.2.1" onAction="works1_onAction" label="最終行+1" />
-              <button id="b1.2.2" onAction="works1_onAction" label="最終列+1" />
+              <button id="b1.2.1" onAction="works1_onAction" label="最終列+1" />
+              <button id="b1.2.2" onAction="works1_onAction" label="最終行+1" />
+              <button id="b1.2.3" onAction="works1_onAction" label="最終行・列リセット" />
             </menu>
           </splitButton>
           <menu id="m1.3" label="チェック     " imageMso="WorkflowComplete" size="large">

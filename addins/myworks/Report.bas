@@ -79,20 +79,45 @@ Sub PagePreview()
     ScreenUpdateOn
 End Sub
 
-'最終空白行追加
-Sub AddLastRow()
-    Dim ra As Range
-    Set ra = ActiveSheet.UsedRange
-    Set ra = ra(ra.Rows.Count, 1)
-    If ra <> " " Then ra.Offset(1, 0) = " "
-End Sub
-
 '最終空白列追加
 Sub AddLastColumn()
     Dim ra As Range
     Set ra = ActiveSheet.UsedRange
     Set ra = ra(1, ra.Columns.Count)
-    If ra <> " " Then ra.Offset(0, 1) = " "
+    ra.Offset(0, 1) = " "
+    ra(ActiveCell.Row - ra.Row + 1, ra.Columns.Count + 1).Select
+End Sub
+
+'最終空白行追加
+Sub AddLastRow()
+    Dim ra As Range
+    Set ra = ActiveSheet.UsedRange
+    Set ra = ra(ra.Rows.Count, 1)
+    ra.Offset(1, 0) = " "
+    ra(ra.Rows.Count + 1, ActiveCell.Column - ra.Column + 1).Select
+End Sub
+
+'最終空白行列削除
+Sub ClearLastRange()
+    Dim r As Long, c As Long
+    Dim ra As Range
+    Set ra = ActiveSheet.UsedRange
+    '
+    c = ra.Columns.Count
+    For r = ra.Rows.Count To 1 Step -1
+        If ra(r, c) <> "" Then
+            If Trim(ra(r, c)) <> "" Then Exit For
+            ra(r, c) = Empty
+        End If
+    Next r
+    '
+    r = ra.Rows.Count
+    For c = ra.Columns.Count To 1 Step -1
+        If ra(r, c) <> "" Then
+            If Trim(ra(r, c)) <> "" Then Exit For
+            ra(r, c) = Empty
+        End If
+    Next c
 End Sub
 
 '左上に移動
@@ -274,8 +299,8 @@ Private Sub Cells_StrConvOnbiki(va As Variant)
         For c = LBound(va, 2) To UBound(va, 2)
             s = va(r, c)
             If s <> "" And Left(s, 1) <> "=" Then
-                s = re_replace(Replace(s, "ｰ", "-"), "([｡-ﾟ])-", "$1ｰ")
-                s = re_replace(Replace(s, "ー", "－"), "([\u3040-\u30FA])－", "$1ー")
+                s = RE_REPLACE(Replace(s, "ｰ", "-"), "([｡-ﾟ])-", "$1ｰ")
+                s = RE_REPLACE(Replace(s, "ー", "－"), "([\u3040-\u30FA])－", "$1ー")
                 va(r, c) = s
             End If
         Next c

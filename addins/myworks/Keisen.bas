@@ -129,7 +129,7 @@ Sub Waku(ByVal ra As Range, _
         Optional fixed As Boolean, _
         Optional icolor As Integer = 15 _
     )
-    If ra.Count = 1 Then Set ra = ra.CurrentRegion
+    If ra.Count = 1 Then Set ra = CurrentTableRegion(ra)
     ra.Borders.LineStyle = xlContinuous
     '
     Dim rh As Range
@@ -142,10 +142,7 @@ Sub Waku(ByVal ra As Range, _
     If filter Then HeaderFilter rh
     '
     Set ra = TableRange(TableHeaderRange(ra))
-    If fit Then
-        ra.Columns.ColumnWidth = 100
-        ra.Columns.AutoFit
-    End If
+    If fit Then ra.Columns.AutoFit
 
 End Sub
 
@@ -223,7 +220,7 @@ End Sub
 '’l’Ç‰Á
 '----------------------------------------
 
-Public Sub Cells_GenerateValue(ra As Range, mode As Long)
+Sub Cells_GenerateValue(ra As Range, mode As Long)
     ScreenUpdateOff
     '
     Dim idx As Long
@@ -246,19 +243,7 @@ Public Sub Cells_GenerateValue(ra As Range, mode As Long)
     ScreenUpdateOn
 End Sub
 
-Function ColumnName(idx As Long) As String
-    Dim s As String
-    Dim i As Long, j As Long
-    i = idx - 1
-    Do While i >= 0
-        j = i Mod 26
-        s = Chr(65 + j) + s
-        i = (i - j) / 26 - 1
-    Loop
-    ColumnName = s
-End Function
-
-Public Sub Cells_GenerateIndex(va As Variant, v0 As Long)
+Private Sub Cells_GenerateIndex(va As Variant, v0 As Long)
     Dim i As Long
     Dim r As Long, c As Long
     'header
@@ -267,7 +252,7 @@ Public Sub Cells_GenerateIndex(va As Variant, v0 As Long)
         va(r, c) = ColumnName(c)
         i = i + 1
     Next c
-    'array
+    'data
     i = v0
     For r = LBound(va, 1) + 1 To UBound(va, 1)
         For c = LBound(va, 2) To UBound(va, 2)

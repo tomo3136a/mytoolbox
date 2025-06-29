@@ -1,24 +1,26 @@
 Attribute VB_Name = "Hash"
-Option Explicit
-'Option Private Module
-
 '========================================
 '汎用計算モジュール
 '========================================
 
+Option Explicit
+
 '----------------------------------------
-'ハッシュ計算
+'ハッシュ値計算
+'HASH_MD5(s)
+'HASH_SHA1(s)
+'HASH_SHA256(s)
 '----------------------------------------
 
-Public Function HASH_MD5(s As String) As String
+Function HASH_MD5(s As String) As String
     HASH_MD5 = Hash("MD5CryptoServiceProvider", s)
 End Function
 
-Public Function HASH_SHA1(s As String) As String
+Function HASH_SHA1(s As String) As String
     HASH_SHA1 = Hash("SHA1CryptoServiceProvider", s)
 End Function
 
-Public Function HASH_SHA256(s As String) As String
+Function HASH_SHA256(s As String) As String
     HASH_SHA256 = Hash("SHA256Managed", s)
 End Function
 
@@ -29,6 +31,7 @@ Private Function Hash(alg As String, s As String) As String
     Dim code() As Byte
     Dim i As Integer
     Dim res As String
+    
     Set utf8 = CreateObject("System.Text.UTF8Encoding")
     bytes = utf8.GetBytes_4(s)
     Set Conv = CreateObject("System.Security.Cryptography." & alg)
@@ -40,23 +43,26 @@ Private Function Hash(alg As String, s As String) As String
 End Function
 
 '----------------------------------------
-'ファイルハッシュ計算
+'ファイルハッシュ値計算関数
+'FILEHASH_MD5(s,[p])
+'FILEHASH_SHA1(s,[p])
+'FILEHASH_SHA256(s,[p])
 '----------------------------------------
 
-Public Function FILEHASH_MD5(s As String, Optional s2 As String) As String
-    If s2 <> "" Then s = fso.BuildPath(s, s2)
+Function FILEHASH_MD5(s As String, Optional p As String) As String
+    If p <> "" Then s = fso.BuildPath(s, p)
     s = GetAbstructPath(s, ActiveWorkbook.path)
     FILEHASH_MD5 = FileHash(s, "MD5CryptoServiceProvider")
 End Function
 
-Public Function FILEHASH_SHA1(s As String, Optional s2 As String) As String
-    If s2 <> "" Then s = fso.BuildPath(s, s2)
+Function FILEHASH_SHA1(s As String, Optional p As String) As String
+    If p <> "" Then s = fso.BuildPath(s, p)
     s = GetAbstructPath(s, ActiveWorkbook.path)
     FILEHASH_SHA1 = FileHash(s, "SHA1CryptoServiceProvider")
 End Function
 
-Public Function FILEHASH_SHA256(s As String, Optional s2 As String) As String
-    If s2 <> "" Then s = fso.BuildPath(s, s2)
+Function FILEHASH_SHA256(s As String, Optional p As String) As String
+    If p <> "" Then s = fso.BuildPath(s, p)
     s = GetAbstructPath(s, ActiveWorkbook.path)
     FILEHASH_SHA256 = FileHash(s, "SHA256Managed")
 End Function

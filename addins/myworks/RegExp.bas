@@ -1,4 +1,10 @@
 Attribute VB_Name = "RegExp"
+'========================================
+'汎用計算モジュール
+'========================================
+
+Option Explicit
+
 '----------------------------------------
 '正規表現関数
 ' re_test(s,ptn)            文字列有無
@@ -7,21 +13,6 @@ Attribute VB_Name = "RegExp"
 ' re_split(s,ptn)           文字列分割
 ' re_extract(col,ptn)       配列からマッチした文字列を抽出
 '----------------------------------------
-
-Option Explicit
-
-'regex(VBScript.RegExp)
-Private Function regex( _
-        ptn As String, _
-        Optional g As Boolean = True, _
-        Optional ic As Boolean = True) As Object
-    Set regex = CreateObject("VBScript.RegExp")
-    With regex
-        .Global = g
-        .IgnoreCase = ic
-        .Pattern = ptn
-    End With
-End Function
 
 '文字列有無
 Function RE_TEST(s As String, ptn As String) As Boolean
@@ -91,4 +82,3 @@ Function RE_EXTRACT(col As Variant, ptn As String) As Variant
     ReDim Preserve arr(i - 1)
     RE_EXTRACT = arr
 End Function
-

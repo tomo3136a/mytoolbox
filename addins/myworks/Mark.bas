@@ -91,7 +91,7 @@ Private Function LastRevIndex(s As String) As Integer
             s2 = sp.AlternativeText
             If re.Test(s2) Then
                 Dim s3 As String
-                s3 = re_match(s2, "\bidx:(\d+)\b", 0, 0)
+                s3 = RE_MATCH(s2, "\bidx:(\d+)\b", 0, 0)
                 If s3 <> "" Then
                     Dim i As Integer
                     i = Val(s3)
@@ -325,7 +325,7 @@ Private Sub ListRevMark(ra As Range, Optional ByVal rev As String)
                     Set ce = ce.Offset(, 1)
                     ce.Value = Trim(RemoveParamStrAll(sp.AlternativeText))
                     s = sp.AlternativeText
-                    s = re_replace(s, "\s*\w+:[^$\r\n]*[$\r\n]?", "")
+                    s = RE_REPLACE(s, "\s*\w+:[^$\r\n]*[$\r\n]?", "")
                     ce.Value = Trim(s)
                     Set ce = ce.Offset(1, -3)
                 End If

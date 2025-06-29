@@ -1,6 +1,6 @@
 Attribute VB_Name = "CommonIO"
 '==================================
-'ã§í (UIëÄçÏ)
+'ã§í (IOëÄçÏ)
 '==================================
 
 Option Explicit
@@ -115,7 +115,7 @@ Public Function SelectFiles( _
         Next s
         .FilterIndex = 0
         If path <> "" Then
-            path = re_replace(path, "^\((\w+)\)", "%$1%")
+            path = RE_REPLACE(path, "^\((\w+)\)", "%$1%")
             If Right(path, 1) <> "\" Then path = path & "\"
             'If Not fso.FileExists(path) Then path = path & "\"
             .InitialFileName = path
@@ -157,7 +157,7 @@ Function SelectFolder( _
     If path = "" Then
         path = ActiveWorkbook.path
     Else
-        path = re_replace(path, "^\((\w+)\)", "%$1%")
+        path = RE_REPLACE(path, "^\((\w+)\)", "%$1%")
     End If
     '
     If mode = 1 Then

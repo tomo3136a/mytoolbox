@@ -15,10 +15,6 @@ Function wsf() As WorksheetFunction
     Set wsf = WorksheetFunction
 End Function
 
-'----------------------------------------
-'正規表現
-'----------------------------------------
-
 'regex(VBScript.RegExp)
 Function regex( _
         ptn As String, _
@@ -32,71 +28,13 @@ Function regex( _
     End With
 End Function
 
-'マッチ文字列有無
-Function re_test(s As String, ptn As String) As Boolean
-    On Error Resume Next
-    re_test = regex(ptn).Test(s)
-    On Error GoTo 0
-End Function
-
-'マッチ文字列抽出
-Function re_match(s As String, ptn As String, _
-        Optional idx As Integer = 0, _
-        Optional idx2 As Integer = -1) As Variant
-    On Error Resume Next
-    Dim re As Object
-    Set re = regex(ptn)
-    Dim mc As Object
-    Set mc = re.Execute(s)
-    
-    If idx >= mc.Count Then
-        re_match = ""
-    ElseIf idx < 0 Then
-        re_match = mc.Count
-    ElseIf idx2 < 0 Then
-        re_match = mc(idx).Value
-    ElseIf idx2 < mc(idx).SubMatches.Count Then
-        re_match = mc(idx).SubMatches(idx2)
-    Else
-        re_match = ""
+'filesystemobject
+Function fso() As FileSystemObject
+    Static obj As FileSystemObject
+    If obj Is Nothing Then
+        Set obj = CreateObject("Scripting.FileSystemObject")
     End If
-    On Error GoTo 0
-End Function
-
-'マッチ文字列置き換え
-Function re_replace(s As String, ptn As String, rep As String) As String
-    On Error Resume Next
-    re_replace = regex(ptn).Replace(s, rep)
-    On Error GoTo 0
-End Function
-
-'マッチ文字列分割
-Function re_split(s As String, ptn As String) As String()
-    re_split = Split(regex(ptn).Replace(s, Chr(7)), Chr(7))
-End Function
-
-'配列からマッチした文字列を抽出
-Function re_extract(col As Variant, ptn As String) As Variant
-    Dim re As Object
-    Set re = regex(ptn)
-    
-    Dim arr As Variant
-    ReDim arr(50)
-    
-    Dim s As String
-    Dim i As Integer
-    Dim v As Variant
-    For Each v In col
-        s = v
-        If re.Test(s) Then
-            If i > UBound(arr) Then ReDim Preserve arr(UBound(arr) + 50)
-            arr(i) = s
-            i = i + 1
-        End If
-    Next v
-    If i < 1 Then Exit Function
-    ReDim Preserve arr(i - 1)
-    re_extract = arr
+    Set fso = obj
 End Function
 
 '----------------------------------------
@@ -116,13 +54,26 @@ Function SearchName(col As Object, s As String) As Object
 End Function
 
 '----------------------------------------
-'文字列変換
+'データ変換
 '----------------------------------------
 
+'列名取得
+Function ColumnName(idx As Long) As String
+    Dim s As String
+    Dim i As Long, j As Long
+    i = idx - 1
+    Do While i >= 0
+        j = i Mod 26
+        s = Chr(65 + j) + s
+        i = (i - j) / 26 - 1
+    Loop
+    ColumnName = s
+End Function
+
 'キーワード文字列化(スペースはまとめて置換,半角,大文字)
-Function StrConvWord(ByVal s As String, Optional sp As String = "_")
-    s = Trim(re_replace(s, "[\s\u00A0\u3000]+", " "))
-    s = re_replace(s, "[ _]+", sp)
+Function StrConvWord(ByVal s As String, Optional sep As String = "_")
+    s = Trim(RE_REPLACE(s, "[\s\u00A0\u3000]+", " "))
+    s = RE_REPLACE(s, "[ _]+", sep)
     s = StrConv(s, vbUpperCase + vbNarrow)
     StrConvWord = s
 End Function
@@ -409,15 +360,6 @@ End Function
 'パス操作
 '----------------------------------------
 
-'filesystemobject
-Function fso() As FileSystemObject
-    Static obj As FileSystemObject
-    If obj Is Nothing Then
-        Set obj = CreateObject("Scripting.FileSystemObject")
-    End If
-    Set fso = obj
-End Function
-
 '基本名取得(パス削除、拡張子削除、複製情報削除)
 Function CoreName(s As String) As String
     Dim ptn As String
@@ -534,7 +476,7 @@ Function GetAbstructPath(path As String, Base As String) As String
     Dim p As String
     Dim s As String, s2 As String
     p = path
-    s = re_match(p, "^[\(%](\w+)[\)%]", 0, 0)
+    s = RE_MATCH(p, "^[\(%](\w+)[\)%]", 0, 0)
     If s <> "" Then
         s2 = Environ(s)
         If s2 <> "" Then p = s2 & Mid(p, Len(s) + 3)
@@ -544,12 +486,12 @@ Function GetAbstructPath(path As String, Base As String) As String
     If InStr(1, p, ":\") = 0 Then p = Base & p
     Do
         s = p
-        p = re_replace(p, "\\[^\\]+\\[.][.]\\", "\")
+        p = RE_REPLACE(p, "\\[^\\]+\\[.][.]\\", "\")
         If s = p Then Exit Do
     Loop
     Do
         s = p
-        p = re_replace(p, "\\[.]\\", "\")
+        p = RE_REPLACE(p, "\\[.]\\", "\")
         If s = p Then Exit Do
     Loop
     GetAbstructPath = p

@@ -250,7 +250,7 @@ Sub ListMarker()
     Set wb = ra.Parent.Parent
     
     Dim arr As Variant
-    arr = re_extract(wb.Styles, "^\d{4}_\d{1,2}$")
+    arr = RE_EXTRACT(wb.Styles, "^\d{4}_\d{1,2}$")
     arr = wsf.Transpose(arr)
     If Not TypeName(arr) = "Variant()" Then Exit Sub
     ra.Resize(UBound(arr, 1), 1).Value = arr

@@ -81,8 +81,9 @@ Private Sub works1_onAction(ByVal control As IRibbonControl)
         ReportSign Selection
     Case 2: 'ページフォーマット
         Select Case RibbonID(control, 1)
-        Case 1: AddLastRow
-        Case 2: AddLastColumn
+        Case 1: AddLastColumn
+        Case 2: AddLastRow
+        Case 3: ClearLastRange
         Case Else: PagePreview
         End Select
     Case 3: 'フロー

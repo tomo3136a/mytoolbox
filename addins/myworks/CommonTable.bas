@@ -1,6 +1,6 @@
 Attribute VB_Name = "CommonTable"
 '==================================
-'テーブル共通
+'共通(テーブル操作)
 '==================================
 
 Option Explicit
@@ -18,6 +18,7 @@ Private g_header_color As Long
 '表操作マージン
 '----------------------------------------
 
+'テーブルマージンの設定
 Sub SetTableMargin(Optional mode As Integer = xlColumns, Optional v As Integer)
     If v < 1 Then
         Dim s As String
@@ -34,6 +35,7 @@ Sub SetTableMargin(Optional mode As Integer = xlColumns, Optional v As Integer)
     End If
 End Sub
 
+'テーブルマージンの値取得
 Function GetTableMargin(Optional mode As Integer = xlColumns) As Integer
     Dim v As Integer
     If g_rows_margin < 1 Then g_rows_margin = 1
@@ -66,6 +68,21 @@ End Function
 '領域の右下取得
 Function RightBottom(ra As Range) As Range
     Set RightBottom = ra(ra.Rows.Count, ra.Columns.Count)
+End Function
+
+'----------------------------------------
+'テーブル範囲
+'----------------------------------------
+
+'先頭列のみの行は範囲から外す
+Function CurrentTableRegion(ra As Range) As Range
+    Dim rb As Range
+    Set rb = ra.CurrentRegion
+    Do While Trim(rb.Offset(0, 1)(1.1)) = ""
+        If rb.Rows.Count < 2 Then Exit Function
+        Set rb = rb.Resize(rb.Rows.Count - 1).Offset(1)
+    Loop
+    Set CurrentTableRegion = rb
 End Function
 
 '----------------------------------------
@@ -371,7 +388,6 @@ Function GetHeaderArray(ce As Range, dic As Dictionary) As String()
     ReDim Preserve hdr(c - 1)
     GetHeaderArray = hdr
 End Function
-
 
 '----------------------------------------
 'テーブル操作拡張
