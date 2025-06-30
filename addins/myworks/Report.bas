@@ -97,27 +97,23 @@ Sub AddLastRow()
     ra(ra.Rows.Count + 1, ActiveCell.Column - ra.Column + 1).Select
 End Sub
 
-'ÅI‹ó”’s—ñíœ
-Sub ClearLastRange()
+'‹ó”’ƒZƒ‹íœ
+Sub ClearSpaceCells()
     Dim r As Long, c As Long
     Dim ra As Range
     Set ra = ActiveSheet.UsedRange
+    If ra.Count < 2 Then Exit Sub
     '
-    c = ra.Columns.Count
-    For r = ra.Rows.Count To 1 Step -1
-        If ra(r, c) <> "" Then
-            If Trim(ra(r, c)) <> "" Then Exit For
-            ra(r, c) = Empty
-        End If
+    Dim arr As Variant
+    arr = ra.Formula2
+    For r = UBound(arr, 1) To LBound(arr, 1) Step -1
+        For c = UBound(arr, 2) To LBound(arr, 2) Step -1
+            If arr(r, c) <> "" Then
+                If Trim(arr(r, c)) = "" Then arr(r, c) = Empty
+            End If
+        Next c
     Next r
-    '
-    r = ra.Rows.Count
-    For c = ra.Columns.Count To 1 Step -1
-        If ra(r, c) <> "" Then
-            If Trim(ra(r, c)) <> "" Then Exit For
-            ra(r, c) = Empty
-        End If
-    Next c
+    ra.Value = arr
 End Sub
 
 '¶ã‚ÉˆÚ“®

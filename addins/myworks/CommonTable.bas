@@ -490,8 +490,8 @@ Public Sub ReadText( _
 End Sub
 
 'テキストファイル書き出し
-'選択範囲をリスト形式でエクスポート
-' ra:    書き出し範囲
+'配列をリスト形式でエクスポート
+' arr:   配列
 ' pth:   聞き出しファイル名
 ' apd:   追加の場合は True
 ' force: 強制上書きの場合は True
@@ -501,7 +501,7 @@ End Sub
 ' eol:   改行コード指定 -1:CRLF, 10:LF, 13:CR
 
 Public Sub WriteText( _
-        ra As Range, _
+        arr As Variant, _
         pth As String, _
         Optional apd As Boolean, _
         Optional frc As Boolean, _
@@ -522,9 +522,6 @@ Public Sub WriteText( _
         ost.LoadFromFile pth
         ost.Position = ost.Size
     End If
-    '
-    Dim arr As Variant
-    arr = ra.Value
     '
     Dim r As Long, line As String, s As String, b As Boolean
     Dim c As Long, c1 As Long, c2 As Long

@@ -17,6 +17,8 @@
               <button id="b1.2.1" onAction="works1_onAction" label="最終列+1" />
               <button id="b1.2.2" onAction="works1_onAction" label="最終行+1" />
               <button id="b1.2.3" onAction="works1_onAction" label="最終行・列リセット" />
+              <menuSeparator id="z1.2.1" />
+              <button id="b1.2.4" onAction="works1_onAction" label="左上へ移動" />
             </menu>
           </splitButton>
           <menu id="m1.3" label="チェック     " imageMso="WorkflowComplete" size="large">

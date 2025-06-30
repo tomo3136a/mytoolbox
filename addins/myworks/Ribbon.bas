@@ -83,7 +83,8 @@ Private Sub works1_onAction(ByVal control As IRibbonControl)
         Select Case RibbonID(control, 1)
         Case 1: AddLastColumn
         Case 2: AddLastRow
-        Case 3: ClearLastRange
+        Case 3: ClearSpaceCells
+        Case 4: ResetCellPos
         Case Else: PagePreview
         End Select
     Case 3: 'ÉtÉçÅ[

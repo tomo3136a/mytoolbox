@@ -20,7 +20,7 @@ Option Private Module
 '
 Sub SelectProc(ra As Range, Optional mode As Integer)
     Dim rb As Range
-    Set rb = ra.CurrentRegion
+    Set rb = CurrentTableRegion(ra)
     Select Case mode
     Case 1, 2: rb(1, 1).Select
     Case 3: rb(rb.Rows.Count + 1, 1).Select
@@ -58,39 +58,13 @@ Sub WakuProc(ra As Range, Optional mode As Integer)
     End Select
 End Sub
 
-'Œrü˜gƒwƒbƒ_
-' mode=1: Œrü˜g(˜g,•‡‚í‚¹)
-'      2: Œrü˜g(•W€)
-'      3: Œrü˜g(ŠK‘w\‘¢)
-'      4: ƒwƒbƒ_ƒtƒBƒ‹ƒ^
-'      5: ƒwƒbƒ_•‡‚í‚¹
-'      6: ƒwƒbƒ_ŒÅ’è
-'      7: ƒwƒbƒ_F
-'      8: ˜gƒNƒŠƒA
-'      9: ’lƒNƒŠƒA
-'      10: ƒe[ƒuƒ‹ƒNƒŠƒA
-'
-Sub WakuHeaderProc(ra As Range, Optional mode As Integer)
-    Select Case mode
-    Case 1: Waku ra, fit:=True
-    Case 2: Waku ra
-    Case 3: WakuLayered ra
-    Case 4: HeaderFilter ra
-    Case 5: HeaderAutoFit ra
-    Case 6: HeaderFixed ra
-    Case 7: HeaderColor ra
-    Case 8: WakuClear ra: ra.FormatConditions.Delete
-    Case 9: TableRange(TableHeaderRange(TableLeftTop(ra)).Offset(1)).Clear
-    Case 10: TableRange(TableHeaderRange(TableLeftTop(ra))).Clear
-    End Select
-End Sub
-
 '—ñ’Ç‰Á
 ' mode=1: ”Ô†—ñ’Ç‰Á
 Sub AddColumn(ra As Range, mode As Integer)
     'ƒe[ƒuƒ‹‚Ì1—ñŽæ“¾
     Dim rb As Range
-    Set rb = Intersect(ra.CurrentRegion, ra.EntireColumn)
+    Set rb = CurrentTableRegion(ra)
+    Set rb = Intersect(rb, ra.EntireColumn)
     If ra.Rows.Count > 1 Then Set rb = ra
     Set rb = rb.Columns(1)
     rb.EntireColumn.Insert shift:=xlShiftToRight
@@ -151,10 +125,11 @@ Private Sub WakuLayered(ByVal ra As Range)
     If ra.Rows.Count = 1 And ra.Count > 1 Then
         Set ra = Intersect(ra.CurrentRegion, ra.EntireColumn)
     End If
-    If ra.Count = 1 Then Set ra = ra.CurrentRegion
+    If ra.Count = 1 Then Set ra = CurrentTableRegion(ra)
     
     Waku ra, fit:=True
     ra.FormatConditions.Delete
+    
     Dim s As String
     s = ra(1, 1).Address(False, False)
     s = "=LET(a," & s & ",b,OFFSET(a,-1,0),OR(""""&a="""",AND(""""&a=""""&b,SUBTOTAL(3,b)>0)))"

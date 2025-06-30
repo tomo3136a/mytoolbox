@@ -119,10 +119,10 @@ Private Sub ExportRangeToText(ra As Range, _
         frc = False
     End If
     '
-    msg = "文字コードはUTF-8ですか？"
-    res = MsgBox(msg, vbYesNoCancel Or vbDefaultButton2)
-    If res = vbCancel Then Exit Sub
-    enc = IIf(res = vbYes, "UTF-8", "Shift_JIS")
+    'msg = "文字コードはUTF-8ですか？"
+    'res = MsgBox(msg, vbYesNoCancel Or vbDefaultButton2)
+    'If res = vbCancel Then Exit Sub
+    'enc = IIf(res = vbYes, "UTF-8", "Shift_JIS")
     '
     msg = "改行コードはLFですか？"
     res = MsgBox(msg, vbYesNoCancel Or vbDefaultButton2)
@@ -149,7 +149,7 @@ Private Sub ExportRangeToText(ra As Range, _
     If res = vbCancel Then Exit Sub
     If res <> vbYes Then blank = True
     '
-    WriteText ra, pth, apd, frc, enc, sep, blank, eol
+    WriteText ra.Value, pth, apd, frc, enc, sep, blank, eol
 End Sub
 
 '----------------------------------
