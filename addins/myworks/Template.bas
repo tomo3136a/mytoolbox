@@ -19,26 +19,25 @@ Sub TemplateProc(mode As Long, Optional id As Long)
     Case 1: CopyAddinSheet
     Case 2: UpdateAddinSheet ActiveSheet
     Case 3: RemoveAddinSheet
+    
     Case 4: AddTable
     Case 5: LoadCsvTable
     Case 6: 'BuildAddin
+    
     Case 7: CopyHeaderAddinSheet
     Case 8: ToggleAddinBook
     End Select
 End Sub
 
 '----------------------------------
-'機能
+'テンプレートシート機能
 '----------------------------------
 
 'アドインブックからテンプレートシートを複製
 Private Sub CopyAddinSheet(Optional src As String, Optional dst As String)
     Dim ws As Worksheet
-    If src = "" Then
-        Set ws = SelectSheet(ThisWorkbook, "^[^#]")
-    Else
-        Set ws = SearchName(ThisWorkbook.Sheets, src)
-    End If
+    If src <> "" Then Set ws = SearchName(ThisWorkbook.Sheets, src)
+    If ws Is Nothing Then Set ws = SelectSheet(ThisWorkbook, "^[^#]")
     If ws Is Nothing Then Exit Sub
     '
     Dim s As String
@@ -111,6 +110,15 @@ Private Sub RemoveAddinSheet()
     Application.DisplayAlerts = f
 End Sub
 
+'----------------------------------
+'テンプレートテーブル機能
+'----------------------------------
+
+'ヘッダーシート取得
+Private Sub CopyHeaderAddinSheet()
+    ActivateConfigSheet "#header"
+End Sub
+
 'テーブル作成機能
 Private Sub AddTable()
     'ヘッダ定義シート取得
@@ -118,48 +126,67 @@ Private Sub AddTable()
     Set ws = SearchName(ActiveWorkbook.Sheets, "#header")
     If ws Is Nothing Then Set ws = SearchName(ThisWorkbook.Sheets, "#header")
     If ws Is Nothing Then Exit Sub
-    
-    'データ範囲取得
+    '
+    'テンプレート開始位置取得
     Dim ra As Range
     Set ra = SectionRange(ws.UsedRange.Columns(1))
     If ra Is Nothing Then Exit Sub
-    'Set ra = ws.UsedRange
-    'Set ra = ra.Columns(1)
-    'Set ra = ws.Range(ra.Cells(1, 1), ra.Cells(ra.Rows.Count, 1))
-    'Set ra = SectionRange(ra)
     Set ra = SelectCell(ra)
     If ra Is Nothing Then Exit Sub
     If ra.Count <> 1 Then Exit Sub
-    Set ra = ra.Offset(1, 1)
+    Set ra = ra.Offset(0, 2)
     '
-    'ScreenUpdateOff
+    ScreenUpdateOff
     '
-    Dim cm As Long, c As Long
-    cm = ws.UsedRange.Column + ws.UsedRange.Columns.Count
-    c = ra.Column
-    '
-    Dim rm As Long, r As Long
-    rm = ra.Row
-    If ra.Offset(1).Value <> "" Then rm = ra.End(xlDown).Row
-    '
-    Dim r2 As Long, c2 As Long
-    r2 = ra.Row
-    For r = r2 To rm
-        If Not IsNumeric(ws.Cells(r, 2).Value) Then Exit For
-        If ws.Cells(r, 2).Value < 2 Then r2 = r
-        c2 = ws.Cells(r, cm).End(xlToLeft).Column
-        If c2 > c Then c = c2
-    Next r
-    r = r - 1
-    Set ra = ra.Offset(0, 1)
-    '
-    Dim tbl As Range
-    Set tbl = ws.Range(ra, ws.Cells(r, c))
-    tbl.Copy Destination:=Selection.Cells(1, 1)
-    Selection.Offset(r2 - ra.Row + 1).Select
+    Dim c As Long
+    Dim cm As Long
+    Dim rb As Range, rc As Range
+    Set rb = ActiveCell
+    Dim t As String
+    t = Left(UCase(ra.Offset(0, -2)), 1)
+    Do Until t = ""
+        cm = ra.End(xlToRight).Column - ra.Column + 1
+        Select Case t
+        Case "H"
+            For c = cm To 1 Step -1
+                Set rc = rb(1, c)
+                Set rc = rc.EntireColumn
+                rc.Hidden = ra(1, c)
+            Next c
+        Case "D"
+            For c = cm To 1 Step -1
+                Set rc = rb(1, c)
+                Set rc = rc.EntireColumn
+                If ra(1, c) Then rc.Delete
+            Next c
+        Case Else
+            Set rc = ra.Resize(1, cm)
+            rc.Copy Destination:=rb
+            Set rb = rb.Offset(1)
+        End Select
+        Set ra = ra.Offset(1)
+        t = Left(UCase(ra.Offset(0, -2)), 1)
+        If t = "[" Then Exit Do
+    Loop
     '
     ScreenUpdateOn
 End Sub
+
+'アドインブック表示トグル
+Private Sub ToggleAddinBook()
+    If ThisWorkbook.IsAddin Then
+        ThisWorkbook.IsAddin = False
+        ThisWorkbook.Activate
+    Else
+        ThisWorkbook.IsAddin = True
+        ThisWorkbook.Save
+    End If
+End Sub
+
+'----------------------------------
+'その他
+'----------------------------------
+
 
 'テーブル読み込み機能
 Private Sub LoadCsvTable(Optional path As String, Optional utf8 As Boolean)
@@ -201,42 +228,6 @@ Private Sub LoadCsvTable(Optional path As String, Optional utf8 As Boolean)
     Application.ScreenUpdating = asu
 End Sub
 
-'ヘッダーシート取得
-Private Sub CopyHeaderAddinSheet()
-    Dim s As String
-    s = "#header"
-    '
-    Dim ws As Worksheet
-    Set ws = SearchName(ActiveWorkbook.Sheets, s)
-    If Not ws Is Nothing Then
-        ws.Activate
-        Exit Sub
-    End If
-    '
-    Set ws = SearchName(ThisWorkbook.Sheets, s)
-    If Not ws Is Nothing Then
-        CopyAddinSheet s, s
-        Exit Sub
-    End If
-    '
-    ActiveWorkbook.Sheets.Add
-    ActiveSheet.name = s
-End Sub
-
-'アドインブック表示トグル
-Private Sub ToggleAddinBook()
-    If ThisWorkbook.IsAddin Then
-        ThisWorkbook.IsAddin = False
-        ThisWorkbook.Activate
-    Else
-        ThisWorkbook.IsAddin = True
-        ThisWorkbook.Save
-    End If
-End Sub
-
-'----------------------------------
-'その他
-'----------------------------------
 
 Private Sub LoadTable()
     Dim Title As String
@@ -282,4 +273,3 @@ Private Sub LoadTable()
     '
     Application.ScreenUpdating = asu
 End Sub
-

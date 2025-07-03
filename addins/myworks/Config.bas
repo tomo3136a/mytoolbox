@@ -8,10 +8,32 @@ Option Private Module
 
 '設定シート取得
 Function ConfigSheet(Optional name As String = "#config") As Worksheet
-    Set ConfigSheet = ActiveWorkbook.Sheets(name)
-    If Not ConfigSheet Is Nothing Then Exit Function
-    Set ConfigSheet = ThisWorkbook.Sheets(name)
+    Dim ws As Worksheet
+    Set ws = SearchName(ActiveWorkbook.Sheets, name)
+    If ws Is Nothing Then Set ws = SearchName(ThisWorkbook.Sheets, name)
+    If ws Is Nothing Then Exit Function
+    Set ConfigSheet = ws
 End Function
+
+'設定シート有効
+Sub ActivateConfigSheet(Optional s As String = "#config")
+    Dim ws As Worksheet
+    '
+    Set ws = SearchName(ActiveWorkbook.Sheets, s)
+    If Not ws Is Nothing Then
+        ws.Activate
+        Exit Sub
+    End If
+    '
+    Set ws = SearchName(ThisWorkbook.Sheets, s)
+    If Not ws Is Nothing Then
+        ws.Copy After:=ActiveSheet
+        Exit Sub
+    End If
+    '
+    ActiveWorkbook.Sheets.Add
+    ActiveSheet.name = s
+End Sub
 
 'セクション一覧を取得
 Function SectionRange(ra As Range) As Range
