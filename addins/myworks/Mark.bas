@@ -55,7 +55,7 @@ End Sub
 
 '版数設定値取得
 Public Sub GetRevMark(ByRef v As Variant)
-    If Not BookPropExists("rev.text") Then Call SetBookNum("rev.text", 1)
+    If Not ExistBookProp("rev.text") Then Call SetBookNum("rev.text", 1)
     v = GetBookStr("rev.text")
 End Sub
 
@@ -278,7 +278,7 @@ End Function
 '版数マークリスト
 Private Sub ListRevMark(ra As Range, Optional ByVal rev As String)
     If rev = "" Then Call GetRevMark(rev)
-    rev = StrConvWord(rev)
+    rev = KeywordName(rev)
     If rev = "" Then Exit Sub
     '
     Dim ce As Range
@@ -300,7 +300,7 @@ Private Sub ListRevMark(ra As Range, Optional ByVal rev As String)
         Dim sp As Shape
         For Each sp In ws.Shapes
             If sp.AutoShapeType = msoShapeIsoscelesTriangle Then
-                If StrConvWord(sp.TextFrame2.TextRange.Text) Like rev Then
+                If KeywordName(sp.TextFrame2.TextRange.Text) Like rev Then
                     s = sp.AlternativeText
                     ce.Value = ParamStrVal(s, "rev")
                     Set ce = ce.Offset(, 1)

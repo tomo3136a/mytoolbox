@@ -1,18 +1,111 @@
-Attribute VB_Name = "Common"
+Attribute VB_Name = "Base"
 '==================================
 '共通
 '==================================
+
+'----------------------------------------
+'APi:
+'  オブジェクト取得
+'  wsf()                        WorksheetFunction
+'  fso()                        FileSystemObject
+'  regex(ptn,[g,ic])            VBScript.RegExp
+'
+'  コレクション操作
+'  TakeByName(col,s)            コレクションから名前を指定して検索
+'  TakeByValue(col,s)           コレクションから値を指定して検索
+'
+'  名前変換
+'  ColumnName(idx)              列名取得
+'  KeywordName(s,[sep])         キーワード名取得
+'
+'  パラメータ文字列
+'  ParamStrKeys(s)              パラメータ文字列からキーリスト取得
+'  ParamStrVal(s,k)             パラメータ文字列から値を取得
+'  UpdateParamStr(s,k,v)        パラメータ文字列にキー・値を追加・更新
+'  RemoveParamStr(s,k)          パラメータ文字列から項目を削除
+'  RemoveParamStrAll(s)         パラメータ文字列からパラメータ以外取得
+'  ParamStrDict(dict,s)         パラメータ文字列からディクショナリ作成
+'
+'  配列文字列
+'  StrToArr(s)                  配列文字列から配列へ変換
+'  ArrToStr(arr)                配列から配列文字列へ変換
+'
+'  データ変換
+'  ColToArr(col)                コレクションを配列に変換
+'  ArrToDict(dic,arr,[n])       二次配列文字列から配列辞書に変換
+'  ArrStrToDict(dic,s,[n])      二次配列文字列から配列辞書に変換
+'  TakeArray(arr(),[p,n])       配列の範囲抽出
+'
+'  領域の値文字列取得
+'  StrRange(s)                  領域の値文字列取得
+'
+'  パス操作
+'  CoreName(s)                  基本名取得(パス削除、拡張子削除、複製情報削除)
+'  UniqueFileName(s)            重複しないファイル名取得
+'  GetShortPath(path,[pc])      短縮パス取得
+'  GetAbstructPath(path,Base)   絶対パス取得
+'  GetRelatedPath(path,Base)    相対パス取得
+'
+'  シート名操作
+'  UniqueSheetName(wb,name)     重複しないシート名取得
+'
+'  変数アクセス：ランタイム変数
+'  ExistRt(k)                   変数有無確認
+'  GetRtStr(k,[v])              変数値取得(文字列)
+'  GetRtBool(k)                 変数値取得(boolean)
+'  GetRtNum(k)                  変数値取得(long)
+'  SetRtStr(k,[v])              変数設定(文字列)
+'  SetRtBool(k,v)               変数設定(boolean)
+'  SetRtNum(k,v)                変数設定(long)
+'
+'  変数アクセス：ブックプロパティ
+'  ExistBookProp(k,[wb])        Property Exists
+'  GetBookStr(k,[wb])           Get Property value
+'  GetBookBool(k,[wb])          Get Property value
+'  GetBookNum(k,[wb])           Get Property value
+'  SetBookStr(k,v,[week,wb])    Set Property
+'  SetBookBool(k,v,[week,wb])   Set Property
+'  SetBookNum(k,v[week,wb])     Set Property
+'  RemoveBookProp([k,wb])       remove property
+'  WriteBookKeys([wb])          get book properties
+'
+'  変数アクセス：シートプロパティ
+'  SheetPropNames(ws)           シートプロパティ名リストを取得
+'  SheetPropCount(ws)           シートプロパティ数を取得
+'  SheetPropIndex(ws,k)         シートプロパティ名から番号取得
+'  GetSheetStr(ws,k)            シートプロパティ値取得
+'  GetSheetBool(ws,k)           シートプロパティ値取得
+'  GetSheetNum(ws,k)            シートプロパティ値取得
+'  SetSheetStr(ws,k,v)          シートプロパティ設定
+'  SetSheetBool(ws,k,v)         シートプロパティ設定
+'  SetSheetNum(ws,k,v)          シートプロパティ設定
+'
+'  画面表示操作
+'  ScreenUpdateOff()            画面チラつき防止処置
+'  ScreenUpdateOn()             画面チラつき防止処置解除
+'  ProgressStatusBar([i,cnt])   進行状況表示ステータスバー
+'
+'----------------------------------------
 
 Option Explicit
 Option Private Module
 
 '----------------------------------------
-'オブジェクト呼び出し
+'オブジェクト取得
 '----------------------------------------
 
 'worksheet.function
 Function wsf() As WorksheetFunction
     Set wsf = WorksheetFunction
+End Function
+
+'filesystemobject
+Function fso() As FileSystemObject
+    Static obj As FileSystemObject
+    If obj Is Nothing Then
+        Set obj = CreateObject("Scripting.FileSystemObject")
+    End If
+    Set fso = obj
 End Function
 
 'regex(VBScript.RegExp)
@@ -28,40 +121,43 @@ Function regex( _
     End With
 End Function
 
-'filesystemobject
-Function fso() As FileSystemObject
-    Static obj As FileSystemObject
-    If obj Is Nothing Then
-        Set obj = CreateObject("Scripting.FileSystemObject")
-    End If
-    Set fso = obj
-End Function
-
 '----------------------------------------
 'コレクション操作
 '----------------------------------------
 
 'コレクションから名前を指定して検索(配列は除く)
-Function SearchName(col As Object, s As String) As Object
+Function TakeByName(col As Object, s As String) As Object
     Dim v As Object
     For Each v In col
         If v.name = s Then
-            Set SearchName = v
+            Set TakeByName = v
             Exit Function
         End If
     Next v
-    Set SearchName = Nothing
+    Set TakeByName = Nothing
+End Function
+
+'コレクションから値を指定して検索(配列は除く)
+Function TakeByValue(col As Object, s As String) As Object
+    Dim v As Object
+    For Each v In col
+        If v.Value = s Then
+            Set TakeByValue = v
+            Exit Function
+        End If
+    Next v
+    Set TakeByValue = Nothing
 End Function
 
 '----------------------------------------
-'データ変換
+'名前変換
 '----------------------------------------
 
 '列名取得
-Function ColumnName(idx As Long) As String
+Function ColumnName(n As Long) As String
     Dim s As String
     Dim i As Long, j As Long
-    i = idx - 1
+    i = n - 1
     Do While i >= 0
         j = i Mod 26
         s = Chr(65 + j) + s
@@ -70,16 +166,20 @@ Function ColumnName(idx As Long) As String
     ColumnName = s
 End Function
 
-'キーワード文字列化(スペースはまとめて置換,半角,大文字)
-Function StrConvWord(ByVal s As String, Optional sep As String = "_")
-    s = Trim(RE_REPLACE(s, "[\s\u00A0\u3000]+", " "))
-    s = RE_REPLACE(s, "[ _]+", sep)
-    s = StrConv(s, vbUpperCase + vbNarrow)
-    StrConvWord = s
+'キーワード名取得
+'スペースはまとめて置換,半角,大文字
+Function KeywordName(s As String, Optional sep As String = "_") As String
+    Dim kw As String
+    kw = Trim(RE_REPLACE(s, "[\s\u00A0\u3000]+", " "))
+    kw = RE_REPLACE(kw, "[ _]+", sep)
+    kw = StrConv(kw, vbUpperCase + vbNarrow)
+    KeywordName = kw
 End Function
 
 '----------------------------------------
 'パラメータ文字列
+'
+'文字列形式：
 '  <text> = [ <line> \n ] <line>
 '  <line> = \s* <key> \s* : \s* <val> \s* | .+
 '  <key>  = \w+
@@ -199,6 +299,8 @@ End Sub
 
 '----------------------------------------
 '配列文字列
+'
+'文字列形式：
 '  <text> = [ <rows> ; ] <rows>
 '  <rows> = [ \s* <item> \s+ , ] \s* <item> \s*
 '  <item> = \w+
@@ -526,22 +628,11 @@ End Function
 'シート名操作
 '----------------------------------------
 
-'シート名有無のチェック
-Function HasSheetName(wb As Workbook, name As String) As Boolean
-    Dim i As Integer
-    For i = 1 To wb.Worksheets.Count
-        If wb.Worksheets(i).name = name Then
-            HasSheetName = True
-            Exit Function
-        End If
-    Next i
-End Function
-
 '重複しないシート名取得
 Function UniqueSheetName(wb As Workbook, name As String) As String
     Dim i As Integer: i = 1
     Dim s As String: s = name
-    Do While HasSheetName(wb, s)
+    Do Until TakeByName(wb.Sheets, s) Is Nothing
         s = name & " (" & i & ")"
         i = i + 1
     Loop
@@ -549,15 +640,15 @@ Function UniqueSheetName(wb As Workbook, name As String) As String
 End Function
 
 '----------------------------------------
-'実行時プロパティ機能
+'ランタイム変数
 '----------------------------------------
 
-'プロパティ有無確認
+'変数有無確認
 Function ExistRt(k As String) As Boolean
     ExistRt = rt_dict.Exists(k)
 End Function
 
-'プロパティ取得
+'変数値取得
 Function GetRtStr(k As String, Optional v As String) As String
     GetRtStr = v
     With rt_dict
@@ -575,7 +666,7 @@ Function GetRtNum(k As String) As Long
     GetRtNum = CLng(GetRtStr(k))
 End Function
 
-'プロパティ設定
+'変数設定
 Sub SetRtStr(k As String, Optional v As String)
     With rt_dict
         If .Exists(k) Then .Remove k
@@ -591,7 +682,7 @@ Sub SetRtNum(k As String, v As Long)
     SetRtStr k, CStr(v)
 End Sub
 
-'パラメータディクショナリ
+'変数ディクショナリ
 Private Function rt_dict() As Dictionary
     Static dic As Dictionary
     If dic Is Nothing Then Set dic = New Dictionary
@@ -603,10 +694,10 @@ End Function
 '----------------------------------------
 
 'Property Exists
-Function BookPropExists(k As String, Optional wb As Workbook) As Boolean
+Function ExistBookProp(k As String, Optional wb As Workbook) As Boolean
     Dim p As DocumentProperty
-    Set p = SearchName(GetWorkbook(wb).CustomDocumentProperties, k)
-    BookPropExists = Not p Is Nothing
+    Set p = TakeByName(GetWorkbook(wb).CustomDocumentProperties, k)
+    ExistBookProp = Not p Is Nothing
 End Function
 
 'Get Property value
@@ -652,7 +743,7 @@ Private Sub SetBookProp(k As String, v As Variant, _
     t As Long, week As Boolean, wb As Workbook)
     With GetWorkbook(wb)
         Dim p As DocumentProperty
-        Set p = SearchName(.CustomDocumentProperties, k)
+        Set p = TakeByName(.CustomDocumentProperties, k)
         If Not p Is Nothing Then
             If week Then Exit Sub
             If p.Value = v Then Exit Sub
@@ -726,7 +817,6 @@ Private Function GetSheetProp(ws As Worksheet, k As String) As CustomProperty
         Set GetSheetProp = ws.CustomProperties(i)
         Exit Function
     End If
-    'Set GetSheetProp = ws.CustomProperties.Add(k, "")
 End Function
 
 'シートプロパティ値取得
@@ -772,11 +862,11 @@ Sub SetSheetNum(ws As Worksheet, k As String, v As Long)
 End Sub
 
 '----------------------------------------
-'画面チラつき防止
+'画面表示操作
 '----------------------------------------
 
 '画面チラつき防止処置
-Public Sub ScreenUpdateOff()
+Sub ScreenUpdateOff()
     Application.Calculation = xlCalculationManual
     Application.ScreenUpdating = False
     Application.DisplayAlerts = False
@@ -786,7 +876,7 @@ Public Sub ScreenUpdateOff()
 End Sub
 
 '画面チラつき防止処置解除
-Public Sub ScreenUpdateOn()
+Sub ScreenUpdateOn()
     Application.Cursor = xlDefault
     Application.Interactive = True
     Application.EnableEvents = True
@@ -794,10 +884,6 @@ Public Sub ScreenUpdateOn()
     Application.ScreenUpdating = True
     Application.Calculation = xlCalculationAutomatic
 End Sub
-
-'----------------------------------------
-'進行状況表示
-'----------------------------------------
 
 '進行状況表示ステータスバー
 Sub ProgressStatusBar(Optional i As Long = 1, Optional cnt As Long = 1)

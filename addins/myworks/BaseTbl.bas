@@ -1,7 +1,58 @@
-Attribute VB_Name = "CommonTable"
+Attribute VB_Name = "BaseTbl"
 '==================================
 '共通(テーブル操作)
 '==================================
+
+'----------------------------------------
+'API:
+'  表操作マージン
+'  SetTableMargin([mode,v]) テーブルマージンの設定
+'  GetTableMargin([mode])   テーブルマージンの値取得
+'
+'セル範囲
+'  LeftTop(ra)              領域の左上取得
+'  RightTop(ra)             領域の右上取得
+'  LeftBottom(ra)           領域の左下取得
+'  RightBottom(ra)          領域の右下取得
+'
+'テーブル範囲
+'  CurrentTableRegion(ra)   先頭列のみの行は範囲から外す
+'
+'テーブル範囲
+'  TableLeftTop(ra,[n])     テーブル先頭取得
+'  FarTop(ra)               テーブル上端取得
+'  FarLeft(ra)              テーブル左端取得
+'  FarRight(ra)             テーブル右端取得
+'  FarBottom(ra)            テーブル下端取得
+'  TableRow(ra)             テーブル行取得
+'  TableColumn(ra)          テーブル列取得
+'  TableHeaderRange(ra)     テーブル見出し取得
+'  TableDataRange(ra)       テーブルのデータ領域取得
+'  TableRange(ra)           テーブル領域取得
+'
+'セル操作
+'  FindCell(s,[ra])         文字列が一致するcellを探す
+'  SkipBlankCell(ra)        ブランクをスキップする
+'
+'テーブルヘッダ
+'  HeaderFilter(ra)         テーブルフィルタ
+'  HeaderAutoFit(ra)        テーブル幅調整
+'  HeaderFixed(ra)          テーブル枠固定
+'  HeaderColor(ra)          テーブルヘッダ色設定
+'  SetHeaderColor(ra)
+'  GetHeaderColor()
+'  GetHeaderArray(ce,dic)   ヘッダ配列取得
+'
+'テーブル操作拡張
+'  WakuBorder(ra)           枠線
+'  WakuClear(ra)            囲いクリア
+'
+'テーブル読み込み
+'  AddTextSheet(path)                               テキストファイル読み込み
+'  ReadText(ra,path,[space,comma,utf8])             テキストファイル読み込み
+'  WriteText(arr,pth,[apd,frc,enc,sep,blank,eol])   テキストファイル書き出し
+'
+'----------------------------------------
 
 Option Explicit
 Option Private Module
@@ -290,7 +341,7 @@ Function FindCell(s As String, Optional ByVal ra As Range) As Range
 End Function
 
 'ブランクをスキップする
-Public Function SkipBlankCell(ra As Range) As Range
+Function SkipBlankCell(ra As Range) As Range
     Dim ws As Worksheet
     Set ws = ra.Worksheet
     Dim r As Long

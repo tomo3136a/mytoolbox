@@ -256,10 +256,15 @@
             <button id="b3.3" onAction="works3_onAction" getEnabled="works3_getEnabled"
               label="シート削除" imageMso="SheetDelete" />
             <menuSeparator id="z3.1" />
-            <button id="b3.6" onAction="works3_onAction" label="テーブル更新" imageMso="TableAutoFormat" />
+            <button id="b3.5" onAction="works3_onAction" getEnabled="works3_getEnabled"
+              label="テーブル登録" imageMso="GroupMoveData" />
+            <button id="b3.6" onAction="works3_onAction" getEnabled="works3_getEnabled"
+              label="テーブル削除" imageMso="SheetDelete" />
+            <!-- <button id="b3.6" onAction="works3_onAction" label="テーブル更新"
+            imageMso="TableAutoFormat" /> -->
             <button id="b3.7" onAction="works3_onAction" label="ヘッダシート" imageMso="CalculateSheet" />
             <menuSeparator id="z3.2" />
-            <button id="b3.5" onAction="works3_onAction" label="テーブル読み込み"
+            <button id="b3.8" onAction="works3_onAction" label="テーブル読み込み"
               imageMso="NewTableStyleWord" />
           </menu>
         </group>

@@ -67,7 +67,7 @@ Sub AddColumn(ra As Range, mode As Integer)
     Set rb = Intersect(rb, ra.EntireColumn)
     If ra.Rows.Count > 1 Then Set rb = ra
     Set rb = rb.Columns(1)
-    rb.EntireColumn.Insert shift:=xlShiftToRight
+    rb.EntireColumn.Insert Shift:=xlShiftToRight
     
     '1—ñ’Ç‰Á‚µ‘®‚ğ•¡»
     Dim rc As Range
