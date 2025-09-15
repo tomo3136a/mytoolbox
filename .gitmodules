@@ -2,3 +2,7 @@
 	path = setr
 	url = https://github.com/tomo3136a/setr.git
 	branch = main
+[submodule "indexed"]
+	path = indexed
+	url = https://github.com/tomo3136a/atmm_indexed.git
+	branch = main
