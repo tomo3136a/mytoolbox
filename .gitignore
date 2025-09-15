@@ -71,6 +71,7 @@ doxygen/
 *.pdf
 *.log
 *.srec
+package/
 
 # office
 *.xlsx
