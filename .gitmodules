@@ -1,0 +1,4 @@
+[submodule "setr"]
+	path = setr
+	url = https://github.com/tomo3136a/setr.git
+	branch = main
