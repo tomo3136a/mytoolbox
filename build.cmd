@@ -8,17 +8,20 @@ if not exist %ODIR%\lib mkdir %ODIR%\lib
 
 if exist setr\build.cmd (
   call setr\build.cmd -pass %ODIR%\bin
+  del %ODIR%\bin\install.cmd
   copy setr\setpath.cmd %ODIR%
   copy setr\lib\setpath.ps1 %ODIR%\lib
 )
 
 if exist indexed\build.cmd (
   call indexed\build.cmd -pass %ODIR%\bin
-  copy indexed\lib\install.cmd %ODIR%
-  copy indexed\lib\uninstall.cmd %ODIR%
-  copy indexed\lib\install_task.cmd %ODIR%
-  copy indexed\lib\install_task.ps1 %ODIR%
+  move %ODIR%\bin\install.cmd %ODIR%
+  move %ODIR%\bin\uninstall.cmd %ODIR%
+  move %ODIR%\bin\install_task.* %ODIR%\lib
 )
+
+copy lib\install.cmd %ODIR%
+copy lib\uninstall.cmd %ODIR%
 
 popd
 pause
