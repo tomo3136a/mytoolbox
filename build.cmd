@@ -1,27 +1,39 @@
 @echo off
 pushd %~dp0
 
-set ODIR=%CD%\package
+set PDIR=%~dp0\package
+set ODIR=%~dp0\output
+set SZIP="c:\Program Files\7-Zip\7z.exe"
 
-if not exist %ODIR%\bin mkdir %ODIR%\bin
-if not exist %ODIR%\lib mkdir %ODIR%\lib
+if not exist %PDIR%\bin mkdir %PDIR%\bin
+if not exist %PDIR%\lib mkdir %PDIR%\lib
 
 if exist setr\build.cmd (
-  call setr\build.cmd -pass %ODIR%\bin
-  del %ODIR%\bin\install.cmd
-  copy setr\setpath.cmd %ODIR%
-  copy setr\lib\setpath.ps1 %ODIR%\lib
+  call setr\build.cmd -pass %PDIR%\bin
+  del %PDIR%\bin\install.cmd
+  copy setr\setpath.cmd %PDIR%
+  copy setr\lib\setpath.ps1 %PDIR%\lib
 )
 
 if exist indexed\build.cmd (
-  call indexed\build.cmd -pass %ODIR%\bin
-  move %ODIR%\bin\install.cmd %ODIR%
-  move %ODIR%\bin\uninstall.cmd %ODIR%
-  move %ODIR%\bin\install_task.* %ODIR%\lib
+  call indexed\build.cmd -pass %PDIR%\bin
+  move %PDIR%\bin\install.cmd %PDIR%
+  move %PDIR%\bin\uninstall.cmd %PDIR%
+  move %PDIR%\bin\install_task.* %PDIR%\lib
 )
 
-copy lib\install.cmd %ODIR%
-copy lib\uninstall.cmd %ODIR%
+copy lib\install.cmd %PDIR%
+copy lib\uninstall.cmd %PDIR%
 
+if not exist %SZIP% goto eof
+if not exist %PDIR% goto eof
+if not exist %ODIR% mkdir %ODIR%
+
+pushd %PDIR%
+%SZIP% a -tzip %ODIR%/mtb *
+%SZIP% a -sfx7z.sfx %ODIR%/mtb *
+popd
+
+:eof
 popd
 pause
