@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace files
@@ -20,8 +21,8 @@ namespace files
             if (DialogResult.OK == dlg.ShowDialog())
             {
                 this.txt_1.Text = dlg.SelectedPath;
-                //this.txt_1.BackColor = Color.White;
-                //this.txt_1.BackColor = SystemColors.Window;
+                this.txt_1.BackColor = Color.White;
+                this.txt_1.BackColor = SystemColors.Window;
             }
             dlg.Dispose();
         }
@@ -34,7 +35,7 @@ namespace files
                 if (!Directory.Exists(s))
                 {
                     this.txt_1.Focus();
-                    //this.txt_1.BackColor = Color.Yellow;
+                    this.txt_1.BackColor = Color.Yellow;
                     MessageBox.Show(this, "フォルダを選択してください。", AppName);
                     this.txt_1.SelectAll();
                     return;
