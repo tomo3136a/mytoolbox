@@ -29,6 +29,13 @@ namespace files
         TextBox txt_1 = new TextBox();
         Button sel_1 = new Button();
         GroupBox grp_1 = new GroupBox();
+        RadioButton rb_1 = new RadioButton();
+        RadioButton rb_2 = new RadioButton();
+        RadioButton rb_3 = new RadioButton();
+        CheckBox cb_1 = new CheckBox();
+        CheckBox cb_2 = new CheckBox();
+        CheckBox cb_3 = new CheckBox();
+        Label lbl_2 = new Label();
 
         /// <summary>
         ///  Required method for Designer support - do not modify
@@ -54,7 +61,6 @@ namespace files
             this.Controls.Add(lbl_1);
 
             txt_1.Anchor = (AnchorStyles)(AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right);
-            //txt_1.BorderStyle = BorderStyle.FixedSingle;
             txt_1.Size = new Size(sz.Width - 3 * m - 75, 23);
             txt_1.Location = new Point(m, lbl_1.Location.Y + lbl_1.Height + m);
             this.Controls.Add(txt_1);
@@ -71,45 +77,40 @@ namespace files
             grp_1.Location = new Point(m, txt_1.Location.Y + txt_1.Height + m);
             this.Controls.Add(grp_1);
 
-            RadioButton rb_1 = new RadioButton();
             rb_1.Size = new Size(150, 22);
             rb_1.Text = "ファイル";
             rb_1.Location = new Point(m, m);
             rb_1.Checked = true;
             grp_1.Controls.Add(rb_1);
 
-            RadioButton rb_2 = new RadioButton();
             rb_2.Size = new Size(170, 22);
             rb_2.Text = "フォルダ";
             rb_2.Location = new Point(m, m * 2 + 17);
-            rb_2.Enabled = false;
             grp_1.Controls.Add(rb_2);
 
-            RadioButton rb_3 = new RadioButton();
             rb_3.Size = new Size(170, 22);
             rb_3.Text = "ファイル+フォルダ";
             rb_3.Location = new Point(m, m * 3 + 17 * 2);
-            rb_3.Enabled = false;
             grp_1.Controls.Add(rb_3);
 
-            CheckBox cb_1 = new CheckBox();
             cb_1.Text = "ツリー形式";
             cb_1.Location = new Point(2 * m + 150, txt_1.Location.Y + txt_1.Height + m * 2);
-            cb_1.Enabled = false;
             this.Controls.Add(cb_1);
 
-            CheckBox cb_2 = new CheckBox();
             cb_2.Text = "サイズ";
             cb_2.Location = new Point(2 * m + 150, txt_1.Location.Y + txt_1.Height + m * 3 + 17);
-            cb_2.Enabled = false;
             cb_2.Checked = true;
             this.Controls.Add(cb_2);
 
-            CheckBox cb_3 = new CheckBox();
             cb_3.Text = "日付";
             cb_3.Location = new Point(2 * m + 150, txt_1.Location.Y + txt_1.Height + m * 4 + 17 * 2);
-            cb_3.Enabled = false;
             this.Controls.Add(cb_3);
+
+            lbl_2.Anchor = (AnchorStyles)(AnchorStyles.Bottom | AnchorStyles.Left);
+            lbl_2.Text = "";
+            lbl_2.Size = new Size(200, 23);
+            lbl_2.Location = new Point(m, sz.Height - 4 * m);
+            this.Controls.Add(lbl_2);
 
             Button ok = new Button();
             ok.Anchor = (AnchorStyles)(AnchorStyles.Bottom | AnchorStyles.Right);

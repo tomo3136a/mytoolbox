@@ -24,6 +24,10 @@ if exist indexed\build.cmd (
   move %PDIR%\bin\install_task.* %PDIR%\lib
 )
 
+if exist files\build.cmd (
+  call files\build.cmd -pass %PDIR%\bin
+)
+
 copy lib\install.cmd %PDIR%
 copy lib\uninstall.cmd %PDIR%
 
