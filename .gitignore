@@ -71,6 +71,8 @@ doxygen/
 *.pdf
 *.log
 *.srec
+bin/
+obj/
 package/
 
 # office
