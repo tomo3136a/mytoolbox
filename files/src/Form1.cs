@@ -15,13 +15,15 @@ namespace files
         public Form1()
         {
             InitializeComponent();
+            this.txt_1.Text = "C:\\";
+            ((Button)this.AcceptButton).Select();
         }
 
         void OnSelect(Object sender, EventArgs e)
         {
             FolderBrowserDialog dlg = new FolderBrowserDialog();
             var root = txt_1.Text;
-            if (Directory.Exists(root))
+            if (!Directory.Exists(root))
             {
                 root = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             }
@@ -87,56 +89,70 @@ namespace files
             {
                 return false;
             }
+            SetMode(bSize, bDate);
             long StartTicks = DateTime.Now.Ticks;
             using (StreamWriter ost = new StreamWriter(op, true))
             {
                 var line = "path: " + p;
                 ost.WriteLine(line);
-                switch (mode)
+                if (!bTree)
                 {
-                    case 1: // file list
-                        WriteFileList(ost, p, bTree, bSize, bDate);
-                        break;
-                    case 2: // directory list
-                        WriteDirList(ost, p, bTree, bSize, bDate);
-                        break;
-                    case 3: // file+directory list
-                        WriteFileDirList(ost, p, bTree, bSize, bDate);
-                        break;
-                    default:
-                        break;
+                    switch (mode)
+                    {
+                        case 1: // file list
+                            WriteFileList(ost, p);
+                            break;
+                        case 2: // directory list
+                            WriteDirList(ost, p);
+                            break;
+                        case 3: // file+directory list
+                            WriteFileDirList(ost, p);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                else
+                {
+                    switch (mode)
+                    {
+                        case 1: // file list
+                            WriteFileTree(ost, p);
+                            break;
+                        case 2: // directory list
+                            WriteDirTree(ost, p);
+                            break;
+                        case 3: // file+directory list
+                            WriteFileDirTree(ost, p);
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
             ticks = DateTime.Now.Ticks - StartTicks;
             return true;
         }
 
-        static void WriteFileList(StreamWriter ost, string path, bool bTree, bool bSize, bool bDate)
+        static void WriteFileList(StreamWriter ost, string path)
         {
             DirectoryInfo root = new DirectoryInfo(path);
             string p = root.FullName;
             int sz = root.FullName.Length;
             if (p[sz - 1] != '\\' && p[sz - 1] != '/') sz += 1;
-            Console.WriteLine("> " + sz + " " + root);
             try
             {
                 foreach (var fi in root.EnumerateFiles())
                 {
                     try
                     {
-                        p = fi.FullName;
-                        var line = "\t" + fi.FullName.Substring(sz);
-                        Console.WriteLine("> " + sz + " " + p + line);
-                        if (bSize) line += "\t" + fi.Length.ToString("N0");
-                        if (bDate) line += "\t" + fi.LastWriteTime.ToLocalTime();
-                        ost.WriteLine(line);
+                        WriteFileOut(ost, fi, sz);
                     }
                     catch (UnauthorizedAccessException ex)
                     {
-                        ost.WriteLine("# UnauthorizedAccess[1]: " + ex.Message);
+                        ost.WriteLine("!!! UnauthorizedAccess file: " + ex.Message);
                     }
                 }
-
                 foreach (var di in root.EnumerateDirectories("*"))
                 {
                     try
@@ -145,38 +161,129 @@ namespace files
                         {
                             try
                             {
-                                var line = "\t" + fi.FullName.Substring(sz);
-                                if (bSize) line += "\t" + fi.Length.ToString("N0");
-                                if (bDate) line += "\t" + fi.LastWriteTime.ToLocalTime();
-                                ost.WriteLine(line);
+                                WriteFileOut(ost, fi, sz);
                             }
                             catch (UnauthorizedAccessException ex)
                             {
-                                ost.WriteLine("# UnauthorizedAccess[2]: " + ex.Message);
+                                ost.WriteLine("!!! UnauthorizedAccess file: " + ex.Message);
                             }
                         }
                     }
                     catch (UnauthorizedAccessException ex)
                     {
-                        ost.WriteLine("# UnauthorizedAccess[3]: " + ex.Message);
+                        ost.WriteLine("!!! UnauthorizedAccess diectory: " + ex.Message);
                     }
                 }
             }
             catch (DirectoryNotFoundException ex)
             {
-                ost.WriteLine("# DirectoryNotFound: " + ex.Message);
+                ost.WriteLine("!!! DirectoryNotFound: " + ex.Message);
             }
             catch (UnauthorizedAccessException ex)
             {
-                ost.WriteLine("# UnauthorizedAccess[4]: " + ex.Message);
+                ost.WriteLine("!!! UnauthorizedAccess: " + ex.Message);
             }
             catch (PathTooLongException ex)
             {
-                ost.WriteLine("# PathTooLong: " + ex.Message);
+                ost.WriteLine("!!! PathTooLong: " + ex.Message);
             }
             catch (Exception ex)
             {
-                ost.WriteLine("# Exception: " + ex.Message);
+                ost.WriteLine("!!! Exception: " + ex.Message);
+            }
+        }
+
+        static void WriteDirList(StreamWriter ost, string path)
+        {
+            DirectoryInfo root = new DirectoryInfo(path);
+            string p = root.FullName;
+            int sz = p.Length;
+            if (p[sz - 1] != '\\' && p[sz - 1] != '/') sz += 1;
+            try
+            {
+                foreach (var di in EnumerateDirectories(root))
+                {
+                    try
+                    {
+                        WriteDirectoryOut(ost, di, sz);
+                    }
+                    catch (UnauthorizedAccessException ex)
+                    {
+                        ost.WriteLine("!!! UnauthorizedAccess directory: " + ex.Message);
+                    }
+                }
+            }
+            catch (DirectoryNotFoundException ex)
+            {
+                ost.WriteLine("!!! DirectoryNotFound: " + ex.Message);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                ost.WriteLine("!!! UnauthorizedAccess: " + ex.Message);
+            }
+            catch (PathTooLongException ex)
+            {
+                ost.WriteLine("!!! PathTooLong: " + ex.Message);
+            }
+            catch (Exception ex)
+            {
+                ost.WriteLine("!!! Exception: " + ex.Message);
+            }
+        }
+
+        static void WriteFileDirList(StreamWriter ost, string path)
+        {
+            DirectoryInfo root = new DirectoryInfo(path);
+            string p = root.FullName;
+            int sz = p.Length;
+            if (p[sz - 1] != '\\' && p[sz - 1] != '/') sz += 1;
+            try
+            {
+                foreach (var di in EnumerateDirectories(root))
+                {
+                    try
+                    {
+                        WriteDirectoryOut(ost, di, sz);
+                    }
+                    catch (UnauthorizedAccessException ex)
+                    {
+                        ost.WriteLine("!!! UnauthorizedAccess directory: " + ex.Message);
+                    }
+                    try
+                    {
+                        foreach (var fi in di.EnumerateFiles())
+                        {
+                            try
+                            {
+                                WriteFileOut(ost, fi, sz);
+                            }
+                            catch (UnauthorizedAccessException ex)
+                            {
+                                ost.WriteLine("!!! UnauthorizedAccess file: " + ex.Message);
+                            }
+                        }
+                    }
+                    catch (UnauthorizedAccessException ex)
+                    {
+                        ost.WriteLine("!!! UnauthorizedAccess directory: " + ex.Message);
+                    }
+                }
+            }
+            catch (DirectoryNotFoundException ex)
+            {
+                ost.WriteLine("!!! DirectoryNotFound: " + ex.Message);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                ost.WriteLine("!!! UnauthorizedAccess: " + ex.Message);
+            }
+            catch (PathTooLongException ex)
+            {
+                ost.WriteLine("!!! PathTooLong: " + ex.Message);
+            }
+            catch (Exception ex)
+            {
+                ost.WriteLine("!!! Exception: " + ex.Message);
             }
         }
 
@@ -199,7 +306,32 @@ namespace files
             return dirs;
         }
 
-        static void WriteDirList(StreamWriter ost, string path, bool bTree, bool bSize, bool bDate)
+        private static bool l_bSize;
+        private static bool l_bDate;
+
+        static void SetMode(bool bSize, bool bDate)
+        {
+            l_bSize = bSize;
+            l_bDate = bDate;
+        }
+
+        static void WriteFileOut(StreamWriter ost, FileInfo fi, int sz)
+        {
+            var line = "\t" + fi.FullName.Substring(sz);
+            if (l_bSize) line += "\t" + fi.Length.ToString("N0");
+            if (l_bDate) line += "\t" + fi.LastWriteTime.ToLocalTime();
+            ost.WriteLine(line);
+        }
+
+        static void WriteDirectoryOut(StreamWriter ost, DirectoryInfo di, int sz)
+        {
+            var line = "\t" + di.FullName.Substring(sz) + "\\";
+            if (l_bSize) line += "\t";
+            if (l_bDate) line += "\t" + di.LastWriteTime.ToLocalTime();
+            ost.WriteLine(line);
+        }
+
+        static void WriteFileTree(StreamWriter ost, string path)
         {
             DirectoryInfo root = new DirectoryInfo(path);
             string p = root.FullName;
@@ -211,36 +343,43 @@ namespace files
                 {
                     try
                     {
-                        var line = "\t" + di.FullName.Substring(sz);
-                        if (bSize) line += "\t";
-                        if (bDate) line += "\t" + di.LastWriteTime.ToLocalTime();
-                        ost.WriteLine(line);
+                        foreach (var fi in di.EnumerateFiles())
+                        {
+                            try
+                            {
+                                WriteFileOut(ost, fi, sz);
+                            }
+                            catch (UnauthorizedAccessException ex)
+                            {
+                                ost.WriteLine("!!! UnauthorizedAccess file: " + ex.Message);
+                            }
+                        }
                     }
                     catch (UnauthorizedAccessException ex)
                     {
-                        ost.WriteLine("# UnauthorizedAccess[2]: " + ex.Message);
+                        ost.WriteLine("!!! UnauthorizedAccess directory: " + ex.Message);
                     }
                 }
             }
             catch (DirectoryNotFoundException ex)
             {
-                ost.WriteLine("# DirectoryNotFound: " + ex.Message);
+                ost.WriteLine("!!! DirectoryNotFound: " + ex.Message);
             }
             catch (UnauthorizedAccessException ex)
             {
-                ost.WriteLine("# UnauthorizedAccess[4]: " + ex.Message);
+                ost.WriteLine("!!! UnauthorizedAccess: " + ex.Message);
             }
             catch (PathTooLongException ex)
             {
-                ost.WriteLine("# PathTooLong: " + ex.Message);
+                ost.WriteLine("!!! PathTooLong: " + ex.Message);
             }
             catch (Exception ex)
             {
-                ost.WriteLine("# Exception: " + ex.Message);
+                ost.WriteLine("!!! Exception: " + ex.Message);
             }
         }
 
-        static void WriteFileDirList(StreamWriter ost, string path, bool bTree, bool bSize, bool bDate)
+        static void WriteDirTree(StreamWriter ost, string path)
         {
             DirectoryInfo root = new DirectoryInfo(path);
             string p = root.FullName;
@@ -252,14 +391,49 @@ namespace files
                 {
                     try
                     {
-                        var line = "\t" + di.FullName.Substring(sz) + "\\";
-                        if (bSize) line += "\t";
-                        if (bDate) line += "\t" + di.LastWriteTime.ToLocalTime();
-                        ost.WriteLine(line);
+                        WriteDirectoryOut(ost, di, sz);
                     }
                     catch (UnauthorizedAccessException ex)
                     {
-                        ost.WriteLine("# UnauthorizedAccess[1]: " + ex.Message);
+                        ost.WriteLine("!!! UnauthorizedAccess directory: " + ex.Message);
+                    }
+                }
+            }
+            catch (DirectoryNotFoundException ex)
+            {
+                ost.WriteLine("!!! DirectoryNotFound: " + ex.Message);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                ost.WriteLine("!!! UnauthorizedAccess: " + ex.Message);
+            }
+            catch (PathTooLongException ex)
+            {
+                ost.WriteLine("!!! PathTooLong: " + ex.Message);
+            }
+            catch (Exception ex)
+            {
+                ost.WriteLine("!!! Exception: " + ex.Message);
+            }
+        }
+
+        static void WriteFileDirTree(StreamWriter ost, string path)
+        {
+            DirectoryInfo root = new DirectoryInfo(path);
+            string p = root.FullName;
+            int sz = p.Length;
+            if (p[sz - 1] != '\\' && p[sz - 1] != '/') sz += 1;
+            try
+            {
+                foreach (var di in EnumerateDirectories(root))
+                {
+                    try
+                    {
+                        WriteDirectoryOut(ost, di, sz);
+                    }
+                    catch (UnauthorizedAccessException ex)
+                    {
+                        ost.WriteLine("!!! UnauthorizedAccess directory: " + ex.Message);
                     }
                     try
                     {
@@ -267,38 +441,35 @@ namespace files
                         {
                             try
                             {
-                                var line = "\t" + fi.FullName.Substring(sz);
-                                if (bSize) line += "\t" + fi.Length.ToString("N0");
-                                if (bDate) line += "\t" + fi.LastWriteTime.ToLocalTime();
-                                ost.WriteLine(line);
+                                WriteFileOut(ost, fi, sz);
                             }
                             catch (UnauthorizedAccessException ex)
                             {
-                                ost.WriteLine("# UnauthorizedAccess[2]: " + ex.Message);
+                                ost.WriteLine("!!! UnauthorizedAccess file: " + ex.Message);
                             }
                         }
                     }
                     catch (UnauthorizedAccessException ex)
                     {
-                        ost.WriteLine("# UnauthorizedAccess[3]: " + ex.Message);
+                        ost.WriteLine("!!! UnauthorizedAccess directory: " + ex.Message);
                     }
                 }
             }
             catch (DirectoryNotFoundException ex)
             {
-                ost.WriteLine("# DirectoryNotFound: " + ex.Message);
+                ost.WriteLine("!!! DirectoryNotFound: " + ex.Message);
             }
             catch (UnauthorizedAccessException ex)
             {
-                ost.WriteLine("# UnauthorizedAccess[4]: " + ex.Message);
+                ost.WriteLine("!!! UnauthorizedAccess: " + ex.Message);
             }
             catch (PathTooLongException ex)
             {
-                ost.WriteLine("# PathTooLong: " + ex.Message);
+                ost.WriteLine("!!! PathTooLong: " + ex.Message);
             }
             catch (Exception ex)
             {
-                ost.WriteLine("# Exception: " + ex.Message);
+                ost.WriteLine("!!! Exception: " + ex.Message);
             }
         }
     }
