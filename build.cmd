@@ -19,7 +19,7 @@ if exist setr\build.cmd (
 
 if exist indexed\build.cmd (
   call indexed\build.cmd -pass %PDIR%\bin
-  move %PDIR%\bin\install.cmd %PDIR%
+  move %PDIR%\bin\install.cmd %PDIR%\lib
   move %PDIR%\bin\uninstall.cmd %PDIR%
   move %PDIR%\bin\install_task.* %PDIR%\lib
 )
