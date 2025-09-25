@@ -12,20 +12,21 @@ if not exist %PDIR%\lib mkdir %PDIR%\lib
 
 if exist setr\build.cmd (
   call setr\build.cmd -pass %PDIR%\bin
-  del %PDIR%\bin\install.cmd
+  move %PDIR%\bin\install.cmd %PDIR%\lib\install_setr.cmd
   copy setr\setpath.cmd %PDIR%
   copy setr\lib\setpath.ps1 %PDIR%\lib
 )
 
 if exist indexed\build.cmd (
   call indexed\build.cmd -pass %PDIR%\bin
-  move %PDIR%\bin\install.cmd %PDIR%\lib
-  move %PDIR%\bin\uninstall.cmd %PDIR%
+  move %PDIR%\bin\install.cmd %PDIR%\lib\install_indexed.cmd
+  move %PDIR%\bin\uninstall.cmd %PDIR%\lib\uninstall_indexed.cmd
   move %PDIR%\bin\install_task.* %PDIR%\lib
 )
 
 if exist files\build.cmd (
   call files\build.cmd -pass %PDIR%\bin
+  move %PDIR%\bin\install.cmd %PDIR%\lib\install_files.cmd
 )
 
 copy lib\install.cmd %PDIR%
