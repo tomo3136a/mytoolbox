@@ -3,20 +3,14 @@
 mytoolbox is my toolbox.
 toolbox include excel addins.
 
-- Excel ƒAƒhƒCƒ“
-  - [addins/myworks](#myworks)  
-    Excel ì‹Æ•â•ƒc[ƒ‹
-  - [addins/mydesigner](#mydesigner))  
-    Excel }Œ`•`‰æƒc[ƒ‹
-  - [addins/AddinDev](#addindev)  
-    Excel ƒ}ƒNƒƒAƒhƒCƒ“‘€ìƒc[ƒ‹
-- ŠÂ‹«ŠÇ—
-  - [setr](#setr)  
-    set ƒoƒbƒ`ƒtƒ@ƒCƒ‹ì¬ƒc[ƒ‹
-  - [files](#files)  
-    ƒtƒ@ƒCƒ‹ˆê——Žæ“¾ƒc[ƒ‹
-  - [indexed](#indexed)  
-    ƒtƒ@ƒCƒ‹–¼ƒCƒ“ƒfƒbƒNƒXÝ’èƒc[ƒ‹
+- Excel ã‚¢ãƒ‰ã‚¤ãƒ³
+  - [addins/myworks](#myworks) Excel ä½œæ¥­è£œåŠ©ãƒ„ãƒ¼ãƒ«
+  - [addins/mydesigner](#mydesigner) Excel å›³å½¢æç”»ãƒ„ãƒ¼ãƒ«
+  - [addins/AddinDev](#addindev) Excel ãƒžã‚¯ãƒ­ã‚¢ãƒ‰ã‚¤ãƒ³æ“ä½œãƒ„ãƒ¼ãƒ«
+- ç’°å¢ƒç®¡ç†
+  - [setr](#setr) set ãƒãƒƒãƒãƒ•ã‚¡ã‚¤ãƒ«ä½œæˆãƒ„ãƒ¼ãƒ«
+  - [files](#files) ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§å–å¾—ãƒ„ãƒ¼ãƒ«
+  - [indexed](#indexed) ãƒ•ã‚¡ã‚¤ãƒ«åã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹è¨­å®šãƒ„ãƒ¼ãƒ«
 
 ### build
 
@@ -43,26 +37,26 @@ $ git submodule update --remote
 
 ## myworks
 
-Excel ì‹Æ•â•ƒc[ƒ‹
+Excel ä½œæ¥­è£œåŠ©ãƒ„ãƒ¼ãƒ«
 
 ## mydesigner
 
-Excel }Œ`•`‰æƒc[ƒ‹
+Excel å›³å½¢æç”»ãƒ„ãƒ¼ãƒ«
 
 ## AddinDev
 
-Excel ƒ}ƒNƒƒAƒhƒCƒ“‘€ìƒc[ƒ‹
+Excel ãƒžã‚¯ãƒ­ã‚¢ãƒ‰ã‚¤ãƒ³æ“ä½œãƒ„ãƒ¼ãƒ«
 
 ## setr
 
-set ƒoƒbƒ`ƒtƒ@ƒCƒ‹ì¬ƒc[ƒ‹
+set ãƒãƒƒãƒãƒ•ã‚¡ã‚¤ãƒ«ä½œæˆãƒ„ãƒ¼ãƒ«
 
 ## files
 
-ƒtƒ@ƒCƒ‹ˆê——Žæ“¾ƒc[ƒ‹
+ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§å–å¾—ãƒ„ãƒ¼ãƒ«
 
 ## indexed
 
-ƒtƒ@ƒCƒ‹–¼ƒCƒ“ƒfƒbƒNƒXÝ’èƒc[ƒ‹
+ãƒ•ã‚¡ã‚¤ãƒ«åã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹è¨­å®šãƒ„ãƒ¼ãƒ«
 
 ##
