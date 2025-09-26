@@ -19,7 +19,7 @@ if exist setr\build.cmd (
 
 if exist indexed\build.cmd (
   call indexed\build.cmd -pass %PDIR%\bin
-  move %PDIR%\bin\install.cmd %PDIR%\lib\install_indexed.cmd
+  move %PDIR%\bin\install.cmd %PDIR%\lib\install_indexed_menu.cmd
   move %PDIR%\bin\uninstall.cmd %PDIR%\lib\uninstall_indexed.cmd
   move %PDIR%\bin\install_task.* %PDIR%\lib
 )
@@ -36,9 +36,8 @@ if not exist %SZIP% goto eof
 if not exist %PDIR% goto eof
 if not exist %ODIR% mkdir %ODIR%
 
-%SZIP% a -tzip %ODIR%/mtb %PDIR%\*
-%SZIP% a -sfx7z.sfx %ODIR%/mtb %PDIR%
-
+%SZIP% a -tzip %ODIR%/mtb %PDIR%\* >nul
+%SZIP% a -sfx7z.sfx %ODIR%/mtb %PDIR% >nul
 set PTN1=abcdefghijklmnopqrstuvwxyz
 set PTN2=0123456789%PTN1%
 
