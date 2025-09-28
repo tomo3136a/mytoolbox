@@ -99,7 +99,6 @@ namespace files
 
             cb_2.Text = "サイズ";
             cb_2.Location = new Point(2 * m + 150, txt_1.Location.Y + txt_1.Height + m * 3 + 17);
-            cb_2.Checked = true;
             this.Controls.Add(cb_2);
 
             cb_3.Text = "日付";

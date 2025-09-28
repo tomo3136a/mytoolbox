@@ -16,6 +16,8 @@ namespace files
         {
             InitializeComponent();
             this.txt_1.Text = "C:\\";
+            this.rb_3.Checked = true;
+            this.cb_1.Checked = false;
             ((Button)this.AcceptButton).Select();
         }
 
@@ -27,7 +29,11 @@ namespace files
             {
                 root = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             }
+#if (NET6_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER)
+            dlg.InitialDirectory = root;
+#else
             dlg.SelectedPath = root;
+#endif
             if (DialogResult.OK == dlg.ShowDialog())
             {
                 this.txt_1.Text = dlg.SelectedPath;
