@@ -27,7 +27,25 @@ namespace files
                     .Where(v => (v.Attributes & FileAttributes.System) == 0)
                     .Aggregate<DirectoryInfo, IEnumerable<DirectoryInfo>>(
                         dirs.Append(di),
-                        (a, v) => a.Union(EnumerateDirectories(v))
+                        (a, v) => a.Concat(EnumerateDirectories(v))
+                        );
+            }
+            catch (System.UnauthorizedAccessException)
+            {
+            }
+            return dirs;
+        }
+
+        public static IEnumerable<DirectoryInfo> EnumerateDirectories1(DirectoryInfo di)
+        {
+            var dirs = Enumerable.Empty<DirectoryInfo>();
+            try
+            {
+                dirs = di.EnumerateDirectories()
+                    .Where(v => (v.Attributes & FileAttributes.System) == 0)
+                    .Aggregate<DirectoryInfo, IEnumerable<DirectoryInfo>>(
+                        dirs.Append(di),
+                        (a, v) => a.Union(EnumerateDirectories1(v))
                         );
             }
             catch (System.UnauthorizedAccessException)
@@ -41,29 +59,63 @@ namespace files
             var dirs = Enumerable.Empty<string>();
             try
             {
-                var col = Directory.EnumerateDirectories(dp);
-                var cnt2 = col.Count();
+                var m = FileAttributes.Hidden | FileAttributes.System;
+                var dcol = Directory.EnumerateDirectories(dp)
+                    .Where((v) => ((new DirectoryInfo(v)).Attributes & m) == 0);
+                var dcnt = dcol.Count();
+
                 var idx2 = 0;
-                var tab2 = ((idx + 1) == cnt) ? "    " : "│  ";
-                if (cnt == 0) tab2 = "";
-                var tab3 = ((idx + 1) == cnt) ? "└─" : "├─";
-                var tab4 = (Directory.GetDirectories(dp).Count() == 0) ? "    " : "│  ";
-                dirs = col
+                var btab = tab + ((cnt == 0) ? "" : ((idx + 1) == cnt) ? "    " : "│  ");
+                var dtab = tab + (((idx + 1) == cnt) ? "└─" : "├─");
+
+                dirs = dcol
                     .Aggregate<string, IEnumerable<string>>(
-                        dirs.Append(tab + tab3 + Path.GetFileName(dp))
-                        .Union(Directory.EnumerateFiles(dp).Select(
-                            (v) => tab + tab2 + tab4 + Path.GetFileName(v))),
-                        (a, v) => a.Union(EnumerateDirectories2(v, ref idx2, cnt2, tab + tab2))
+                        dirs
+                        .Append(dtab + Path.GetFileName(dp)),
+                        (a, v) => a.Concat(EnumerateDirectories2(v, ref idx2, dcnt, btab))
                         );
             }
             catch (System.UnauthorizedAccessException)
             {
+                dirs = dirs.Append("!!! UnauthorizedAccess");
             }
             idx++;
-            if (dirs.Count() > 0)
-            {
+            return dirs;
+        }
 
+        public static IEnumerable<string> EnumerateDirectories3(string dp, ref int idx, int cnt = 0, string tab = "")
+        {
+            var dirs = Enumerable.Empty<string>();
+            try
+            {
+                var m = FileAttributes.Hidden | FileAttributes.System;
+                var dcol = Directory.EnumerateDirectories(dp)
+                    .Where((v) => ((new DirectoryInfo(v)).Attributes & m) == 0);
+                var dcnt = dcol.Count();
+
+                var fcol = Directory.EnumerateFiles(dp)
+                    .Where((v) => ((new FileInfo(v)).Attributes & m) == 0)
+                    .Select((v) => Path.GetFileName(v));
+                if (fcol.Count() > 0) fcol = fcol.Append("");
+
+                var idx2 = 0;
+                var btab = tab + ((cnt == 0) ? "" : ((idx + 1) == cnt) ? "    " : "│  ");
+                var dtab = tab + (((idx + 1) == cnt) ? "└─" : "├─");
+                var ftab = btab + ((dcnt == 0) ? "    " : "│  ");
+
+                dirs = dcol
+                    .Aggregate<string, IEnumerable<string>>(
+                        dirs
+                        .Append(dtab + Path.GetFileName(dp))
+                        .Concat(fcol.Select((v) => ftab + v)),
+                        (a, v) => a.Concat(EnumerateDirectories3(v, ref idx2, dcnt, btab))
+                        );
             }
+            catch (System.UnauthorizedAccessException)
+            {
+                dirs = dirs.Append("!!! UnauthorizedAccess");
+            }
+            idx++;
             return dirs;
         }
 
@@ -84,7 +136,7 @@ namespace files
             long StartTicks = DateTime.Now.Ticks;
             using (StreamWriter ost = new StreamWriter(op, true))
             {
-                var line = "path: " + p;
+                var line = Path.GetFileName(p);
                 ost.WriteLine(line);
                 var bFile = (mode != 2);
                 var bDir = (mode != 1);
@@ -178,36 +230,42 @@ namespace files
             try
             {
                 var idx = 0;
-                foreach (var dp in EnumerateDirectories2(p, ref idx))
+                if (bDir && !bFile)
                 {
-                    try
+                    foreach (var dp in EnumerateDirectories2(p, ref idx))
                     {
-                        if (bSubDir)
+                        try
                         {
-                            var line = dp;
-                            ost.WriteLine(line);
-                        }
-                        bSubDir = bDir;
-                        if (bFile)
-                        {
-                            var ftab = "    ";
-                            foreach (var fp in Directory.EnumerateFiles(dp))
+                            if (bSubDir)
                             {
-                                try
-                                {
-                                    var line = ftab + fp;
-                                    ost.WriteLine(line);
-                                }
-                                catch (UnauthorizedAccessException ex)
-                                {
-                                    ost.WriteLine("!!! UnauthorizedAccess file: " + ex.Message);
-                                }
+                                var line = dp;
+                                ost.WriteLine(line);
                             }
+                            bSubDir = bDir;
+                        }
+                        catch (UnauthorizedAccessException ex)
+                        {
+                            ost.WriteLine("!!! UnauthorizedAccess directory: " + ex.Message);
                         }
                     }
-                    catch (UnauthorizedAccessException ex)
+                }
+                else
+                {
+                    foreach (var dp in EnumerateDirectories3(p, ref idx))
                     {
-                        ost.WriteLine("!!! UnauthorizedAccess directory: " + ex.Message);
+                        try
+                        {
+                            if (bSubDir)
+                            {
+                                var line = dp;
+                                ost.WriteLine(line);
+                            }
+                            bSubDir = bDir;
+                        }
+                        catch (UnauthorizedAccessException ex)
+                        {
+                            ost.WriteLine("!!! UnauthorizedAccess directory: " + ex.Message);
+                        }
                     }
                 }
             }
