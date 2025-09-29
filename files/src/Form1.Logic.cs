@@ -18,33 +18,16 @@ namespace files
             l_bDate = bDate;
         }
 
-        static void WriteFileOut(StreamWriter ost, FileInfo fi, int sz)
-        {
-            var line = "\t" + fi.FullName.Substring(sz);
-            if (l_bSize) line += "\t" + fi.Length.ToString("N0");
-            if (l_bDate) line += "\t" + fi.LastWriteTime.ToLocalTime();
-            ost.WriteLine(line);
-        }
-
-        static void WriteDirectoryOut(StreamWriter ost, DirectoryInfo di, int sz)
-        {
-            var line = "\t" + di.FullName.Substring(sz) + "\\";
-            if (l_bSize) line += "\t";
-            if (l_bDate) line += "\t" + di.LastWriteTime.ToLocalTime();
-            ost.WriteLine(line);
-        }
-
         public static IEnumerable<DirectoryInfo> EnumerateDirectories(DirectoryInfo di)
         {
             var dirs = Enumerable.Empty<DirectoryInfo>();
             try
             {
-                dirs = di.EnumerateDirectories().Where(
-                    v => (v.Attributes & FileAttributes.System) != FileAttributes.System);
-                dirs = dirs
-                        .Aggregate<DirectoryInfo, IEnumerable<DirectoryInfo>>(
-                            dirs,
-                            (a, v) => a.Union(EnumerateDirectories(v))
+                dirs = di.EnumerateDirectories()
+                    .Where(v => (v.Attributes & FileAttributes.System) == 0)
+                    .Aggregate<DirectoryInfo, IEnumerable<DirectoryInfo>>(
+                        dirs.Append(di),
+                        (a, v) => a.Union(EnumerateDirectories(v))
                         );
             }
             catch (System.UnauthorizedAccessException)
@@ -53,10 +36,41 @@ namespace files
             return dirs;
         }
 
+        public static IEnumerable<string> EnumerateDirectories2(string dp, ref int idx, int cnt = 0, string tab = "")
+        {
+            var dirs = Enumerable.Empty<string>();
+            try
+            {
+                var col = Directory.EnumerateDirectories(dp);
+                var cnt2 = col.Count();
+                var idx2 = 0;
+                var tab2 = ((idx + 1) == cnt) ? "    " : "│  ";
+                if (cnt == 0) tab2 = "";
+                var tab3 = ((idx + 1) == cnt) ? "└─" : "├─";
+                var tab4 = (Directory.GetDirectories(dp).Count() == 0) ? "    " : "│  ";
+                dirs = col
+                    .Aggregate<string, IEnumerable<string>>(
+                        dirs.Append(tab + tab3 + Path.GetFileName(dp))
+                        .Union(Directory.EnumerateFiles(dp).Select(
+                            (v) => tab + tab2 + tab4 + Path.GetFileName(v))),
+                        (a, v) => a.Union(EnumerateDirectories2(v, ref idx2, cnt2, tab + tab2))
+                        );
+            }
+            catch (System.UnauthorizedAccessException)
+            {
+            }
+            idx++;
+            if (dirs.Count() > 0)
+            {
+
+            }
+            return dirs;
+        }
+
         bool FileList(string p, int mode, bool bTree, bool bSize, bool bDate)
         {
             var doc = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            var dt = DateTime.Now.ToString("yyyyMMdd_hhmmss");
+            var dt = DateTime.Now.ToString("yyyyMMdd_HHmmss");
             var op = Path.Combine(doc, "dirlist_" + dt + ".txt");
             if (File.Exists(op))
             {
@@ -72,171 +86,61 @@ namespace files
             {
                 var line = "path: " + p;
                 ost.WriteLine(line);
+                var bFile = (mode != 2);
+                var bDir = (mode != 1);
                 if (!bTree)
                 {
-                    switch (mode)
-                    {
-                        case 1: // file list
-                            WriteFileList(ost, p);
-                            break;
-                        case 2: // directory list
-                            WriteDirList(ost, p);
-                            break;
-                        case 3: // file+directory list
-                            WriteFileDirList(ost, p);
-                            break;
-                        default:
-                            break;
-                    }
+                    WriteFileDirList(ost, p, bFile, bDir);
                 }
                 else
                 {
-                    switch (mode)
-                    {
-                        case 1: // file list
-                            WriteFileTree(ost, p);
-                            break;
-                        case 2: // directory list
-                            WriteDirTree(ost, p);
-                            break;
-                        case 3: // file+directory list
-                            WriteFileDirTree(ost, p);
-                            break;
-                        default:
-                            break;
-                    }
+                    WriteFileDirTree(ost, p, bFile, bDir);
                 }
             }
             ticks = DateTime.Now.Ticks - StartTicks;
             return true;
         }
 
-        static void WriteFileList(StreamWriter ost, string path)
+        static void WriteFileDirList(StreamWriter ost, string path, bool bFile, bool bDir)
         {
-            DirectoryInfo root = new DirectoryInfo(path);
-            string p = root.FullName;
-            int sz = root.FullName.Length;
-            if (p[sz - 1] != '\\' && p[sz - 1] != '/') sz += 1;
+            string p = (path[path.Length - 1] == '\\') ? path : (path + "\\");
+            DirectoryInfo root = new DirectoryInfo(p);
+            p = root.FullName;
+            int sz = p.Length;
+            bool bSubDir = false;
             try
             {
-                foreach (var fi in root.EnumerateFiles())
+                foreach (var di in EnumerateDirectories(root))
                 {
                     try
                     {
-                        WriteFileOut(ost, fi, sz);
-                    }
-                    catch (UnauthorizedAccessException ex)
-                    {
-                        ost.WriteLine("!!! UnauthorizedAccess file: " + ex.Message);
-                    }
-                }
-                foreach (var di in root.EnumerateDirectories("*"))
-                {
-                    try
-                    {
-                        foreach (var fi in di.EnumerateFiles("*", SearchOption.AllDirectories))
+                        if (bSubDir)
                         {
-                            try
+                            var s = di.FullName.Substring(sz);
+                            if (s.Length > 0)
                             {
-                                WriteFileOut(ost, fi, sz);
-                            }
-                            catch (UnauthorizedAccessException ex)
-                            {
-                                ost.WriteLine("!!! UnauthorizedAccess file: " + ex.Message);
+                                var line = "\t" + s + "\\";
+                                if (l_bSize) line += "\t";
+                                if (l_bDate) line += "\t" + di.LastWriteTime.ToLocalTime();
+                                ost.WriteLine(line);
                             }
                         }
-                    }
-                    catch (UnauthorizedAccessException ex)
-                    {
-                        ost.WriteLine("!!! UnauthorizedAccess diectory: " + ex.Message);
-                    }
-                }
-            }
-            catch (DirectoryNotFoundException ex)
-            {
-                ost.WriteLine("!!! DirectoryNotFound: " + ex.Message);
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                ost.WriteLine("!!! UnauthorizedAccess: " + ex.Message);
-            }
-            catch (PathTooLongException ex)
-            {
-                ost.WriteLine("!!! PathTooLong: " + ex.Message);
-            }
-            catch (Exception ex)
-            {
-                ost.WriteLine("!!! Exception: " + ex.Message);
-            }
-        }
-
-        static void WriteDirList(StreamWriter ost, string path)
-        {
-            DirectoryInfo root = new DirectoryInfo(path);
-            string p = root.FullName;
-            int sz = p.Length;
-            if (p[sz - 1] != '\\' && p[sz - 1] != '/') sz += 1;
-            try
-            {
-                foreach (var di in EnumerateDirectories(root))
-                {
-                    try
-                    {
-                        WriteDirectoryOut(ost, di, sz);
-                    }
-                    catch (UnauthorizedAccessException ex)
-                    {
-                        ost.WriteLine("!!! UnauthorizedAccess directory: " + ex.Message);
-                    }
-                }
-            }
-            catch (DirectoryNotFoundException ex)
-            {
-                ost.WriteLine("!!! DirectoryNotFound: " + ex.Message);
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                ost.WriteLine("!!! UnauthorizedAccess: " + ex.Message);
-            }
-            catch (PathTooLongException ex)
-            {
-                ost.WriteLine("!!! PathTooLong: " + ex.Message);
-            }
-            catch (Exception ex)
-            {
-                ost.WriteLine("!!! Exception: " + ex.Message);
-            }
-        }
-
-        static void WriteFileDirList(StreamWriter ost, string path)
-        {
-            DirectoryInfo root = new DirectoryInfo(path);
-            string p = root.FullName;
-            int sz = p.Length;
-            if (p[sz - 1] != '\\' && p[sz - 1] != '/') sz += 1;
-            try
-            {
-                foreach (var di in EnumerateDirectories(root))
-                {
-                    try
-                    {
-                        WriteDirectoryOut(ost, di, sz);
-                    }
-                    catch (UnauthorizedAccessException ex)
-                    {
-                        ost.WriteLine("!!! UnauthorizedAccess directory: " + ex.Message);
-                    }
-                    try
-                    {
-                        foreach (var fi in di.EnumerateFiles())
+                        bSubDir = bDir;
+                        if (bFile)
                         {
-                            try
+                            foreach (var fi in di.EnumerateFiles())
                             {
-                                WriteFileOut(ost, fi, sz);
-                            }
-                            catch (UnauthorizedAccessException ex)
-                            {
-                                ost.WriteLine("!!! UnauthorizedAccess file: " + ex.Message);
+                                try
+                                {
+                                    var line = "\t" + fi.FullName.Substring(sz);
+                                    if (l_bSize) line += "\t" + fi.Length.ToString("N0");
+                                    if (l_bDate) line += "\t" + fi.LastWriteTime.ToLocalTime();
+                                    ost.WriteLine(line);
+                                }
+                                catch (UnauthorizedAccessException ex)
+                                {
+                                    ost.WriteLine("!!! UnauthorizedAccess file: " + ex.Message);
+                                }
                             }
                         }
                     }
@@ -264,121 +168,40 @@ namespace files
             }
         }
 
-        static void WriteFileTree(StreamWriter ost, string path)
+        static void WriteFileDirTree(StreamWriter ost, string path, bool bFile, bool bDir)
         {
-            DirectoryInfo root = new DirectoryInfo(path);
-            string p = root.FullName;
+            string p = (path[path.Length - 1] == '\\') ? path : (path + "\\");
             int sz = p.Length;
-            if (p[sz - 1] != '\\' && p[sz - 1] != '/') sz += 1;
+            int cnt = p.Count((c) => c == '\\');
+            int cnt1 = cnt;
+            bool bSubDir = false;
             try
             {
-                foreach (var di in EnumerateDirectories(root))
+                var idx = 0;
+                foreach (var dp in EnumerateDirectories2(p, ref idx))
                 {
                     try
                     {
-                        foreach (var fi in di.EnumerateFiles())
+                        if (bSubDir)
                         {
-                            try
-                            {
-                                WriteFileOut(ost, fi, sz);
-                            }
-                            catch (UnauthorizedAccessException ex)
-                            {
-                                ost.WriteLine("!!! UnauthorizedAccess file: " + ex.Message);
-                            }
+                            var line = dp;
+                            ost.WriteLine(line);
                         }
-                    }
-                    catch (UnauthorizedAccessException ex)
-                    {
-                        ost.WriteLine("!!! UnauthorizedAccess directory: " + ex.Message);
-                    }
-                }
-            }
-            catch (DirectoryNotFoundException ex)
-            {
-                ost.WriteLine("!!! DirectoryNotFound: " + ex.Message);
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                ost.WriteLine("!!! UnauthorizedAccess: " + ex.Message);
-            }
-            catch (PathTooLongException ex)
-            {
-                ost.WriteLine("!!! PathTooLong: " + ex.Message);
-            }
-            catch (Exception ex)
-            {
-                ost.WriteLine("!!! Exception: " + ex.Message);
-            }
-        }
-
-        static void WriteDirTree(StreamWriter ost, string path)
-        {
-            DirectoryInfo root = new DirectoryInfo(path);
-            string p = root.FullName;
-            int sz = p.Length;
-            if (p[sz - 1] != '\\' && p[sz - 1] != '/') sz += 1;
-            try
-            {
-                foreach (var di in EnumerateDirectories(root))
-                {
-                    try
-                    {
-                        WriteDirectoryOut(ost, di, sz);
-                    }
-                    catch (UnauthorizedAccessException ex)
-                    {
-                        ost.WriteLine("!!! UnauthorizedAccess directory: " + ex.Message);
-                    }
-                }
-            }
-            catch (DirectoryNotFoundException ex)
-            {
-                ost.WriteLine("!!! DirectoryNotFound: " + ex.Message);
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                ost.WriteLine("!!! UnauthorizedAccess: " + ex.Message);
-            }
-            catch (PathTooLongException ex)
-            {
-                ost.WriteLine("!!! PathTooLong: " + ex.Message);
-            }
-            catch (Exception ex)
-            {
-                ost.WriteLine("!!! Exception: " + ex.Message);
-            }
-        }
-
-        static void WriteFileDirTree(StreamWriter ost, string path)
-        {
-            DirectoryInfo root = new DirectoryInfo(path);
-            string p = root.FullName;
-            int sz = p.Length;
-            if (p[sz - 1] != '\\' && p[sz - 1] != '/') sz += 1;
-            try
-            {
-                foreach (var di in EnumerateDirectories(root))
-                {
-                    try
-                    {
-                        WriteDirectoryOut(ost, di, sz);
-                    }
-                    catch (UnauthorizedAccessException ex)
-                    {
-                        ost.WriteLine("!!! UnauthorizedAccess directory: " + ex.Message);
-                    }
-                    try
-                    {
-                        foreach (var fi in di.EnumerateFiles())
+                        bSubDir = bDir;
+                        if (bFile)
                         {
-                            try
+                            var ftab = "    ";
+                            foreach (var fp in Directory.EnumerateFiles(dp))
                             {
-                                WriteFileOut(ost, fi, sz);
-                            }
-                            catch (UnauthorizedAccessException ex)
-                            {
-                                ost.WriteLine("!!! UnauthorizedAccess file: " + ex.Message);
+                                try
+                                {
+                                    var line = ftab + fp;
+                                    ost.WriteLine(line);
+                                }
+                                catch (UnauthorizedAccessException ex)
+                                {
+                                    ost.WriteLine("!!! UnauthorizedAccess file: " + ex.Message);
+                                }
                             }
                         }
                     }
