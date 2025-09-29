@@ -63,20 +63,27 @@ namespace files
                 var bTree = this.cb_1.Checked;
                 var bSize = this.cb_2.Checked;
                 var bDate = this.cb_3.Checked;
-                if (FileList(this.txt_1.Text, mode, bTree, bSize, bDate))
+                try
                 {
-                    string msg = new DateTime(ticks).ToString("HH:mm:ss.FFFFFFF");
-                    File.AppendAllLines(AppName + ".log", msg.Split('\n'));
-                    lbl_2.Text = msg;
-                    this.Update();
-                    MessageBox.Show(this, "Successfull.", AppName);
+                    if (FileList(this.txt_1.Text, mode, bTree, bSize, bDate))
+                    {
+                        string msg = new DateTime(ticks).ToString("HH:mm:ss.FFFFFFF");
+                        File.AppendAllLines(AppName + ".log", msg.Split('\n'));
+                        lbl_2.Text = msg;
+                        this.Update();
+                        MessageBox.Show(this, "Successfull.", AppName);
+                    }
+                    else
+                    {
+                        string msg = new DateTime(ticks).ToString("HH:mm:ss.FFFFFFF");
+                        lbl_2.Text = msg;
+                        this.Update();
+                        MessageBox.Show(this, "Denied.", AppName);
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    string msg = new DateTime(ticks).ToString("HH:mm:ss.FFFFFFF");
-                    lbl_2.Text = msg;
-                    this.Update();
-                    MessageBox.Show(this, "Denied.", AppName);
+                    MessageBox.Show(this, "Error.\n" + ex.Message, AppName);
                 }
             }
             this.Close();
