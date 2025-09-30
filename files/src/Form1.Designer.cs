@@ -26,8 +26,10 @@ namespace files
 
         #region Windows Form Designer generated code
 
-        TextBox txt_1 = new TextBox();
-        Button sel_1 = new Button();
+        TextBox txt_src = new TextBox();
+        Button sel_src = new Button();
+        TextBox txt_dst = new TextBox();
+        Button sel_dst = new Button();
         GroupBox grp_1 = new GroupBox();
         RadioButton rb_1 = new RadioButton();
         RadioButton rb_2 = new RadioButton();
@@ -35,7 +37,7 @@ namespace files
         CheckBox cb_1 = new CheckBox();
         CheckBox cb_2 = new CheckBox();
         CheckBox cb_3 = new CheckBox();
-        Label lbl_2 = new Label();
+        Label lbl_sts = new Label();
 
         /// <summary>
         ///  Required method for Designer support - do not modify
@@ -46,7 +48,7 @@ namespace files
             this.components = new System.ComponentModel.Container();
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(400, 210);
-            this.MinimumSize = new Size(400, 210);
+            this.MinimumSize = new Size(400, 310);
             this.Text = AppName;
 
             int w = this.ClientSize.Width;
@@ -54,27 +56,47 @@ namespace files
             var sz = new Size(w, h);
             var m = 10;
 
-            Label lbl_1 = new Label();
-            lbl_1.Anchor = (AnchorStyles)(AnchorStyles.Top | AnchorStyles.Left);
-            lbl_1.Text = "フォルダ：";
-            lbl_1.Location = new Point(m, m);
-            this.Controls.Add(lbl_1);
+            Label lbl_src = new Label();
+            lbl_src.Anchor = (AnchorStyles)(AnchorStyles.Top | AnchorStyles.Left);
+            lbl_src.Text = "フォルダ：";
+            lbl_src.Location = new Point(m, m);
+            this.Controls.Add(lbl_src);
 
-            txt_1.Anchor = (AnchorStyles)(AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right);
-            txt_1.Size = new Size(sz.Width - 3 * m - 75, 23);
-            txt_1.Location = new Point(m, lbl_1.Location.Y + lbl_1.Height + m);
-            this.Controls.Add(txt_1);
+            txt_src.Anchor = (AnchorStyles)(AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right);
+            txt_src.Size = new Size(sz.Width - 3 * m - 75, 23);
+            txt_src.Location = new Point(m, lbl_src.Location.Y + lbl_src.Height + m * 0);
+            this.Controls.Add(txt_src);
 
-            sel_1.Anchor = (AnchorStyles)(AnchorStyles.Top | AnchorStyles.Right);
-            sel_1.Text = "選択";
-            sel_1.Size = new Size(75, 23);
-            sel_1.Location = new Point(sz.Width - 75 - m, lbl_1.Location.Y + lbl_1.Height + m);
-            sel_1.Click += new EventHandler(OnSelect);
-            this.Controls.Add(sel_1);
+            sel_src.Anchor = (AnchorStyles)(AnchorStyles.Top | AnchorStyles.Right);
+            sel_src.Name = "src";
+            sel_src.Text = "選択";
+            sel_src.Size = new Size(75, 23);
+            sel_src.Location = new Point(sz.Width - 75 - m, lbl_src.Location.Y + lbl_src.Height + m * 0);
+            sel_src.Click += new EventHandler(OnSelect);
+            this.Controls.Add(sel_src);
+
+            Label lbl_dst = new Label();
+            lbl_dst.Anchor = (AnchorStyles)(AnchorStyles.Top | AnchorStyles.Left);
+            lbl_dst.Text = "出力先：";
+            lbl_dst.Location = new Point(m, txt_src.Location.Y + txt_src.Height + m);
+            this.Controls.Add(lbl_dst);
+
+            txt_dst.Anchor = (AnchorStyles)(AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right);
+            txt_dst.Size = new Size(sz.Width - 3 * m - 75, 23);
+            txt_dst.Location = new Point(m, lbl_dst.Location.Y + lbl_dst.Height + m * 0);
+            this.Controls.Add(txt_dst);
+
+            sel_dst.Anchor = (AnchorStyles)(AnchorStyles.Top | AnchorStyles.Right);
+            sel_dst.Name = "dst";
+            sel_dst.Text = "選択";
+            sel_dst.Size = new Size(75, 23);
+            sel_dst.Location = new Point(sz.Width - 75 - m, lbl_dst.Location.Y + lbl_dst.Height + m * 0);
+            sel_dst.Click += new EventHandler(OnSelect);
+            this.Controls.Add(sel_dst);
 
             grp_1.Anchor = (AnchorStyles)(AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left);
             grp_1.Size = new Size(150, 90);
-            grp_1.Location = new Point(m, txt_1.Location.Y + txt_1.Height + m);
+            grp_1.Location = new Point(m, txt_dst.Location.Y + txt_dst.Height + m);
             this.Controls.Add(grp_1);
 
             rb_1.Size = new Size(150, 22);
@@ -85,31 +107,31 @@ namespace files
 
             rb_2.Size = new Size(170, 22);
             rb_2.Text = "フォルダ";
-            rb_2.Location = new Point(m, m * 2 + 17);
+            rb_2.Location = new Point(m, m + (m + 17));
             grp_1.Controls.Add(rb_2);
 
             rb_3.Size = new Size(170, 22);
             rb_3.Text = "ファイル+フォルダ";
-            rb_3.Location = new Point(m, m * 3 + 17 * 2);
+            rb_3.Location = new Point(m, m + (m + 17) * 2);
             grp_1.Controls.Add(rb_3);
 
             cb_1.Text = "ツリー形式";
-            cb_1.Location = new Point(2 * m + 150, txt_1.Location.Y + txt_1.Height + m * 2);
+            cb_1.Location = new Point(2 * m + 150, txt_dst.Location.Y + txt_dst.Height + m * 2);
             this.Controls.Add(cb_1);
 
             cb_2.Text = "サイズ";
-            cb_2.Location = new Point(2 * m + 150, txt_1.Location.Y + txt_1.Height + m * 3 + 17);
+            cb_2.Location = new Point(2 * m + 150, cb_1.Location.Y + cb_1.Height + m * 0);
             this.Controls.Add(cb_2);
 
             cb_3.Text = "日付";
-            cb_3.Location = new Point(2 * m + 150, txt_1.Location.Y + txt_1.Height + m * 4 + 17 * 2);
+            cb_3.Location = new Point(2 * m + 150, cb_2.Location.Y + cb_2.Height + m * 0);
             this.Controls.Add(cb_3);
 
-            lbl_2.Anchor = (AnchorStyles)(AnchorStyles.Bottom | AnchorStyles.Left);
-            lbl_2.Text = "";
-            lbl_2.Size = new Size(200, 23);
-            lbl_2.Location = new Point(m, sz.Height - 4 * m);
-            this.Controls.Add(lbl_2);
+            lbl_sts.Anchor = (AnchorStyles)(AnchorStyles.Bottom | AnchorStyles.Left);
+            lbl_sts.Text = "";
+            lbl_sts.Size = new Size(200, 23);
+            lbl_sts.Location = new Point(m, sz.Height - 4 * m);
+            this.Controls.Add(lbl_sts);
 
             Button ok = new Button();
             ok.Anchor = (AnchorStyles)(AnchorStyles.Bottom | AnchorStyles.Right);

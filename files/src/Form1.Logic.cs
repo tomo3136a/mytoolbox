@@ -119,16 +119,17 @@ namespace files
             return dirs;
         }
 
-        bool FileList(string p, int mode, bool bTree, bool bSize, bool bDate)
+        bool FileList(string src, string dst, int mode, bool bTree, bool bSize, bool bDate)
         {
             var doc = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            if (Directory.Exists(dst)) doc = dst;
             var dt = DateTime.Now.ToString("yyyyMMdd_HHmmss");
             var op = Path.Combine(doc, "dirlist_" + dt + ".txt");
             if (File.Exists(op))
             {
                 File.Delete(op);
             }
-            if (!Directory.Exists(p))
+            if (!Directory.Exists(src))
             {
                 return false;
             }
@@ -136,17 +137,17 @@ namespace files
             long StartTicks = DateTime.Now.Ticks;
             using (StreamWriter ost = new StreamWriter(op, true))
             {
-                var line = Path.GetFileName(p);
+                var line = Path.GetFileName(src);
                 ost.WriteLine(line);
                 var bFile = (mode != 2);
                 var bDir = (mode != 1);
                 if (!bTree)
                 {
-                    WriteFileDirList(ost, p, bFile, bDir);
+                    WriteFileDirList(ost, src, bFile, bDir);
                 }
                 else
                 {
-                    WriteFileDirTree(ost, p, bFile, bDir);
+                    WriteFileDirTree(ost, src, bFile, bDir);
                 }
             }
             ticks = DateTime.Now.Ticks - StartTicks;

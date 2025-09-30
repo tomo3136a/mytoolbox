@@ -15,7 +15,7 @@ namespace files
         public Form1()
         {
             InitializeComponent();
-            this.txt_1.Text = "C:\\";
+            this.txt_src.Text = "C:\\";
             this.rb_3.Checked = true;
             this.cb_1.Checked = false;
             ((Button)this.AcceptButton).Select();
@@ -24,7 +24,9 @@ namespace files
         void OnSelect(Object sender, EventArgs e)
         {
             FolderBrowserDialog dlg = new FolderBrowserDialog();
-            var root = txt_1.Text;
+            var btn = (Button)sender;
+            var txt = (btn.Name == "src") ? txt_src : txt_dst;
+            var root = txt.Text;
             if (!Directory.Exists(root))
             {
                 root = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
@@ -36,9 +38,9 @@ namespace files
 #endif
             if (DialogResult.OK == dlg.ShowDialog())
             {
-                this.txt_1.Text = dlg.SelectedPath;
-                this.txt_1.BackColor = Color.White;
-                this.txt_1.BackColor = SystemColors.Window;
+                txt.Text = dlg.SelectedPath;
+                txt.BackColor = Color.White;
+                txt.BackColor = SystemColors.Window;
             }
             dlg.Dispose();
         }
@@ -47,17 +49,17 @@ namespace files
         {
             if (this.DialogResult == DialogResult.OK)
             {
-                var s = this.txt_1.Text;
+                var s = this.txt_src.Text;
                 if (!Directory.Exists(s))
                 {
-                    this.txt_1.Focus();
-                    this.txt_1.BackColor = Color.Yellow;
+                    this.txt_src.Focus();
+                    this.txt_src.BackColor = Color.Yellow;
                     MessageBox.Show(this, "フォルダを選択してください。", AppName);
-                    this.txt_1.SelectAll();
+                    this.txt_src.SelectAll();
                     return;
                 }
 
-                lbl_2.Text = "処理中";
+                lbl_sts.Text = "処理中";
                 this.Update();
                 var mode = this.rb_1.Checked ? 1 : rb_2.Checked ? 2 : 3;
                 var bTree = this.cb_1.Checked;
@@ -65,18 +67,20 @@ namespace files
                 var bDate = this.cb_3.Checked;
                 try
                 {
-                    if (FileList(this.txt_1.Text, mode, bTree, bSize, bDate))
+                    var src = this.txt_src.Text;
+                    var dst = this.txt_dst.Text;
+                    if (FileList(src, dst, mode, bTree, bSize, bDate))
                     {
                         string msg = new DateTime(ticks).ToString("HH:mm:ss.FFFFFFF");
                         File.AppendAllLines(AppName + ".log", msg.Split('\n'));
-                        lbl_2.Text = msg;
+                        lbl_sts.Text = msg;
                         this.Update();
                         MessageBox.Show(this, "Successfull.", AppName);
                     }
                     else
                     {
                         string msg = new DateTime(ticks).ToString("HH:mm:ss.FFFFFFF");
-                        lbl_2.Text = msg;
+                        lbl_sts.Text = msg;
                         this.Update();
                         MessageBox.Show(this, "Denied.", AppName);
                     }
