@@ -35,6 +35,7 @@ namespace files
         CheckBox cb_1 = new CheckBox();
         CheckBox cb_2 = new CheckBox();
         CheckBox cb_3 = new CheckBox();
+        CheckBox cb_4 = new CheckBox();
         Label lbl_sts = new Label();
 
         /// <summary>
@@ -73,9 +74,26 @@ namespace files
             sel_src.Click += new EventHandler(OnSelect);
             this.Controls.Add(sel_src);
 
+            cb_1.Text = "ツリー形式";
+            cb_1.Location = new Point(m, txt_src.Location.Y + txt_src.Height + m * 2);
+            cb_1.CheckedChanged += new EventHandler(OnTypeSelect);
+            this.Controls.Add(cb_1);
+
+            cb_2.Text = "サイズ";
+            cb_2.Location = new Point(m, cb_1.Location.Y + cb_1.Height + m * 0);
+            this.Controls.Add(cb_2);
+
+            cb_3.Text = "日付";
+            cb_3.Location = new Point(m, cb_2.Location.Y + cb_2.Height + m * 0);
+            this.Controls.Add(cb_3);
+
+            cb_4.Text = "絶対パス";
+            cb_4.Location = new Point(m, cb_3.Location.Y + cb_3.Height + m * 0);
+            this.Controls.Add(cb_4);
+
             grp_1.Anchor = (AnchorStyles)(AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left);
             grp_1.Size = new Size(150, 90);
-            grp_1.Location = new Point(m, txt_src.Location.Y + txt_src.Height + m);
+            grp_1.Location = new Point(2 * m + 150, txt_src.Location.Y + txt_src.Height + m);
             this.Controls.Add(grp_1);
 
             rb_1.Size = new Size(150, 22);
@@ -93,18 +111,6 @@ namespace files
             rb_3.Text = "ファイル+フォルダ";
             rb_3.Location = new Point(m, m + (m + 17) * 2);
             grp_1.Controls.Add(rb_3);
-
-            cb_1.Text = "ツリー形式";
-            cb_1.Location = new Point(2 * m + 150, txt_src.Location.Y + txt_src.Height + m * 2);
-            this.Controls.Add(cb_1);
-
-            cb_2.Text = "サイズ";
-            cb_2.Location = new Point(2 * m + 150, cb_1.Location.Y + cb_1.Height + m * 0);
-            this.Controls.Add(cb_2);
-
-            cb_3.Text = "日付";
-            cb_3.Location = new Point(2 * m + 150, cb_2.Location.Y + cb_2.Height + m * 0);
-            this.Controls.Add(cb_3);
 
             lbl_sts.Anchor = (AnchorStyles)(AnchorStyles.Bottom | AnchorStyles.Left);
             lbl_sts.Text = "";

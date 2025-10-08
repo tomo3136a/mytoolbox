@@ -45,6 +45,24 @@ namespace files
             dlg.Dispose();
         }
 
+        void OnTypeSelect(Object sender, EventArgs e)
+        {
+            if (cb_1.Checked)
+            {
+                cb_2.Enabled = false;
+                cb_3.Enabled = false;
+                cb_4.Enabled = false;
+                rb_1.Enabled = false;
+            }
+            else
+            {
+                cb_2.Enabled = true;
+                cb_3.Enabled = true;
+                cb_4.Enabled = true;
+                rb_1.Enabled = true;
+            }
+        }
+
         void OnClose(Object sender, EventArgs e)
         {
             if (this.DialogResult == DialogResult.OK)
@@ -63,6 +81,7 @@ namespace files
                 var bTree = this.cb_1.Checked;
                 var bSize = this.cb_2.Checked;
                 var bDate = this.cb_3.Checked;
+                var bAbs = this.cb_4.Checked;
                 try
                 {
                     var src = this.txt_src.Text;
@@ -87,7 +106,7 @@ namespace files
 
                     lbl_sts.Text = "処理中";
                     this.Update();
-                    if (FileList(src, dst, mode, bTree, bSize, bDate))
+                    if (FileList(src, dst, mode, bTree, bSize, bDate, bAbs))
                     {
                         string msg = new DateTime(ticks).ToString("HH:mm:ss.FFFFFFF");
                         File.AppendAllLines(AppName + ".log", msg.Split('\n'));

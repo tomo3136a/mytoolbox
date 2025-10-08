@@ -4,7 +4,6 @@ using System.Linq;
 using System.IO;
 using System.Drawing;
 using System.Windows.Forms;
-using System.Security.Cryptography.Xml;
 
 namespace files
 {
@@ -13,6 +12,8 @@ namespace files
         private static bool l_bSize;
         private static bool l_bDate;
         private static bool l_bFile;
+        private static string l_sPre = "\t";
+        private static string l_sPost = "";
         private static List<string> err_list = new List<string>();
 
         static void SetMode(bool bSize, bool bDate, bool bFile)
@@ -29,7 +30,7 @@ namespace files
             var dcnt = 0;
             try
             {
-                dia = di.EnumerateDirectories();
+                dia = di.EnumerateDirectories().Where((v) => (v.Attributes & m) == 0);
                 dcnt = dia.Count();
             }
             catch (System.UnauthorizedAccessException)
@@ -39,26 +40,18 @@ namespace files
             {
                 foreach (var a in dia)
                 {
-                    if (a == null)
+                    if ((a.Attributes & m) != 0) continue;
+                    yield return a;
+                    IEnumerable<DirectoryInfo> dib = null;
+                    try
                     {
-                        err_list.Add("!!![1-2] a is null.");
-                        continue;
+                        dib = EnumerateDirectories(a);
                     }
-                    if ((a.Attributes & m) == 0)
+                    catch (System.UnauthorizedAccessException)
                     {
-                        yield return a;
-                        IEnumerable<DirectoryInfo> dib = null;
-                        try
-                        {
-                            dib = EnumerateDirectories(a);
-                        }
-                        catch (System.UnauthorizedAccessException)
-                        {
-                        }
-                        if (dib == null)
-                        {
-                            continue;
-                        }
+                    }
+                    if (dib != null)
+                    {
                         foreach (var b in dib)
                         {
                             yield return b;
@@ -132,13 +125,14 @@ namespace files
             }
         }
 
-        bool FileList(string src, string dst, int mode, bool bTree, bool bSize, bool bDate)
+        bool FileList(string src, string dst, int mode, bool bTree, bool bSize, bool bDate, bool bAbs)
         {
             if (!Directory.Exists(src))
             {
                 return false;
             }
             var p = (src[src.Length - 1] == '\\') ? src : (src + "\\");
+            p = Path.GetFullPath(p);
             var root = new DirectoryInfo(p);
             if (File.Exists(dst))
             {
@@ -157,7 +151,7 @@ namespace files
                 }
                 if (!bTree)
                 {
-                    WriteFileDirList(ost, root, bFile, bDir);
+                    WriteFileDirList(ost, root, bFile, bDir, bAbs);
                 }
                 else
                 {
@@ -178,9 +172,11 @@ namespace files
             return true;
         }
 
-        static void WriteFileDirList(StreamWriter ost, DirectoryInfo root, bool bFile, bool bDir)
+        static void WriteFileDirList(StreamWriter ost, DirectoryInfo root, bool bFile, bool bDir, bool bAbs)
         {
             int sz = root.FullName.Length;
+            var pre = bAbs ? root.FullName : l_sPre;
+            var post = l_sPost;
             try
             {
                 foreach (var di in EnumerateDirectories(root))
@@ -192,7 +188,7 @@ namespace files
                             var s = di.FullName.Substring(sz);
                             if (s.Length > 0)
                             {
-                                var line = "\t" + s + "\\";
+                                var line = pre + s + post;
                                 if (l_bSize) line += "\t";
                                 if (l_bDate) line += "\t" + di.LastWriteTime.ToLocalTime();
                                 ost.WriteLine(line);
@@ -216,7 +212,7 @@ namespace files
                                 {
                                     try
                                     {
-                                        var line = "\t" + fi.FullName.Substring(sz);
+                                        var line = pre + fi.FullName.Substring(sz);
                                         if (l_bSize) line += "\t" + fi.Length.ToString("N0");
                                         if (l_bDate) line += "\t" + fi.LastWriteTime.ToLocalTime();
                                         ost.WriteLine(line);
