@@ -28,8 +28,6 @@ namespace files
 
         TextBox txt_src = new TextBox();
         Button sel_src = new Button();
-        TextBox txt_dst = new TextBox();
-        Button sel_dst = new Button();
         GroupBox grp_1 = new GroupBox();
         RadioButton rb_1 = new RadioButton();
         RadioButton rb_2 = new RadioButton();
@@ -75,28 +73,9 @@ namespace files
             sel_src.Click += new EventHandler(OnSelect);
             this.Controls.Add(sel_src);
 
-            Label lbl_dst = new Label();
-            lbl_dst.Anchor = (AnchorStyles)(AnchorStyles.Top | AnchorStyles.Left);
-            lbl_dst.Text = "出力先：";
-            lbl_dst.Location = new Point(m, txt_src.Location.Y + txt_src.Height + m);
-            this.Controls.Add(lbl_dst);
-
-            txt_dst.Anchor = (AnchorStyles)(AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right);
-            txt_dst.Size = new Size(sz.Width - 3 * m - 75, 23);
-            txt_dst.Location = new Point(m, lbl_dst.Location.Y + lbl_dst.Height + m * 0);
-            this.Controls.Add(txt_dst);
-
-            sel_dst.Anchor = (AnchorStyles)(AnchorStyles.Top | AnchorStyles.Right);
-            sel_dst.Name = "dst";
-            sel_dst.Text = "選択";
-            sel_dst.Size = new Size(75, 23);
-            sel_dst.Location = new Point(sz.Width - 75 - m, lbl_dst.Location.Y + lbl_dst.Height + m * 0);
-            sel_dst.Click += new EventHandler(OnSelect);
-            this.Controls.Add(sel_dst);
-
             grp_1.Anchor = (AnchorStyles)(AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left);
             grp_1.Size = new Size(150, 90);
-            grp_1.Location = new Point(m, txt_dst.Location.Y + txt_dst.Height + m);
+            grp_1.Location = new Point(m, txt_src.Location.Y + txt_src.Height + m);
             this.Controls.Add(grp_1);
 
             rb_1.Size = new Size(150, 22);
@@ -116,7 +95,7 @@ namespace files
             grp_1.Controls.Add(rb_3);
 
             cb_1.Text = "ツリー形式";
-            cb_1.Location = new Point(2 * m + 150, txt_dst.Location.Y + txt_dst.Height + m * 2);
+            cb_1.Location = new Point(2 * m + 150, txt_src.Location.Y + txt_src.Height + m * 2);
             this.Controls.Add(cb_1);
 
             cb_2.Text = "サイズ";

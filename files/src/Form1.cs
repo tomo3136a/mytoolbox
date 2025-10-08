@@ -25,7 +25,7 @@ namespace files
         {
             FolderBrowserDialog dlg = new FolderBrowserDialog();
             var btn = (Button)sender;
-            var txt = (btn.Name == "src") ? txt_src : txt_dst;
+            var txt = txt_src;
             var root = txt.Text;
             if (!Directory.Exists(root))
             {
@@ -59,8 +59,6 @@ namespace files
                     return;
                 }
 
-                lbl_sts.Text = "処理中";
-                this.Update();
                 var mode = this.rb_1.Checked ? 1 : rb_2.Checked ? 2 : 3;
                 var bTree = this.cb_1.Checked;
                 var bSize = this.cb_2.Checked;
@@ -68,7 +66,27 @@ namespace files
                 try
                 {
                     var src = this.txt_src.Text;
-                    var dst = this.txt_dst.Text;
+                    var dst = "";
+                    if (!Directory.Exists(dst))
+                    {
+                        dst = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                    }
+                    SaveFileDialog dlg = new SaveFileDialog();
+                    dlg.InitialDirectory = dst;
+                    var dt = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                    var op = "files_" + dt + ".txt";
+                    dlg.FileName = op;
+                    dlg.Filter = "テキストファイル(*.txt)|*.txt|すべてのファイル(*.*)|*.*";
+                    if (DialogResult.OK != dlg.ShowDialog())
+                    {
+                        dlg.Dispose();
+                        return;
+                    }
+                    dst = dlg.FileName;
+                    dlg.Dispose();
+
+                    lbl_sts.Text = "処理中";
+                    this.Update();
                     if (FileList(src, dst, mode, bTree, bSize, bDate))
                     {
                         string msg = new DateTime(ticks).ToString("HH:mm:ss.FFFFFFF");
