@@ -12,6 +12,7 @@ namespace files
         private static bool l_bSize;
         private static bool l_bDate;
         private static bool l_bFile;
+        private static FileAttributes l_mask = FileAttributes.Hidden | FileAttributes.System;
         private static string l_sPre = "\t";
         private static string l_sPost = "";
         private static List<string> err_list = new List<string>();
@@ -25,12 +26,11 @@ namespace files
 
         public static IEnumerable<DirectoryInfo> EnumerateDirectories(DirectoryInfo di)
         {
-            var m = FileAttributes.Hidden | FileAttributes.System;
             IEnumerable<DirectoryInfo> dia = null;
             var dcnt = 0;
             try
             {
-                dia = di.EnumerateDirectories().Where((v) => (v.Attributes & m) == 0);
+                dia = di.EnumerateDirectories().Where((v) => (v.Attributes & l_mask) == 0);
                 dcnt = dia.Count();
             }
             catch (System.UnauthorizedAccessException)
@@ -40,7 +40,7 @@ namespace files
             {
                 foreach (var a in dia)
                 {
-                    if ((a.Attributes & m) != 0) continue;
+                    if ((a.Attributes & l_mask) != 0) continue;
                     yield return a;
                     IEnumerable<DirectoryInfo> dib = null;
                     try
@@ -63,12 +63,11 @@ namespace files
 
         public static IEnumerable<string> EnumerateDirectoriesTree(DirectoryInfo di, string tab = "", bool bEnd = true)
         {
-            var m = FileAttributes.Hidden | FileAttributes.System;
             IEnumerable<DirectoryInfo> dia = null;
             var dcnt = 0;
             try
             {
-                dia = di.EnumerateDirectories().Where((v) => (v.Attributes & m) == 0);
+                dia = di.EnumerateDirectories().Where((v) => (v.Attributes & l_mask) == 0);
                 dcnt = dia.Count();
             }
             catch (System.UnauthorizedAccessException)
@@ -80,7 +79,7 @@ namespace files
                 var fcnt = 0;
                 try
                 {
-                    fia = di.EnumerateFiles().Where((v) => (v.Attributes & m) == 0);
+                    fia = di.EnumerateFiles().Where((v) => (v.Attributes & l_mask) == 0);
                     fcnt = fia.Count();
                 }
                 catch (System.UnauthorizedAccessException)
@@ -197,16 +196,17 @@ namespace files
                         if (bFile)
                         {
                             IEnumerable<FileInfo> fia = null;
+                            var fcnt = 0;
                             try
                             {
-                                fia = di.EnumerateFiles();
+                                fia = di.EnumerateFiles().Where((v) => (v.Attributes & l_mask) == 0);
+                                fcnt = fia.Count();
                             }
                             catch (UnauthorizedAccessException ex)
                             {
                                 err_list.Add("!!! UnauthorizedAccess dirctory: " + ex.Message);
-                                fia = null;
                             }
-                            if (fia != null)
+                            if (fcnt > 0)
                             {
                                 foreach (var fi in fia)
                                 {
