@@ -7,7 +7,8 @@ $AppExts = ".exe"
 
 $Path = "src/*.cs"
 $ReferencedAssemblies = "System.Drawing", "System.Windows.Forms", `
-  "System.Xml", "System.Xml.Linq", "System.Windows", "System.Configuration"
+  "System.Windows", "System.Configuration", `
+  "System.Xml", "System.Xml.Linq"
 
 Write-Host "build start." -ForegroundColor Yellow
 
@@ -16,8 +17,6 @@ if (-not (Test-Path $OutputPath)) {
   Write-Output "make directory."
 }
 $OutputAssembly = Join-Path (Resolve-Path -Path $OutputPath) $AppName$AppExts
-
-Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 
 Write-Output "build program:  $AppName$AppExts"
 Write-Output "    Path:       $Path"
