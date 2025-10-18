@@ -6,12 +6,13 @@ using System.Drawing;
 using System.Windows.Forms;
 using System.Windows.Forms.VisualStyles;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace mkfolder
 {
     public partial class Form1 : Form
     {
-        static string root = Directory.GetCurrentDirectory();
+        static string root = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
         static string app_name = Path.GetFileNameWithoutExtension(AppDomain.CurrentDomain.FriendlyName);
 
         public Form1()

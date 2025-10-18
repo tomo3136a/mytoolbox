@@ -29,6 +29,14 @@ if exist files\build.cmd (
   move %PDIR%\bin\install.cmd %PDIR%\lib\install_files.cmd
 )
 
+if exist mkfolder\build.cmd (
+  call mkfolder\build.cmd -pass %PDIR%\bin
+)
+
+if exist custom (
+  xcopy custom %PDIR%\lib /s /e /q
+)
+
 copy lib\install.cmd %PDIR%
 copy lib\uninstall.cmd %PDIR%
 
