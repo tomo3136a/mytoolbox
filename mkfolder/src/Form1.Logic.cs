@@ -87,10 +87,6 @@ namespace mkfolder
                 if (res != DialogResult.Yes) return false;
             }
             MakeSubDirectory(di_src, di_dst);
-            var s = "フォルダを作成しました。\nフォルダを開きますか。\n" + dst;
-            var res2 = MessageBox.Show(s, app_name, MessageBoxButtons.YesNo);
-            if (res2 != DialogResult.Yes) return false;
-            Process.Start("explorer.exe", dst);
             return true;
         }
 

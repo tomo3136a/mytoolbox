@@ -5,19 +5,21 @@ using System.IO;
 using System.Drawing;
 using System.Windows.Forms;
 using System.Windows.Forms.VisualStyles;
+using System.Diagnostics;
 
 namespace mkfolder
 {
     public partial class Form1 : Form
     {
         static string root = Directory.GetCurrentDirectory();
-        static string app_name = AppDomain.CurrentDomain.FriendlyName;
+        static string app_name = Path.GetFileNameWithoutExtension(AppDomain.CurrentDomain.FriendlyName);
 
         public Form1()
         {
             var p = Path.Combine(root, "..\\lib\\" + app_name);
             if (Directory.Exists(p)) root = p;
             LoadConfig(app_name);
+
             InitializeComponent();
             this.tbx_pkg.Visible = false;
             this.tbx_pkg.Text = root;
@@ -26,14 +28,21 @@ namespace mkfolder
 
         void OnMake(Object sender, EventArgs e)
         {
-            var ip = "" + lbx_pkg.Items[this.lbx_pkg.SelectedIndex];
-            ip = Path.Combine(root, ip);
-            var op = SelectFolder("");
-            if (op != "")
+            var src = "" + lbx_pkg.Items[this.lbx_pkg.SelectedIndex];
+            src = Path.Combine(root, src);
+            if (!Directory.Exists(src)) return;
+
+            var dst = SelectFolder("");
+            if (dst == "") return;
+
+            if (MakeFolder(src, dst))
             {
                 SaveConfig();
-                if (MakeFolder(ip, op))
+                var s = "フォルダを作成しました。\nフォルダを開きますか。\n" + dst;
+                var res2 = MessageBox.Show(s, app_name, MessageBoxButtons.YesNo);
+                if (res2 == DialogResult.Yes)
                 {
+                    Process.Start("explorer.exe", dst);
                     this.Close();
                 }
             }
