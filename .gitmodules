@@ -1,4 +1,0 @@
-[submodule "indexed"]
-	path = indexed
-	url = https://github.com/tomo3136a/atmm_indexed.git
-	branch = main

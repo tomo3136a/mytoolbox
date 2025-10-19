@@ -25,7 +25,5 @@ Add-Type -Path $Path -OutputType ConsoleApplication `
   -OutputAssembly $OutputAssembly `
   -ReferencedAssemblies $ReferencedAssemblies
 
-Copy-Item -Force lib/install.cmd $OutputPath
-
 Write-Host "build completed." -ForegroundColor Yellow
 if (-not $pass) { $host.UI.RawUI.ReadKey() | Out-Null }

@@ -3,7 +3,7 @@ setlocal enabledelayedexpansion
 pushd %~dp0
 
 set PKG=mtb
-set LST=setr setpath indexed files mkfolder
+set LST=setr indexed files mkfolder
 
 set ODIR=%~dp0\package
 set PDIR=%ODIR%\%PKG%
@@ -12,48 +12,28 @@ set SZIP="c:\Program Files\7-Zip\7z.exe"
 if not exist %PDIR%\bin mkdir %PDIR%\bin
 if not exist %PDIR%\lib mkdir %PDIR%\lib
 
+if exist setpath (
+  xcopy setpath %PDIR% /s /e /q
+)
+
 for %%f in (%LST%) do (
   if exist %%f\build.cmd (
     call %%f\build.cmd -pass %PDIR%\bin
   )
-  if exist %PDIR%\bin\install.cmd (
-    move %PDIR%\bin\install.cmd %PDIR%\lib\install_%%f.cmd
+  if exist %PDIR%\lib\install.cmd (
+    move %PDIR%\lib\install.cmd %PDIR%\lib\install_%%f.cmd
   )
-  if exist %PDIR%\bin\uninstall.cmd (
-    move %PDIR%\bin\uninstall.cmd %PDIR%\lib\uninstall_%%f.cmd
+  if exist %PDIR%\lib\uninstall.cmd (
+    move %PDIR%\lib\uninstall.cmd %PDIR%\lib\uninstall_%%f.cmd
   )
-)
-
-
-rem if exist setr\build.cmd (
-rem   call setr\build.cmd -pass %PDIR%\bin
-rem   move %PDIR%\bin\install.cmd %PDIR%\lib\install_setr.cmd
-rem   copy setr\setpath.cmd %PDIR%
-rem   copy setr\lib\setpath.ps1 %PDIR%\lib
-rem )
-
-rem if exist indexed\build.cmd (
-rem   call indexed\build.cmd -pass %PDIR%\bin
-rem   move %PDIR%\bin\install.cmd %PDIR%\lib\install_indexed_menu.cmd
-rem   move %PDIR%\bin\uninstall.cmd %PDIR%\lib\uninstall_indexed.cmd
-rem   move %PDIR%\bin\install_task.* %PDIR%\lib
-rem )
-
-rem if exist files\build.cmd (
-rem   call files\build.cmd -pass %PDIR%\bin
-rem   move %PDIR%\bin\install.cmd %PDIR%\lib\install_files.cmd
-rem )
-
-rem if exist mkfolder\build.cmd (
-rem   call mkfolder\build.cmd -pass %PDIR%\bin
-rem )
-
-if exist custom (
-  xcopy custom %PDIR%\lib /s /e /q
 )
 
 copy lib\install.cmd %PDIR%
 copy lib\uninstall.cmd %PDIR%
+
+if exist custom (
+  xcopy custom %PDIR%\lib /s /e /q
+)
 
 if not exist %SZIP% goto eof
 if not exist %PDIR% goto eof

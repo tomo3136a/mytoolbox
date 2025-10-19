@@ -1,7 +1,7 @@
 @echo off
 pushd %~dp0
 echo uninstalling...
-set p=c:\opt\bin
+set p=c:\opt\mtb\bin
 if exist install_task.cmd (
   call install_task.cmd -Clean -Pass
 )
