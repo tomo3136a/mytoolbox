@@ -218,6 +218,7 @@ namespace Tmm
             cu.DeleteSubKeyTree(@"Software\Classes\Directory\shell\at_4_backup", true);
             cu.DeleteSubKeyTree(@"Software\Classes\Directory\shell\at_8_tagging", true);
             cu.DeleteSubKeyTree(@"Software\Classes\Directory\shell\at_9_comment", true);
+            cu.DeleteSubKeyTree(@"Software\Classes\Directory\shell\at_9_monitor", true);
 
             cu.DeleteSubKeyTree(@"Software\Classes\Directory\Background\shell\at_1_datefolder", true);
             cu.DeleteSubKeyTree(@"Software\Classes\Directory\Background\shell\at_2_hashfile", true);
