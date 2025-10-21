@@ -9,7 +9,8 @@ if not exist %p%\lib mkdir %p%\lib
 xcopy bin\*.* %p%\bin /s /e /q
 xcopy lib\*.* %p%\lib /s /e /q
 
-call setpath.cmd %p%\bin -pass
+xcopy setpath.cmd %p% /q
+call %p%\setpath.cmd %p%\bin -pass
 
 popd
 pause
