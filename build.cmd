@@ -3,7 +3,7 @@ setlocal enabledelayedexpansion
 pushd %~dp0
 
 set PKG=mtb
-set LST=setr indexed files mkfolder
+set LST=setr indexed files mkfolder addins
 
 set ODIR=%~dp0\package
 set PDIR=%ODIR%\%PKG%
@@ -28,8 +28,8 @@ for %%f in (%LST%) do (
   )
 )
 
-copy lib\install.cmd %PDIR%
-copy lib\uninstall.cmd %PDIR%
+copy lib\install*.cmd %PDIR%
+copy lib\uninstall*.cmd %PDIR%
 
 if exist custom (
   xcopy custom %PDIR%\lib /s /e /q

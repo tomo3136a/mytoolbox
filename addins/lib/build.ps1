@@ -1,4 +1,6 @@
-﻿param([string]$path = "", [bool]$pass)
+﻿#builder
+#
+param($OutputPath = "", [switch]$pass)
 
 $addins="addindev","addindev2","myworks","mydesigner"
 
@@ -122,10 +124,8 @@ function Update-ArchiveXml($xml, $dst, $target) {
   $stm.Position = 0
   $rdr = New-Object System.Io.StreamReader($stm)
   $txt = $rdr.ReadToEnd()
-  $txt | Out-Host
-
-  Write-Host "# Add ${target}" -ForegroundColor Yellow
   $txt | . $arc u -ux2 -y -tzip $dst -si"${target}" | Out-Null
+  Write-Host "# Add ${target}" -ForegroundColor Yellow
 }
 
 ##############################################################################
@@ -151,86 +151,17 @@ function Update-Relationships($dst) {
 
 ##############################################################################
 #
-function Add-CustomUI($dst, $name, $noribbon, $ctmenu) {
-  $id="customUI"
-
-  $s1 = @"
-<ribbon>
-  <tabs>
-    <tab id="Tab${name}" label="${name}">
-      <group id="${name}.g1" label="${name}" autoScale="true">
-        <button id="${name}.b1" label="${name}" imageMso="ListMacros"
-          onAction="${name}_onAction" size="large" />
-      </group>
-    </tab>
-  </tabs>
-</ribbon>
-"@
-
-  $s2 = @"
-<contextMenus>
-  <contextMenu idMso="ContextMenuWorkbookPly">
-    <button id="${name}.sheet.b1" label="${name}" imageMso="ListMacros" onAction="${name}_onAction" />
-  </contextMenu>
-  <contextMenu idMso="ContextMenuCell">
-    <button id="${name}.cell.b1" label="${name}" insertBeforeMso="Cut" imageMso="ListMacros" onAction="${name}_onAction" />
-    <menuSeparator id="${name}.cell.s1" insertBeforeMso="Cut" />
-  </contextMenu>
-  <contextMenu idMso="ContextMenuCellLayout">
-    <button id="${name}.celllayout.b1" label="${name} layout" insertBeforeMso="Cut" imageMso="ListMacros" onAction="${name}_onAction" />
-    <menuSeparator id="${name}.celllayout.s1" insertBeforeMso="Cut" />
-  </contextMenu>
-  <contextMenu idMso="ContextMenuRow">
-    <button id="${name}.row.b1" label="${name}" insertBeforeMso="Cut" imageMso="ListMacros" onAction="${name}_onAction" />
-    <menuSeparator id="${name}.row.s1" insertBeforeMso="Cut" />
-  </contextMenu>
-  <contextMenu idMso="ContextMenuRowLayout">
-    <button id="${name}.rowlayout.b1" label="${name} layout" insertBeforeMso="Cut" imageMso="ListMacros" onAction="${name}_onAction" />
-    <menuSeparator id="${name}.rowlayout.s1" insertBeforeMso="Cut" />
-  </contextMenu>
-  <contextMenu idMso="ContextMenuColumn">
-    <button id="${name}.col.b1" label="${name}" insertBeforeMso="Cut" imageMso="ListMacros" onAction="${name}_onAction" />
-    <menuSeparator id="${name}.col.s1" insertBeforeMso="Cut" />
-  </contextMenu>
-  <contextMenu idMso="ContextMenuColumnLayout">
-    <button id="${name}.collayout.b1" label="${name} layout" insertBeforeMso="Cut" imageMso="ListMacros" onAction="${name}_onAction" />
-    <menuSeparator id="${name}.collayout.s1" insertBeforeMso="Cut" />
-  </contextMenu>
-  <contextMenu idMso="ContextMenuShape">
-    <button id="${name}.shape.b1" label="${name}" insertBeforeMso="Cut" imageMso="ListMacros" onAction="${name}_onAction" />
-    <menuSeparator id="${name}.shape.s1" insertBeforeMso="Cut" />
-  </contextMenu>
-  <contextMenu idMso="ContextMenuPicture">
-    <button id="${name}.pict.b1" label="${name}" insertBeforeMso="Cut" imageMso="ListMacros" onAction="${name}_onAction" />
-    <menuSeparator id="${name}.pict.s1" insertBeforeMso="Cut" />
-  </contextMenu>
-</contextMenus>
-"@
-
-#  $path = Join-Path $root "customUI\${id}.xml"
-#  if (-not (Test-Path $path)) {
-  Write-Host "# Creeate customUI/${id}.xml" -ForegroundColor Yellow
-  $src = @"
-<?xml version="1.0" encoding="UTF-8"?>
-<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" onLoad="${name}_onLoad">
-"@
-  if (-not $noribbon) { $src = $src + $s1 }
-  if ($ctmenu) { $src = $src + $s2 }
-  $src = $src + @"
-</customUI>
-"@
-  $target="customUI/${id}.xml"
-  $xml = [xml]$src
-  Write-Host "# Update ${target}" -ForegroundColor Yellow
-  Update-ArchiveXml $xml $dst $target
+if ($OutputPath -ne "") {
+  $OutputPath = Join-Path $OutputPath "..\lib"
 }
-
-##############################################################################
-#
-$out_path = Join-Path (Resolve-Path ".").Path "addins"
+if ($OutputPath -eq "") {
+  $OutputPath = "."
+}
+$out_path = Join-Path (Resolve-Path $OutputPath).Path "addins"
 if (-Not (Test-Path $out_path)) {
   New-Item $out_path -ItemType Directory | Out-Null
 }
+echo "output path: ${out_path}"
 
 foreach ($name in $addins) {
   $xlam_file = $name + ".xlam"
@@ -246,12 +177,6 @@ foreach ($name in $addins) {
   Pop-Location
   Write-Host "# Update customUI\customUI.xml" -ForegroundColor Yellow
 }
-
-#if (Test-Path $zip) {
-#  Write-Host "# Save ${name}" -ForegroundColor Yellow
-#  Copy-Item $zip $xlam
-#  Remove-Item $zip
-#}
 
 ##############################################################################
 #
