@@ -11,6 +11,7 @@ function New-Xlam($xlam, $root) {
     Write-Host "# Create ${xlam}" -ForegroundColor Yellow
     $app = New-Object -ComObject Excel.Application
     $wb = $null
+    $err = $false
     try {
       $app.Visible = $false
       $app.DisplayAlerts = $false
@@ -51,13 +52,13 @@ function New-Xlam($xlam, $root) {
         $s = $col.AddFromGuid("{420B2830-E718-11CF-893D-00A0C9054228}", 1, 0)
         $s = $s.Name
         Write-Host "reference ${s}"
-      } catch {}
+      } catch {$err=$true}
       try {
         $col = $wb.VBProject.References
         $s = $col.AddFromGuid("{3F4DACA7-160D-11D2-A8E9-00104B365C9F}", 5, 5)
         $s = $s.Name
         Write-Host "reference ${s}"
-      } catch {}
+      } catch {$err=$true}
 
       # sources
       try {
@@ -77,9 +78,11 @@ function New-Xlam($xlam, $root) {
           $col.Import($_.FullName) | Out-Null
           Write-Host "load ${s}"
         }
-      } catch {}
+      } catch {$err=$true}
 
-      [void]$wb.SaveAs($xlam, 55)
+      if (-Not $err) {
+        [void]$wb.SaveAs($xlam, 55)
+      }
     } finally {
       # release workbook
       if ($null -ne $wb) {
@@ -161,7 +164,7 @@ $out_path = Join-Path (Resolve-Path $OutputPath).Path "addins"
 if (-Not (Test-Path $out_path)) {
   New-Item $out_path -ItemType Directory | Out-Null
 }
-echo "output path: ${out_path}"
+Write-Host "output path: ${out_path}" -ForegroundColor Yellow
 
 foreach ($name in $addins) {
   $xlam_file = $name + ".xlam"
@@ -169,13 +172,15 @@ foreach ($name in $addins) {
   Write-Host "xlam: ${xlam_file}" -ForegroundColor Yellow
 
   New-Xlam $xlam $name
-  Wait-FileClosed $xlam
-  Update-Relationships $xlam
+  if (Test-Path $xlam) {
+    Wait-FileClosed $xlam
+    Update-Relationships $xlam
 
-  Push-Location $name
-  . $arc a -tzip $xlam "customUI\customUI.xml" | Out-Null
-  Pop-Location
-  Write-Host "# Update customUI\customUI.xml" -ForegroundColor Yellow
+    Push-Location $name
+    . $arc a -tzip $xlam "customUI\customUI.xml" | Out-Null
+    Pop-Location
+    Write-Host "# Update customUI\customUI.xml" -ForegroundColor Yellow
+  }
 }
 
 ##############################################################################
