@@ -260,6 +260,7 @@ namespace AutoCopy
             foreach (var s in lst)
                 gvw_path.Rows.Add(s, src.Contains(s), dst.Contains(s));
             txt_ign.Text = act.GetIgnore();
+            txt_ptn.Text = act.GetPattern();
         }
 
         //////////////////////////////////////////////////////////////////////
@@ -274,10 +275,12 @@ namespace AutoCopy
 
             gvw_path.Rows.Clear();
             txt_ign.Text = "";
+            txt_ptn.Text = "";
             if (act.Load())
             {
                 UpdatePath();
                 txt_ign.Text = act.GetIgnore();
+                txt_ptn.Text = act.GetPattern();
             }
         }
 
@@ -308,6 +311,7 @@ namespace AutoCopy
                         act.RemoveDestination(p);
             }
             act.SetIgnore(txt_ign.Text);
+            act.SetPattern(txt_ptn.Text);
             act.Save();
         }
 

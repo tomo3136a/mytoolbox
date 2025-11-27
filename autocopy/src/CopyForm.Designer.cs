@@ -38,6 +38,7 @@ namespace AutoCopy
         Button btn_edt_path = new Button();
 
         TextBox txt_ign = new TextBox();
+        TextBox txt_ptn = new TextBox();
 
         TreeView tvw_src = new TreeView();
         TreeView tvw_dst = new TreeView();
@@ -182,6 +183,22 @@ namespace AutoCopy
             txt_ign.Size = new Size(dw, bh);
             this.Controls.Add(txt_ign);
             y0 += txt_ign.Height + m;
+
+            x = x0;
+            y = y0;
+            Label lbl_ptn = new Label();
+            lbl_ptn.Anchor = (AnchorStyles)(AnchorStyles.Top | AnchorStyles.Left);
+            lbl_ptn.Text = "パターン：";
+            lbl_ptn.Location = new Point(x, y + 6);
+            lbl_ptn.AutoSize = true;
+            this.Controls.Add(lbl_ptn);
+
+            x += dx;
+            txt_ptn.Anchor = (AnchorStyles)(AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right);
+            txt_ptn.Location = new Point(x, y + 2);
+            txt_ptn.Size = new Size(dw, bh);
+            this.Controls.Add(txt_ptn);
+            y0 += txt_ptn.Height + m;
 
             x = x0 + dx;
             y = y0;

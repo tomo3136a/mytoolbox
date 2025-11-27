@@ -8,6 +8,7 @@ namespace AutoCopy
     {
         string _path = "";
         string _ign = "";
+        string _ptn = "";
         List<string> _src_lst = new List<string>();
         List<string> _dst_lst = new List<string>();
 
@@ -75,6 +76,15 @@ namespace AutoCopy
             return _ign;
         }
 
+        public void SetPattern(string ptn)
+        {
+            _ptn = ptn;
+        }
+        public string GetPattern()
+        {
+            return _ptn;
+        }
+
         /// <summary>
         /// 操作設定保存
         /// </summary>
@@ -108,6 +118,7 @@ namespace AutoCopy
                         wst.WriteLine("dst: " + s);
                     }
                     if (_ign != "") wst.WriteLine("ign: " + _ign);
+                    if (_ptn != "") wst.WriteLine("ptn: " + _ptn);
                 }
                 res = true;
             }
@@ -142,6 +153,7 @@ namespace AutoCopy
                         case "src": AddSource(v); break;
                         case "dst": AddDestination(v); break;
                         case "ign": _ign = v; break;
+                        case "ptn": _ptn = v; break;
                     }
                 }
                 return true;
@@ -167,6 +179,7 @@ namespace AutoCopy
             if (_path == "") return false;
             _path_info = new TargetFolder(_path);
             _path_info.SetIgnore(_ign);
+            _path_info.SetPattern(_ptn);
             return _path_info.Search();
         }
 
@@ -183,6 +196,7 @@ namespace AutoCopy
                 if (s == _path) return false;
                 var info = new TargetFolder(s);
                 info.SetIgnore(_ign);
+                info.SetPattern(_ptn);
                 info.Search();
                 _dst_info.Add(info);
             }
