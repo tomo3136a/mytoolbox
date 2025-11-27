@@ -339,8 +339,13 @@ namespace AutoCopy
                     else if (tt1 > tt2)
                         File.Move(dst, GetNextPath(dst, t2));
                 }
-                else if (!Directory.Exists(d))
-                    Directory.CreateDirectory(d);
+                else
+                {
+                    var d2 = Path.GetDirectoryName(dst);
+                    if (d2 == null) return "";
+                    if (!Directory.Exists(d2))
+                        Directory.CreateDirectory(d2);
+                }
 
                 File.Copy(src, dst);
             }
