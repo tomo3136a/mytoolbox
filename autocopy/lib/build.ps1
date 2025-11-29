@@ -26,5 +26,9 @@ Add-Type -Path $Path -OutputType WindowsApplication `
   -OutputAssembly $OutputAssembly `
   -ReferencedAssemblies $ReferencedAssemblies
 
+Copy-Item -Force lib/uninstall*.cmd $OutputPath\..\lib
+Copy-Item -Force lib/install*.cmd $OutputPath\..\lib
+Copy-Item -Force lib/install*.ps1 $OutputPath\..\lib
+
 Write-Host "build completed." -ForegroundColor Yellow
 if (-not $pass) { $host.UI.RawUI.ReadKey() | Out-Null }

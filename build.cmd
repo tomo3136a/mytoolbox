@@ -3,9 +3,9 @@ setlocal enabledelayedexpansion
 pushd %~dp0
 
 set PKG=mtb
-set LST=setr indexed files mkfolder addins
+set LST=setr indexed files mkfolder addins autocopy
 
-set ODIR=%~dp0\package
+set ODIR=%~dp0package
 set PDIR=%ODIR%\%PKG%
 set SZIP="c:\Program Files\7-Zip\7z.exe"
 
@@ -17,11 +17,16 @@ if exist setpath (
 )
 
 for %%f in (%LST%) do (
+  echo.
+  echo module: %%f
   if exist %%f\build.cmd (
     call %%f\build.cmd -pass %PDIR%\bin
   )
-  if exist %PDIR%\lib\install.cmd (
-    move %PDIR%\lib\install.cmd %PDIR%\lib\install_%%f.cmd
+  if exist %PDIR%\lib\install_task.cmd (
+    move %PDIR%\lib\install_task.cmd %PDIR%\lib\install_task_%%f.cmd
+  )
+  if exist %PDIR%\lib\install_task.ps1 (
+    move %PDIR%\lib\install_task.ps1 %PDIR%\lib\install_task_%%f.ps1
   )
   if exist %PDIR%\lib\uninstall.cmd (
     move %PDIR%\lib\uninstall.cmd %PDIR%\lib\uninstall_%%f.cmd
