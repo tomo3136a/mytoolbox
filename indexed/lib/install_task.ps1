@@ -1,6 +1,27 @@
-﻿param($Name = "ファイル監視", [switch]$Clean, [switch]$Pass)
+﻿param(
+    $App="indexed",
+    $Name="ファイル監視", 
+    $Root="c:\opt\mtb",
+    [switch]$Clean, 
+    [switch]$Pass
+)
 
-$root="c:\opt\mtb"
+# configure
+$ExecutePath = "${root}\bin\${app}.exe"
+$ExecuteArgs = "-m1" 
+$WorkingDirectory = "%USERPROFILE%\documents"
+$Interval = 1
+
+if (-Not (Test-Path $ExecutePath)) { $ExecutePath = "${root}\${app}.exe" }
+if (-Not (Test-Path $ExecutePath)) { $ExecutePath = "..\bin\${app}.exe" }
+if (-Not (Test-Path $ExecutePath)) { $ExecutePath = ".\bin\${app}.exe" }
+if (-Not (Test-Path $ExecutePath)) { $ExecutePath = ".\${app}.exe" }
+if (-Not (Test-Path $ExecutePath)) {
+    Write-Host "Not found ${App}.exe" -ForegroundColor Yellow
+    if (-not $Pass) { $host.UI.RawUI.ReadKey() | Out-Null }
+    Exit
+}
+$ExecutePath = Resolve-Path $ExecutePath
 
 # remove resistered task
 if ($Clean) {
@@ -18,11 +39,6 @@ if ($Clean) {
     Exit
 }
 
-# configure
-$ExecutePath = "${root}\bin\indexed.exe"
-$WorkingDirectory = "%USERPROFILE%\documents"
-$Interval = 1
-
 # registration task schedule
 $Trigger = @()
 $Trigger += New-ScheduledTaskTrigger `
@@ -31,7 +47,7 @@ $Trigger += New-ScheduledTaskTrigger `
 
 $Action = New-ScheduledTaskAction `
     -Execute $ExecutePath `
-    -Argument "-m1" `
+    -Argument $ExecuteArgs `
     -WorkingDirectory $WorkingDirectory
 
 $Settings = New-ScheduledTaskSettingsSet `

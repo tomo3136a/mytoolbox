@@ -1,5 +1,5 @@
 ﻿param(
-    $App="autocopy", 
+    $App="autocopy",
     $Name="自動コピー", 
     $Root="c:\opt",
     [switch]$Clean, 
@@ -16,6 +16,11 @@ if (-Not (Test-Path $ExecutePath)) { $ExecutePath = "${root}\${app}.exe" }
 if (-Not (Test-Path $ExecutePath)) { $ExecutePath = "..\bin\${app}.exe" }
 if (-Not (Test-Path $ExecutePath)) { $ExecutePath = ".\bin\${app}.exe" }
 if (-Not (Test-Path $ExecutePath)) { $ExecutePath = ".\${app}.exe" }
+if (-Not (Test-Path $ExecutePath)) {
+    Write-Host "Not found ${App}.exe" -ForegroundColor Yellow
+    if (-not $Pass) { $host.UI.RawUI.ReadKey() | Out-Null }
+    Exit
+}
 $ExecutePath = Resolve-Path $ExecutePath
 
 # remove resistered task

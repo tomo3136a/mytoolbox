@@ -4,7 +4,7 @@ set INST=c:\opt\bin
 set APP=autocopy
 
 echo installing...
-if exist ..\bin\%APP%%.exe (
+if exist ..\bin\%APP%.exe (
   if not exist %INST% mkdir %INST% 
   copy ..\bin\%APP%.exe %INST%
 )
