@@ -22,14 +22,14 @@ for %%f in (%LST%) do (
   if exist %%f\build.cmd (
     call %%f\build.cmd -pass %PDIR%\bin
   )
-  if exist %PDIR%\lib\install_task.cmd (
-    move %PDIR%\lib\install_task.cmd %PDIR%\lib\install_task_%%f.cmd
+  if exist %%f\lib\install_task.cmd (
+    copy %%f\lib\install_task.cmd %PDIR%\lib\install_task_%%f.cmd
   )
-  if exist %PDIR%\lib\install_task.ps1 (
-    move %PDIR%\lib\install_task.ps1 %PDIR%\lib\install_task_%%f.ps1
+  if exist %%f\lib\install_task.ps1 (
+    copy %%f\lib\install_task.ps1 %PDIR%\lib\install_task_%%f.ps1
   )
-  if exist %PDIR%\lib\uninstall.cmd (
-    move %PDIR%\lib\uninstall.cmd %PDIR%\lib\uninstall_%%f.cmd
+  if exist %%f\lib\uninstall.cmd (
+    copy %%f\lib\uninstall.cmd %PDIR%\lib\uninstall_%%f.cmd
   )
 )
 
