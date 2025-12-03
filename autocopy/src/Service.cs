@@ -158,7 +158,10 @@ namespace AutoCopy
         public void Save(string p = "")
         {
             if (p != "") _conf = p;
-            if (_conf == "") _conf = Config.GetPath(Config.FileType.CONFIG, true);
+            if (_conf == "") _conf = Config.GetPath(Config.FileType.CONFIG);
+            var d = Path.GetDirectoryName(_conf);
+            if (d == null) return;
+            if (!Directory.Exists(d)) Directory.CreateDirectory(d);
             try
             {
                 using (var wst = new StreamWriter(_conf))
