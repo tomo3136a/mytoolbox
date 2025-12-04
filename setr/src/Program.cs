@@ -11,45 +11,50 @@ using Tmm;
 
 internal class Program
 {
-    private const string version = "1.0";
-    private static bool b_verbose = false;
-    private static bool b_cui = false;
-    private bool b_append = false;
-    private bool b_update = false;
-    private bool b_relative = false;
-    private bool b_relative2 = false;
+    private const string _version = "1.0";
 
-    string cpath;
-    string cpath2;
-    string ipath;
-    string opath;
-    string spath;
-    string title;
-    string title2;
-    string msg;
-    string cmd;
+    private static bool _verbose = false;
+    private static bool _cui = false;
+    private bool _append = false;
+    private bool UpdateMode { get; set; }
+    private bool RelativeFlag = false;
+    private bool _g_relative = false;
 
-    List<string> cmds;
-    List<string> outs;
-    Dictionary<string, string> kvs;
+    string CurrentPath { get; set; }
+    string InputPath { get; set; }
+    string OutputPath { get; set; }
+    string ScriptPath { get; set; }
+    string Title { get; set; }
+    string Message { get; set; }
+    string Command { get; set; }
 
+    string _g_cpath = "";
+    string _g_title = "";
+
+    List<string> _cmds { get; set; }
+    List<string> OutLines = new List<string>();
+    Dictionary<string, string> _kvs { get; set; }
 
     Program()
     {
-        cpath2 = Environment.CurrentDirectory;
-        cpath = cpath2;
-        ipath = "";
-        opath = "";
-        spath = "";
-        title = "";
-        title2 = "";
-        msg = "";
-        cmd = "";
+        UpdateMode = false;
 
-        cmds = new List<string>();
-        outs = new List<string>();
-        kvs = new Dictionary<string, string>();
+        CurrentPath = Environment.CurrentDirectory;
+        InputPath = "";
+        OutputPath = "";
+        ScriptPath = "";
+        Title = "";
+        Message = "";
+        Command = "";
+
+        OutLines = new List<string>();
+        _kvs = new Dictionary<string, string>();
+
+        _g_cpath = CurrentPath;
     }
+
+    //////////////////////////////////////////////////////////////////////////
+    /// 
 
     /// <summary>
     /// main function
@@ -58,13 +63,14 @@ internal class Program
     [STAThread]
     private static void Main(string[] args)
     {
-#if (NET6_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER)
-        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-#endif
+        // system startup initialize
+        StartUp();
+
+        // create application
         var app = new Program();
 
         // command line
-        var ss = ArgsToArray(Environment.CommandLine).Skip(1).ToArray();
+        var ss = GetArgs();
         if (app.ParseCommandLine(ss) != 0)
         {
             var s1 = "args:";
@@ -75,16 +81,14 @@ internal class Program
         }
         app.SetGlobal();
 
-        // input/output file
-        var src = app.ipath;
-        var dst = app.opath;
+        // output file
+        var dst = app.OutputPath;
         if (dst != "")
         {
-            if (File.Exists(dst))
-            {
-                app.Load(dst);
-            }
+            if (File.Exists(dst)) app.Load(dst);
         }
+
+        var src = app.InputPath;
         if (src == "")
         {
             if (app.Run() < 0)
@@ -95,6 +99,7 @@ internal class Program
         }
         else
         {
+            // test source file
             if (!File.Exists(src))
             {
                 var msg = Path.GetFileName(src);
@@ -103,12 +108,12 @@ internal class Program
                 return;
             }
 
-            // test update
-            if (!app.b_update && File.Exists(dst))
+            // test update destination file
+            if (!app.UpdateMode && File.Exists(dst))
             {
-                var dt1 = File.GetLastWriteTime(src);
-                var dt2 = File.GetLastWriteTime(dst);
-                if (dt1 < dt2) return;
+                var src_dt = File.GetLastWriteTime(src);
+                var dst_dt = File.GetLastWriteTime(dst);
+                if (src_dt < dst_dt) return;
             }
 
             //run script
@@ -121,36 +126,55 @@ internal class Program
             }
         }
 
-        // save output
-        if (app.outs.Count == 0) return;
+        // save output line data
+        if (app.OutLines.Count == 0) return;
         app.Save(dst);
     }
 
+    //////////////////////////////////////////////////////////////////////////
+    /// 
+
+    /// <summary>
+    /// startup function
+    /// </summary>
+    private static void StartUp()
+    {
+#if (NET6_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER)
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+#endif
+    }
+
+    /// <summary>
+    /// global value setting
+    /// </summary>
     private void SetGlobal()
     {
-        if (title == "")
+        if (Title == "")
         {
-            if (ipath.Length > 0)
+            if (InputPath.Length > 0)
             {
-                title = Path.GetFileNameWithoutExtension(ipath);
+                Title = Path.GetFileNameWithoutExtension(InputPath);
             }
             else
             {
-                title = AppName();
+                Title = AppName();
             }
         }
-        b_relative2 = b_relative;
-        cpath2 = cpath;
-        title2 = title;
+        _g_relative = RelativeFlag;
+        _g_cpath = CurrentPath;
+        _g_title = Title;
     }
 
+    /// <summary>
+    /// reset value form global
+    /// </summary>
     private void Reset()
     {
-        b_relative = b_relative2;
-        cpath = cpath2;
-        title = title2;
-        cmd = "";
-        cmds.Clear();
+        RelativeFlag = _g_relative;
+        CurrentPath = _g_cpath;
+        Title = _g_title;
+        Command = "";
+        _cmds.Clear();
     }
 
     /// <summary>
@@ -173,7 +197,7 @@ internal class Program
                 var m = re.Match(s);
                 if (!m.Success)
                 {
-                    cmds.Add(s);
+                    _cmds.Add(s);
                     continue;
                 }
                 opt = m.Groups[2].Value;
@@ -192,18 +216,18 @@ internal class Program
                 switch (opt)
                 {
                     case "h": return Cmd_Help();
-                    case "v": b = !b_verbose; break;
-                    case "C": b = !b_cui; break;
-                    case "u": b = !b_update; break;
-                    case "a": b = !b_append; break;
-                    case "r": b = !b_relative; break;
-                    case "d": cmd = opt; continue; //delete
-                    case "p": cmd = opt; continue; //prompt
-                    case "y": cmd = opt; continue; //yesno
-                    case "f": cmd = opt; continue; //file select
-                    case "g": cmd = opt; continue; //folder select
-                    case "l": cmd = opt; continue; //list select
-                    case "x": cmd = opt; continue;
+                    case "v": b = !_verbose; break;
+                    case "C": b = !_cui; break;
+                    case "u": b = !UpdateMode; break;
+                    case "a": b = !_append; break;
+                    case "r": b = !RelativeFlag; break;
+                    case "d": Command = opt; continue; //delete
+                    case "p": Command = opt; continue; //prompt
+                    case "y": Command = opt; continue; //yesno
+                    case "f": Command = opt; continue; //file select
+                    case "g": Command = opt; continue; //folder select
+                    case "l": Command = opt; continue; //list select
+                    case "x": Command = opt; continue;
                 }
                 switch (m.Groups[3].Value)
                 {
@@ -212,11 +236,11 @@ internal class Program
                 }
                 switch (opt)
                 {
-                    case "v": b_verbose = b; continue;
-                    case "C": b_cui = b; continue;
-                    case "u": b_update = b; continue;
-                    case "a": b_append = b; continue;
-                    case "r": b_relative = b; continue;
+                    case "v": _verbose = b; continue;
+                    case "C": _cui = b; continue;
+                    case "u": UpdateMode = b; continue;
+                    case "a": _append = b; continue;
+                    case "r": RelativeFlag = b; continue;
                 }
                 opt_flg = true;
             }
@@ -225,12 +249,12 @@ internal class Program
             s = RemoveEscape(s);
             switch (opt)
             {
-                case "i": ipath = s; break;
-                case "o": opath = s; break;
-                case "c": cpath = s; break;
-                case "s": spath = s; break;
-                case "t": title = s; break;
-                case "m": msg += ((msg == "") ? "" : "\n") + s; break;
+                case "i": InputPath = s; break;
+                case "o": OutputPath = s; break;
+                case "c": CurrentPath = s; break;
+                case "s": ScriptPath = s; break;
+                case "t": Title = s; break;
+                case "m": Message += ((Message == "") ? "" : "\n") + s; break;
                 default: res = -1; break;
             }
             opt_flg = false;
@@ -255,6 +279,9 @@ internal class Program
         return ret.ToLower();
     }
 
+    //////////////////////////////////////////////////////////////////////////
+    /// 
+
     /// <summary>
     /// get application name
     /// </summary>
@@ -271,7 +298,7 @@ internal class Program
     /// <param name="s">text</param>
     private static void system_println(string msg, long lv = 0, bool noprompt = false)
     {
-        if (b_cui)
+        if (_cui)
         {
             foreach (var line in msg.Split('\n'))
             {
@@ -306,7 +333,19 @@ internal class Program
     /// <param name="s">text</param>
     private static void verbose_println(string s, long lv = 1)
     {
-        if (b_verbose) system_println(s, lv);
+        if (_verbose) system_println(s, lv);
+    }
+
+    //////////////////////////////////////////////////////////////////////////
+    /// 
+
+    /// <summary>
+    /// get arguments array
+    /// </summary>
+    /// <returns></returns>
+    private static string[] GetArgs()
+    {
+        return ArgsToArray(Environment.CommandLine).Skip(1).ToArray();
     }
 
     /// <summary>
@@ -375,6 +414,9 @@ internal class Program
         return String.Format(s);
     }
 
+    //////////////////////////////////////////////////////////////////////////
+    /// 
+
     /// <summary>
     /// run script
     /// </summary>
@@ -396,7 +438,7 @@ internal class Program
             if (s[0] == '#')
             {
                 s = s.Substring(1).Trim();
-                outs.Add("rem " + s);
+                OutLines.Add("rem " + s);
                 continue;
             }
 
@@ -422,28 +464,28 @@ internal class Program
     private int Run()
     {
         var s = "";
-        if (cmds.Count > 0)
+        if (_cmds.Count > 0)
         {
-            s = cmds[0];
+            s = _cmds[0];
             var i = s.IndexOf('=');
             if (i >= 0)
             {
-                cmds.RemoveAt(0);
+                _cmds.RemoveAt(0);
                 if (i > 0)
                 {
                     var s2 = s.Substring(0, i).Trim();
-                    cmds.Insert(0, s2);
+                    _cmds.Insert(0, s2);
                 }
                 s = s.Substring(i + 1).Trim();
                 if (s.Length > 0)
                 {
-                    cmds.Insert(1, s);
+                    _cmds.Insert(1, s);
                 }
             }
         }
 
         var res = 0;
-        switch (cmd)
+        switch (Command)
         {
             case "": Cmd_Set(); break;                //set constant
             case "d": res = Cmd_Set(); break;         //set delete
@@ -464,7 +506,7 @@ internal class Program
     /// <returns></returns>
     int Cmd_Version()
     {
-        Console.WriteLine(version);
+        Console.WriteLine(_version);
         return 0;
     }
 
@@ -506,11 +548,11 @@ option:
     /// <returns></returns>
     int Cmd_Test()
     {
-        Console.WriteLine("cmds.count=" + cmds.Count);
-        Console.WriteLine("ckw=" + cmds[0]);
-        for (var i = 1; i < cmds.Count; i++)
+        Console.WriteLine("cmds.count=" + _cmds.Count);
+        Console.WriteLine("ckw=" + _cmds[0]);
+        for (var i = 1; i < _cmds.Count; i++)
         {
-            Console.WriteLine(i + ": " + cmds[i]);
+            Console.WriteLine(i + ": " + _cmds[i]);
         }
         return 0;
     }
@@ -521,21 +563,21 @@ option:
     /// <returns></returns>
     int Cmd_Set()
     {
-        if (cmds.Count < 1) return 0;
-        string k = cmds[0];
+        if (_cmds.Count < 1) return 0;
+        string k = _cmds[0];
         string v = "";
-        if (cmds.Count > 1) v = cmds[1];
-        if (cmds.Count > 2)
+        if (_cmds.Count > 1) v = _cmds[1];
+        if (_cmds.Count > 2)
         {
-            for (var i = 2; i < cmds.Count; i++)
+            for (var i = 2; i < _cmds.Count; i++)
             {
-                v += " " + cmds[i];
+                v += " " + _cmds[i];
             }
             v = "\"" + v + "\"";
         }
         var s = "set " + k + "=" + v;
-        outs.Add(s);
-        msg = "";
+        OutLines.Add(s);
+        Message = "";
         return 0;
     }
 
@@ -545,30 +587,30 @@ option:
     /// <returns></returns>
     int Cmd_Prompt()
     {
-        if (cmds.Count == 0) return -1;
-        var s = (cmds.Count > 1) ? cmds[1] : "";
+        if (_cmds.Count == 0) return -1;
+        var s = (_cmds.Count > 1) ? _cmds[1] : "";
         s = RemoveQuate(s);
         if (s == "")
         {
-            if (kvs.ContainsKey(cmds[0]))
+            if (_kvs.ContainsKey(_cmds[0]))
             {
-                s = kvs[cmds[0]];
+                s = _kvs[_cmds[0]];
             }
         }
-        if (b_cui)
+        if (_cui)
         {
             var res = Prompt(ref s);
             if (res != 0) return res;
         }
         else
         {
-            Console.WriteLine("msg:" + msg);
-            var res = ShowInputBox(ref s, msg, title);
+            Console.WriteLine("msg:" + Message);
+            var res = ShowInputBox(ref s, Message, Title);
             if (res != DialogResult.OK) return -1;
         }
-        s = "set " + cmds[0] + "=" + s;
-        outs.Add(s);
-        msg = "";
+        s = "set " + _cmds[0] + "=" + s;
+        OutLines.Add(s);
+        Message = "";
         return 0;
     }
 
@@ -578,28 +620,28 @@ option:
     /// <returns></returns>
     int Cmd_YesNo()
     {
-        if (cmds.Count < 1) return -1;
+        if (_cmds.Count < 1) return -1;
         var v = "1";
-        if (kvs.ContainsKey(cmds[0]))
+        if (_kvs.ContainsKey(_cmds[0]))
         {
-            if (cmds.Count > 1)
+            if (_cmds.Count > 1)
             {
-                if (kvs[cmds[0]] == cmds[1]) v = "1";
+                if (_kvs[_cmds[0]] == _cmds[1]) v = "1";
             }
-            if (cmds.Count > 2)
+            if (_cmds.Count > 2)
             {
-                if (kvs[cmds[0]] == cmds[2]) v = "0";
+                if (_kvs[_cmds[0]] == _cmds[2]) v = "0";
             }
         }
-        var s = RemoveQuate(msg);
-        if (b_cui)
+        var s = RemoveQuate(Message);
+        if (_cui)
         {
-            if (s == "") s = cmds[0] + " ?";
+            if (s == "") s = _cmds[0] + " ?";
             s += " [Yes/No/Cancel]";
             while (true)
             {
                 Console.WriteLine(s);
-                Console.Write(title + "> ");
+                Console.Write(Title + "> ");
                 var s2 = Console.ReadLine();
                 if (s2 == null) return -1;
                 s2 = s2.Trim().ToLower();
@@ -607,13 +649,13 @@ option:
                 switch (s2[0])
                 {
                     case 'y':
-                        if (cmds.Count > 1) s = cmds[1];
+                        if (_cmds.Count > 1) s = _cmds[1];
                         else s = "1";
                         break;
                     case 'n':
                         s = "";
-                        if (cmds.Count > 2) s = cmds[2];
-                        else if (cmds.Count < 2) s = "0";
+                        if (_cmds.Count > 2) s = _cmds[2];
+                        else if (_cmds.Count < 2) s = "0";
                         break;
                     case 'c':
                         s = "";
@@ -623,28 +665,28 @@ option:
         }
         else
         {
-            if (s == "") s = cmds[0] + " ?";
+            if (s == "") s = _cmds[0] + " ?";
             var btn = MessageBoxDefaultButton.Button1;
             if (v == "0") btn = MessageBoxDefaultButton.Button2;
             DialogResult res = MessageBox.Show(
-                s, title, MessageBoxButtons.YesNoCancel,
+                s, Title, MessageBoxButtons.YesNoCancel,
                 MessageBoxIcon.Question, btn);
             s = "";
             if (res == DialogResult.Yes)
             {
-                if (cmds.Count > 1) s = cmds[1];
+                if (_cmds.Count > 1) s = _cmds[1];
                 else s = "1";
             }
             else if (res == DialogResult.No)
             {
-                if (cmds.Count > 2) s = cmds[2];
+                if (_cmds.Count > 2) s = _cmds[2];
                 else s = "0";
             }
             else return -1;
         }
-        s = "set " + cmds[0] + "=" + s;
-        outs.Add(s);
-        msg = "";
+        s = "set " + _cmds[0] + "=" + s;
+        OutLines.Add(s);
+        Message = "";
         return 0;
     }
 
@@ -654,13 +696,13 @@ option:
     /// <returns></returns>
     int Cmd_File()
     {
-        if (cmds.Count < 1) return -1;
-        var s = cpath;
-        if (kvs.ContainsKey(cmds[0]))
+        if (_cmds.Count < 1) return -1;
+        var s = CurrentPath;
+        if (_kvs.ContainsKey(_cmds[0]))
         {
-            s = kvs[cmds[0]];
+            s = _kvs[_cmds[0]];
         }
-        if (b_cui)
+        if (_cui)
         {
             var res = Prompt(ref s);
             if (res != 0) return -1;
@@ -668,10 +710,10 @@ option:
         else
         {
             OpenFileDialog dlg = new OpenFileDialog();
-            if (msg != "") dlg.Title = msg;
+            if (Message != "") dlg.Title = Message;
             var k = "";
             var flt = "";
-            foreach (var v in cmds.Skip(1))
+            foreach (var v in _cmds.Skip(1))
             {
                 if (k == "")
                 {
@@ -731,11 +773,11 @@ option:
                 return -1;
             }
         }
-        if (b_relative) s = GetRelativePath(s, cpath);
-        s = "set " + cmds[0] + "=" + s;
-        outs.Add(s);
-        title = "";
-        msg = "";
+        if (RelativeFlag) s = GetRelativePath(s, CurrentPath);
+        s = "set " + _cmds[0] + "=" + s;
+        OutLines.Add(s);
+        Title = "";
+        Message = "";
         return 0;
     }
 
@@ -745,13 +787,13 @@ option:
     /// <returns></returns>
     int Cmd_Folder()
     {
-        if (cmds.Count < 1) return -1;
-        var s = cpath;
-        if (kvs.ContainsKey(cmds[0]))
+        if (_cmds.Count < 1) return -1;
+        var s = CurrentPath;
+        if (_kvs.ContainsKey(_cmds[0]))
         {
-            s = kvs[cmds[0]];
+            s = _kvs[_cmds[0]];
         }
-        if (b_cui)
+        if (_cui)
         {
             var res = Prompt(ref s);
             if (res != 0) return -1;
@@ -760,8 +802,8 @@ option:
         {
             FolderBrowserDialog dlg = new FolderBrowserDialog();
             dlg.ShowNewFolderButton = true;
-            if (msg != "") dlg.Description = msg;
-            if (cmds.Count > 1) s = cmds[1];
+            if (Message != "") dlg.Description = Message;
+            if (_cmds.Count > 1) s = _cmds[1];
             dlg.SelectedPath = s;
             s = "";
             if (dlg.ShowDialog() == DialogResult.OK)
@@ -774,10 +816,10 @@ option:
                 return -1;
             }
         }
-        if (b_relative) s = GetRelativePath(s, cpath);
-        s = "set " + cmds[0] + "=" + s;
-        outs.Add(s);
-        msg = "";
+        if (RelativeFlag) s = GetRelativePath(s, CurrentPath);
+        s = "set " + _cmds[0] + "=" + s;
+        OutLines.Add(s);
+        Message = "";
         return 0;
     }
 
@@ -787,26 +829,26 @@ option:
     /// <returns></returns>
     int Cmd_List()
     {
-        if (cmds.Count < 1) return -1;
-        var s = cpath;
+        if (_cmds.Count < 1) return -1;
+        var s = CurrentPath;
         s = "";
-        if (cmds.Count > 1) s = cmds[1];
-        if (kvs.ContainsKey(cmds[0]))
+        if (_cmds.Count > 1) s = _cmds[1];
+        if (_kvs.ContainsKey(_cmds[0]))
         {
-            s = kvs[cmds[0]];
+            s = _kvs[_cmds[0]];
         }
-        if (b_cui)
+        if (_cui)
         {
             //not support
             return -1;
         }
         else
         {
-            var dlg = new Tmm.UI.InputDialog(msg, title, true);
+            var dlg = new Tmm.UI.InputDialog(Message, Title, true);
             //dlg.Text1 = " ";
             //dlg.Text2 = " ";
             var lst = new List<string>();
-            foreach (var v in cmds.Skip(2))
+            foreach (var v in _cmds.Skip(2))
             {
                 if (!lst.Contains(v)) lst.Add(v);
             }
@@ -816,7 +858,7 @@ option:
             }
             try
             {
-                foreach (var src in cmds.Skip(1))
+                foreach (var src in _cmds.Skip(1))
                 {
                     try
                     {
@@ -832,7 +874,7 @@ option:
                     catch (Exception ex)
                     {
                         MessageBox.Show("operation error.\n" + ex.Message,
-                            title, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            Title, MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
                 dlg.Value = s;
@@ -845,16 +887,16 @@ option:
             catch
             {
                 MessageBox.Show("operation error. TaggingDialog",
-                    title, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Title, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             dlg.Dispose();
             if (s == "")
             {
                 return -1;
             }
-            s = "set " + cmds[0] + "=" + s;
-            outs.Add(s);
-            msg = "";
+            s = "set " + _cmds[0] + "=" + s;
+            OutLines.Add(s);
+            Message = "";
             return 0;
         }
     }
@@ -944,12 +986,12 @@ option:
     private int Prompt(ref string s)
     {
         var s2 = (s.Length > 0) ? " [" + s + "]" : "";
-        s2 = (msg + s2).Trim();
+        s2 = (Message + s2).Trim();
         if (s2.Length > 0)
         {
             Console.WriteLine(s2);
         }
-        Console.Write(title + "> ");
+        Console.Write(Title + "> ");
         s2 = Console.ReadLine();
         if (s2 == null) return -2;
         s2 = s2.Trim();
@@ -1007,8 +1049,8 @@ option:
             if (ss.Length != 2) continue;
             var k = ss[0];
             var v = ss[1];
-            if (kvs.ContainsKey(k)) kvs.Remove(k);
-            kvs.Add(k, v);
+            if (_kvs.ContainsKey(k)) _kvs.Remove(k);
+            _kvs.Add(k, v);
         }
     }
 
@@ -1020,18 +1062,18 @@ option:
     {
         if (path == "")
         {
-            foreach (var line in outs)
+            foreach (var line in OutLines)
             {
                 Console.WriteLine(line);
             }
             return;
         }
-        if (!b_append)
+        if (!_append)
         {
             if (File.Exists(path)) File.Delete(path);
         }
         var enc = Encoding.GetEncoding(932);
-        foreach (var line in outs)
+        foreach (var line in OutLines)
         {
             var s = line + Environment.NewLine;
             File.AppendAllText(path, s, enc);
