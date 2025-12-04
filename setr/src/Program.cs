@@ -32,7 +32,7 @@ internal class Program
     string _g_title = "";
 
     List<string> _cmds { get; set; }
-    List<string> OutLines = new List<string>();
+    List<string> OutLines { get; set; }
     Dictionary<string, string> _kvs { get; set; }
 
     Program()
@@ -43,6 +43,7 @@ internal class Program
         InputPath = "";
         OutputPath = "";
         ScriptPath = "";
+
         Title = "";
         Message = "";
         Command = "";
