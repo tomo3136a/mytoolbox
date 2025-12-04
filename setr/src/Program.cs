@@ -156,18 +156,6 @@ internal class Program
 
     /// <summary>
     /// Commandline parser
-    /// --version       print version
-    /// --verbose       verbose mode
-    /// --console       gui mode
-    /// mode flag:
-    /// -v              verbose print mode
-    /// -u              update mode
-    /// parameter:
-    /// -i <path>       set input-file path
-    /// -o <path>       set output-file path(default:.tmp/<app>.cmd)
-    /// -c <command>    command script
-    /// -s <path>       set script path
-    /// -t <title>      set title
     /// </summary>
     /// <param name="args">arguments</param>
     /// <returns>error code</returns>
@@ -193,9 +181,10 @@ internal class Program
                 s = m.Groups[4].Value;
                 if (m.Groups[1].Value.Length > 1)
                 {
-                    switch (opt)
+                    switch (opt.ToLower())
                     {
                         case "version": return Cmd_Version();
+                        case "help": return Cmd_Help();
                         case "verbose": opt = "v"; break;
                         case "console": opt = "C"; break;
                     }
@@ -203,6 +192,7 @@ internal class Program
                 var b = false;
                 switch (opt)
                 {
+                    case "h": return Cmd_Help();
                     case "v": b = !b_verbose; break;
                     case "C": b = !b_cui; break;
                     case "u": b = !b_update; break;
@@ -279,13 +269,14 @@ internal class Program
     /// system message print line
     /// </summary>
     /// <param name="s">text</param>
-    private static void system_println(string msg, long lv = 0)
+    private static void system_println(string msg, long lv = 0, bool noprompt = false)
     {
         if (b_cui)
         {
             foreach (var line in msg.Split('\n'))
             {
-                var s = AppName() + "> " + line;
+                var s = line;
+                if (!noprompt) s = AppName() + "> " + s;
                 switch (lv)
                 {
                     case 1: Console.Out.WriteLine(s); break;
@@ -473,6 +464,37 @@ internal class Program
     int Cmd_Version()
     {
         Console.WriteLine(version);
+        return 0;
+    }
+
+    private int Cmd_Help()
+    {
+        var msg = @"
+Commandline parser
+mode flag:
+--version       print version
+-h,--help       print help
+-v,--verbose    verbose mode
+-C,--console    gui mode
+-u              update mode
+-a              append mode
+-r              relative mode
+command:
+-d              delete        (set XXX=)
+-p              prompt        (set XXX={input string})
+-y              yesno         (set XXX={1:yes,0:no})
+-f              file select   (set XXX={selected file path})
+-g              folder select (set XXX={selected folder path})
+-l              list select   (set XXX={})
+parameter:
+-i <path>       set input-file path
+-o <path>       set output-file path(default:.tmp/<app>.cmd)
+-c <command>    command script
+-s <path>       set script path
+-t <title>      set title
+-m <message>    set message
+";
+        system_println(msg, 0, true);
         return 0;
     }
 
@@ -750,6 +772,8 @@ internal class Program
     {
         if (cmds.Count < 1) return -1;
         var s = cpath;
+        s = "";
+        if (cmds.Count > 1) s = cmds[1];
         if (kvs.ContainsKey(cmds[0]))
         {
             s = kvs[cmds[0]];
