@@ -53,7 +53,6 @@ internal class Program
 
     /// <summary>
     /// main function
-    /// {program}.exe {option...} [script...]
     /// </summary>
     /// <param name="args"></param>
     [STAThread]
@@ -469,30 +468,31 @@ internal class Program
 
     private int Cmd_Help()
     {
-        var msg = @"
-Commandline parser
-mode flag:
---version       print version
--h,--help       print help
--v,--verbose    verbose mode
--C,--console    gui mode
--u              update mode
--a              append mode
--r              relative mode
-command:
--d              delete        (set XXX=)
--p              prompt        (set XXX={input string})
--y              yesno         (set XXX={1:yes,0:no})
--f              file select   (set XXX={selected file path})
--g              folder select (set XXX={selected folder path})
--l              list select   (set XXX={})
-parameter:
--i <path>       set input-file path
--o <path>       set output-file path(default:.tmp/<app>.cmd)
--c <command>    command script
--s <path>       set script path
--t <title>      set title
--m <message>    set message
+        var msg = AppName() + @".exe {option...} [script...]
+
+option:
+  mode flag:
+  --version     print version
+  -h,--help     print help
+  -v,--verbose  verbose mode
+  -C,--console  gui mode
+  -u            update mode
+  -a            append mode
+  -r            relative mode
+  command:
+  -d            delete        (set XXX=)
+  -p            prompt        (set XXX={input text})
+  -y            yesno         (set XXX={1:yes,0:no})
+  -f            choose file   (set XXX={file_path})
+  -g            choose folder (set XXX={folder_path})
+  -l            list select   (set XXX={selected text})
+  parameter:
+  -i <path>     set input-file path
+  -o <path>     set output-file path(default:.tmp/<app>.cmd)
+  -c <command>  command script
+  -s <path>     set script path
+  -t <title>    set title
+  -m <message>  set message
 ";
         system_println(msg, 0, true);
         return 0;
