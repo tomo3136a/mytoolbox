@@ -203,6 +203,7 @@ internal class Program
                     case "f": cmd = opt; continue; //file select
                     case "g": cmd = opt; continue; //folder select
                     case "l": cmd = opt; continue; //list select
+                    case "x": cmd = opt; continue;
                 }
                 switch (m.Groups[3].Value)
                 {
@@ -451,6 +452,7 @@ internal class Program
             case "f": res = Cmd_File(); break;        //set file
             case "g": res = Cmd_Folder(); break;      //set folder
             case "l": res = Cmd_List(); break;        //set list
+            case "x": res = Cmd_Test(); break;
             default: break;
         }
         return res;
@@ -495,6 +497,21 @@ option:
   -m <message>  set message
 ";
         system_println(msg, 0, true);
+        return 0;
+    }
+
+    /// <summary>
+    /// test command
+    /// </summary>
+    /// <returns></returns>
+    int Cmd_Test()
+    {
+        Console.WriteLine("cmds.count=" + cmds.Count);
+        Console.WriteLine("ckw=" + cmds[0]);
+        for (var i = 1; i < cmds.Count; i++)
+        {
+            Console.WriteLine(i + ": " + cmds[i]);
+        }
         return 0;
     }
 
@@ -785,10 +802,18 @@ option:
         }
         else
         {
-            //if (cmds.Count > 1) s = cmds[1];
             var dlg = new Tmm.UI.InputDialog(msg, title, true);
             //dlg.Text1 = " ";
             //dlg.Text2 = " ";
+            var lst = new List<string>();
+            foreach (var v in cmds.Skip(2))
+            {
+                if (!lst.Contains(v)) lst.Add(v);
+            }
+            foreach (var v in lst)
+            {
+                dlg.AddListItem(v);
+            }
             try
             {
                 foreach (var src in cmds.Skip(1))
