@@ -31,9 +31,9 @@ internal class Program
     string _g_cpath = "";
     string _g_title = "";
 
-    List<string> _cmds { get; set; }
+    List<string> Items { get; set; }
     List<string> OutLines { get; set; }
-    Dictionary<string, string> _kvs { get; set; }
+    Dictionary<string, string> BaseValue { get; set; }
 
     Program()
     {
@@ -48,8 +48,9 @@ internal class Program
         Message = "";
         Command = "";
 
+        Items = new List<string>();
         OutLines = new List<string>();
-        _kvs = new Dictionary<string, string>();
+        BaseValue = new Dictionary<string, string>();
 
         _g_cpath = CurrentPath;
     }
@@ -175,7 +176,7 @@ internal class Program
         CurrentPath = _g_cpath;
         Title = _g_title;
         Command = "";
-        _cmds.Clear();
+        Items.Clear();
     }
 
     /// <summary>
@@ -198,9 +199,10 @@ internal class Program
                 var m = re.Match(s);
                 if (!m.Success)
                 {
-                    _cmds.Add(s);
+                    Items.Add(s);
                     continue;
                 }
+
                 opt = m.Groups[2].Value;
                 s = m.Groups[4].Value;
                 if (m.Groups[1].Value.Length > 1)
@@ -465,22 +467,22 @@ internal class Program
     private int Run()
     {
         var s = "";
-        if (_cmds.Count > 0)
+        if (Items.Count > 0)
         {
-            s = _cmds[0];
+            s = Items[0];
             var i = s.IndexOf('=');
             if (i >= 0)
             {
-                _cmds.RemoveAt(0);
+                Items.RemoveAt(0);
                 if (i > 0)
                 {
                     var s2 = s.Substring(0, i).Trim();
-                    _cmds.Insert(0, s2);
+                    Items.Insert(0, s2);
                 }
                 s = s.Substring(i + 1).Trim();
                 if (s.Length > 0)
                 {
-                    _cmds.Insert(1, s);
+                    Items.Insert(1, s);
                 }
             }
         }
@@ -549,11 +551,11 @@ option:
     /// <returns></returns>
     int Cmd_Test()
     {
-        Console.WriteLine("cmds.count=" + _cmds.Count);
-        Console.WriteLine("ckw=" + _cmds[0]);
-        for (var i = 1; i < _cmds.Count; i++)
+        Console.WriteLine("cmds.count=" + Items.Count);
+        Console.WriteLine("ckw=" + Items[0]);
+        for (var i = 1; i < Items.Count; i++)
         {
-            Console.WriteLine(i + ": " + _cmds[i]);
+            Console.WriteLine(i + ": " + Items[i]);
         }
         return 0;
     }
@@ -564,15 +566,15 @@ option:
     /// <returns></returns>
     int Cmd_Set()
     {
-        if (_cmds.Count < 1) return 0;
-        string k = _cmds[0];
+        if (Items.Count < 1) return 0;
+        string k = Items[0];
         string v = "";
-        if (_cmds.Count > 1) v = _cmds[1];
-        if (_cmds.Count > 2)
+        if (Items.Count > 1) v = Items[1];
+        if (Items.Count > 2)
         {
-            for (var i = 2; i < _cmds.Count; i++)
+            for (var i = 2; i < Items.Count; i++)
             {
-                v += " " + _cmds[i];
+                v += " " + Items[i];
             }
             v = "\"" + v + "\"";
         }
@@ -588,14 +590,14 @@ option:
     /// <returns></returns>
     int Cmd_Prompt()
     {
-        if (_cmds.Count == 0) return -1;
-        var s = (_cmds.Count > 1) ? _cmds[1] : "";
+        if (Items.Count == 0) return -1;
+        var s = (Items.Count > 1) ? Items[1] : "";
         s = RemoveQuate(s);
         if (s == "")
         {
-            if (_kvs.ContainsKey(_cmds[0]))
+            if (BaseValue.ContainsKey(Items[0]))
             {
-                s = _kvs[_cmds[0]];
+                s = BaseValue[Items[0]];
             }
         }
         if (_cui)
@@ -609,7 +611,7 @@ option:
             var res = ShowInputBox(ref s, Message, Title);
             if (res != DialogResult.OK) return -1;
         }
-        s = "set " + _cmds[0] + "=" + s;
+        s = "set " + Items[0] + "=" + s;
         OutLines.Add(s);
         Message = "";
         return 0;
@@ -621,23 +623,23 @@ option:
     /// <returns></returns>
     int Cmd_YesNo()
     {
-        if (_cmds.Count < 1) return -1;
+        if (Items.Count < 1) return -1;
         var v = "1";
-        if (_kvs.ContainsKey(_cmds[0]))
+        if (BaseValue.ContainsKey(Items[0]))
         {
-            if (_cmds.Count > 1)
+            if (Items.Count > 1)
             {
-                if (_kvs[_cmds[0]] == _cmds[1]) v = "1";
+                if (BaseValue[Items[0]] == Items[1]) v = "1";
             }
-            if (_cmds.Count > 2)
+            if (Items.Count > 2)
             {
-                if (_kvs[_cmds[0]] == _cmds[2]) v = "0";
+                if (BaseValue[Items[0]] == Items[2]) v = "0";
             }
         }
         var s = RemoveQuate(Message);
         if (_cui)
         {
-            if (s == "") s = _cmds[0] + " ?";
+            if (s == "") s = Items[0] + " ?";
             s += " [Yes/No/Cancel]";
             while (true)
             {
@@ -650,13 +652,13 @@ option:
                 switch (s2[0])
                 {
                     case 'y':
-                        if (_cmds.Count > 1) s = _cmds[1];
+                        if (Items.Count > 1) s = Items[1];
                         else s = "1";
                         break;
                     case 'n':
                         s = "";
-                        if (_cmds.Count > 2) s = _cmds[2];
-                        else if (_cmds.Count < 2) s = "0";
+                        if (Items.Count > 2) s = Items[2];
+                        else if (Items.Count < 2) s = "0";
                         break;
                     case 'c':
                         s = "";
@@ -666,7 +668,7 @@ option:
         }
         else
         {
-            if (s == "") s = _cmds[0] + " ?";
+            if (s == "") s = Items[0] + " ?";
             var btn = MessageBoxDefaultButton.Button1;
             if (v == "0") btn = MessageBoxDefaultButton.Button2;
             DialogResult res = MessageBox.Show(
@@ -675,17 +677,17 @@ option:
             s = "";
             if (res == DialogResult.Yes)
             {
-                if (_cmds.Count > 1) s = _cmds[1];
+                if (Items.Count > 1) s = Items[1];
                 else s = "1";
             }
             else if (res == DialogResult.No)
             {
-                if (_cmds.Count > 2) s = _cmds[2];
+                if (Items.Count > 2) s = Items[2];
                 else s = "0";
             }
             else return -1;
         }
-        s = "set " + _cmds[0] + "=" + s;
+        s = "set " + Items[0] + "=" + s;
         OutLines.Add(s);
         Message = "";
         return 0;
@@ -697,11 +699,11 @@ option:
     /// <returns></returns>
     int Cmd_File()
     {
-        if (_cmds.Count < 1) return -1;
+        if (Items.Count < 1) return -1;
         var s = CurrentPath;
-        if (_kvs.ContainsKey(_cmds[0]))
+        if (BaseValue.ContainsKey(Items[0]))
         {
-            s = _kvs[_cmds[0]];
+            s = BaseValue[Items[0]];
         }
         if (_cui)
         {
@@ -714,7 +716,7 @@ option:
             if (Message != "") dlg.Title = Message;
             var k = "";
             var flt = "";
-            foreach (var v in _cmds.Skip(1))
+            foreach (var v in Items.Skip(1))
             {
                 if (k == "")
                 {
@@ -775,7 +777,7 @@ option:
             }
         }
         if (RelativeFlag) s = GetRelativePath(s, CurrentPath);
-        s = "set " + _cmds[0] + "=" + s;
+        s = "set " + Items[0] + "=" + s;
         OutLines.Add(s);
         Title = "";
         Message = "";
@@ -788,11 +790,11 @@ option:
     /// <returns></returns>
     int Cmd_Folder()
     {
-        if (_cmds.Count < 1) return -1;
+        if (Items.Count < 1) return -1;
         var s = CurrentPath;
-        if (_kvs.ContainsKey(_cmds[0]))
+        if (BaseValue.ContainsKey(Items[0]))
         {
-            s = _kvs[_cmds[0]];
+            s = BaseValue[Items[0]];
         }
         if (_cui)
         {
@@ -804,7 +806,7 @@ option:
             FolderBrowserDialog dlg = new FolderBrowserDialog();
             dlg.ShowNewFolderButton = true;
             if (Message != "") dlg.Description = Message;
-            if (_cmds.Count > 1) s = _cmds[1];
+            if (Items.Count > 1) s = Items[1];
             dlg.SelectedPath = s;
             s = "";
             if (dlg.ShowDialog() == DialogResult.OK)
@@ -818,7 +820,7 @@ option:
             }
         }
         if (RelativeFlag) s = GetRelativePath(s, CurrentPath);
-        s = "set " + _cmds[0] + "=" + s;
+        s = "set " + Items[0] + "=" + s;
         OutLines.Add(s);
         Message = "";
         return 0;
@@ -830,13 +832,13 @@ option:
     /// <returns></returns>
     int Cmd_List()
     {
-        if (_cmds.Count < 1) return -1;
+        if (Items.Count < 1) return -1;
         var s = CurrentPath;
         s = "";
-        if (_cmds.Count > 1) s = _cmds[1];
-        if (_kvs.ContainsKey(_cmds[0]))
+        if (Items.Count > 1) s = Items[1];
+        if (BaseValue.ContainsKey(Items[0]))
         {
-            s = _kvs[_cmds[0]];
+            s = BaseValue[Items[0]];
         }
         if (_cui)
         {
@@ -849,7 +851,7 @@ option:
             //dlg.Text1 = " ";
             //dlg.Text2 = " ";
             var lst = new List<string>();
-            foreach (var v in _cmds.Skip(2))
+            foreach (var v in Items.Skip(2))
             {
                 if (!lst.Contains(v)) lst.Add(v);
             }
@@ -859,7 +861,7 @@ option:
             }
             try
             {
-                foreach (var src in _cmds.Skip(1))
+                foreach (var src in Items.Skip(1))
                 {
                     try
                     {
@@ -895,7 +897,7 @@ option:
             {
                 return -1;
             }
-            s = "set " + _cmds[0] + "=" + s;
+            s = "set " + Items[0] + "=" + s;
             OutLines.Add(s);
             Message = "";
             return 0;
@@ -1050,8 +1052,8 @@ option:
             if (ss.Length != 2) continue;
             var k = ss[0];
             var v = ss[1];
-            if (_kvs.ContainsKey(k)) _kvs.Remove(k);
-            _kvs.Add(k, v);
+            if (BaseValue.ContainsKey(k)) BaseValue.Remove(k);
+            BaseValue.Add(k, v);
         }
     }
 
