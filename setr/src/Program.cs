@@ -516,6 +516,10 @@ internal class Program
         return 0;
     }
 
+    /// <summary>
+    /// print help
+    /// </summary>
+    /// <returns></returns>
     private int Cmd_Help()
     {
         var msg = AppName() + @".exe {option...} [script...]
