@@ -247,6 +247,14 @@ namespace Tmm
                 listBox.Items.Add(s);
             }
 
+            public void FocusList(string v)
+            {
+                listBox.Select();
+                var i = listBox.FindString(v);
+                if (i < listBox.Items.Count)
+                    listBox.SelectedIndex = i;
+            }
+
             public void UpdateList(string kw, string val)
             {
                 foreach (var v in Config.GetValues(kw))
