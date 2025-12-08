@@ -19,6 +19,7 @@ internal class Program
     private bool _append = false;
     private bool UpdateMode { get; set; }
     private bool RelativeFlag = false;
+    private bool QuotationFlag = false;
     private bool _g_relative = false;
 
     string CurrentPath { get; set; }
@@ -35,6 +36,9 @@ internal class Program
     List<string> Items { get; set; }
     List<string> OutLines { get; set; }
     Dictionary<string, string> BaseValue { get; set; }
+
+    private string _name = "";
+    private string _value = "";
 
     Program()
     {
@@ -63,14 +67,13 @@ internal class Program
     {
         if (Title == "")
         {
-            if (InputPath.Length > 0)
+            try
             {
-                Title = Path.GetFileNameWithoutExtension(InputPath);
+                if (InputPath.Length > 0)
+                    Title = Path.GetFileNameWithoutExtension(InputPath);
             }
-            else
-            {
-                Title = AppName();
-            }
+            catch (IOException) { }
+            if (Title == "") Title = AppName();
         }
         _g_relative = RelativeFlag;
         _g_cpath = CurrentPath;
@@ -131,15 +134,6 @@ internal class Program
         }
         else
         {
-            // test source file
-            if (!File.Exists(src))
-            {
-                var msg = Path.GetFileName(src);
-                verbose_println(msg + " は見つかりませんでした。", 3);
-                Environment.ExitCode = -1;
-                return;
-            }
-
             // test update destination file
             if (!app.UpdateMode && File.Exists(dst))
             {
@@ -223,6 +217,7 @@ internal class Program
                     case "u": b = !UpdateMode; break;
                     case "a": b = !_append; break;
                     case "r": b = !RelativeFlag; break;
+                    case "q": b = !QuotationFlag; break;
                     case "d": Command = opt; continue; //delete
                     case "p": Command = opt; continue; //prompt
                     case "y": Command = opt; continue; //yesno
@@ -243,11 +238,12 @@ internal class Program
                     case "u": UpdateMode = b; continue;
                     case "a": _append = b; continue;
                     case "r": RelativeFlag = b; continue;
+                    case "q": QuotationFlag = b; continue;
                 }
                 opt_flg = true;
             }
             if (!opt_flg || s.Length == 0) continue;
-            s = RemoveQuate(s);
+            s = RemoveQuotation(s);
             s = RemoveEscape(s);
             switch (opt)
             {
@@ -262,23 +258,6 @@ internal class Program
             opt_flg = false;
         }
         return res;
-    }
-
-    private static string Token(ref string s, string sep)
-    {
-        var ret = "";
-        var i = s.IndexOf(sep);
-        if (i < 0)
-        {
-            ret = s;
-            s = "";
-        }
-        else
-        {
-            ret = s.Substring(0, i);
-            s = s.Substring(i + sep.Length);
-        }
-        return ret.ToLower();
     }
 
     //////////////////////////////////////////////////////////////////////////
@@ -348,12 +327,6 @@ internal class Program
     private static string[] GetArgs(string line)
     {
         var arr = (new List<string>(TokenArgs(line))).Skip(1).ToArray();
-
-        var msg = "ARG> line=" + line + "\n";
-        msg += "ARG> count=" + arr.Length + "\n";
-        foreach (var s in arr)
-            msg += "ARG> " + s + "\n";
-        verbose_println(msg);
         return arr;
     }
 
@@ -362,7 +335,7 @@ internal class Program
         var sb = new StringBuilder(prev);
         var seq = 0;
         var esc = '^';
-        var esc2 = '\\';
+        var esc2 = '^';
         var cqt = '\0';
         foreach (var c in (s + ' '))
         {
@@ -392,12 +365,6 @@ internal class Program
                 case 2:         //escape
                     {
                         var c1 = c;
-                        switch (c1)
-                        {
-                            case 'r': c1 = '\r'; break;
-                            case 'n': c1 = '\n'; break;
-                            case 't': c1 = '\t'; break;
-                        }
                         sb.Append(c1);
                         seq = 1;
                     }
@@ -412,12 +379,6 @@ internal class Program
                 case 4:         //string-escape
                     {
                         var c1 = c;
-                        switch (c1)
-                        {
-                            case 'r': c1 = '\r'; break;
-                            case 'n': c1 = '\n'; break;
-                            case 't': c1 = '\t'; break;
-                        }
                         sb.Append(c1);
                         seq = 3;
                     }
@@ -434,7 +395,7 @@ internal class Program
     /// </summary>
     /// <param name="s">target string</param>
     /// <returns></returns>
-    private static string RemoveQuate(string s)
+    private static string RemoveQuotation(string s)
     {
         var b_quate = false;
         var sb = new StringBuilder();
@@ -495,18 +456,19 @@ internal class Program
             //output set command
             if (s[0] == '*')
             {
-                s = s.Substring(1).Trim();
+                s = "* " + s.Substring(1).Trim();
                 Reset();
-                ParseCommandLine(s);
+                if (ParseCommandLine(s) != 0)
+                {
+                    var s1 = "cmd line:" + s;
+                    system_println("引数が正しくありません。\n" + s1, 3);
+                    continue;
+                }
                 if (Run() < 0) return false;
-                continue;
             }
         }
         return true;
     }
-
-    private string _name = "";
-    private string _value = "";
 
     /// <summary>
     /// run command
@@ -599,12 +561,44 @@ option:
     /// <returns></returns>
     int Cmd_Test()
     {
+
+        Console.WriteLine("version      : " + _version);
+        Console.WriteLine("verbose      : " + _verbose);
+        Console.WriteLine("cui          : " + _cui);
+        Console.WriteLine("append       : " + _append);
+        Console.WriteLine("UpdateMode   : " + UpdateMode);
+        Console.WriteLine("RelativeFlag : " + RelativeFlag);
+        Console.WriteLine("CurrentPath  : " + CurrentPath);
+        Console.WriteLine("InputPath    : " + InputPath);
+        Console.WriteLine("OutputPath   : " + OutputPath);
+        Console.WriteLine("ScriptPath   : " + ScriptPath);
+        Console.WriteLine("Title        : " + Title);
+        Console.WriteLine("Message      : " + Message);
+        Console.WriteLine("Command      : " + Command);
+        Console.WriteLine("Message      : " + Message);
+        Console.WriteLine("g_cpath      : " + _g_cpath);
+        Console.WriteLine("g_title      : " + _g_title);
+
+        Console.WriteLine("name  =" + _name);
+        Console.WriteLine("value =" + _value);
+
         Console.WriteLine("cmds.count=" + Items.Count);
-        Console.WriteLine("name=" + _name);
-        Console.WriteLine("value=" + _value);
         for (var i = 0; i < Items.Count; i++)
         {
             Console.WriteLine(i + ": " + Items[i]);
+        }
+
+        Console.WriteLine("outs.count=" + OutLines.Count);
+        for (var i = 0; i < OutLines.Count; i++)
+        {
+            Console.WriteLine(i + ": " + OutLines[i]);
+        }
+
+        Console.WriteLine("base.count=" + BaseValue.Count);
+        for (var i = 0; i < BaseValue.Count; i++)
+        {
+            var ks = BaseValue.Keys.ToArray();
+            Console.WriteLine(i + ": " + ks[i] + " = " + BaseValue[ks[i]]);
         }
         return 0;
     }
@@ -619,17 +613,18 @@ option:
         string k = _name;
         if (k.Length < 1) return 0;
 
-        // set value
+        // set default value
         var v = _value;
 
+        var s = v;
         for (var i = 0; i < Items.Count; i++)
         {
-            v += " " + Items[i];
+            s += " " + Items[i];
         }
-        v = "\"" + v + "\"";
 
         // output
-        var s = "set " + k + "=" + v;
+        if (QuotationFlag) s = "\"" + s + "\"";
+        s = "set " + k + "=" + s;
         OutLines.Add(s);
         Message = "";
         return 0;
@@ -645,13 +640,13 @@ option:
         string k = _name;
         if (k.Length < 1) return 0;
 
-        // set initial value
+        // set default value
         var v = _value;
         if (v == "")
             if (BaseValue.ContainsKey(k))
                 v = BaseValue[k];
 
-        var s = RemoveQuate(v);
+        var s = RemoveQuotation(v);
         if (s == "" && BaseValue.ContainsKey(k))
             s = BaseValue[k];
 
@@ -668,6 +663,7 @@ option:
         }
 
         // output
+        if (QuotationFlag) s = "\"" + s + "\"";
         s = "set " + k + "=" + s;
         OutLines.Add(s);
         Message = "";
@@ -696,7 +692,7 @@ option:
             }
         }
 
-        var s = RemoveQuate(Message);
+        var s = RemoveQuotation(Message);
         if (_cui)
         {
             if (s == "") s = _name + " ?";
@@ -751,6 +747,7 @@ option:
         }
 
         // output
+        if (QuotationFlag) s = "\"" + s + "\"";
         s = "set " + k + "=" + s;
         OutLines.Add(s);
         Message = "";
@@ -781,10 +778,12 @@ option:
         else
             res = GetFile(ref v);
         if (res != 0) return res;
+        var s = v;
 
         // output
-        if (RelativeFlag) v = GetRelativePath(v, CurrentPath);
-        var s = "set " + k + "=" + v;
+        if (RelativeFlag) s = GetRelativePath(s, CurrentPath);
+        if (QuotationFlag) s = "\"" + s + "\"";
+        s = "set " + k + "=" + s;
         OutLines.Add(s);
         Title = "";
         Message = "";
@@ -889,10 +888,12 @@ option:
         else
             res = GetFolder(ref v);
         if (res != 0) return res;
+        var s = v;
 
         // output
-        if (RelativeFlag) v = GetRelativePath(v, CurrentPath);
-        var s = "set " + k + "=" + v;
+        if (RelativeFlag) s = GetRelativePath(s, CurrentPath);
+        if (QuotationFlag) s = "\"" + s + "\"";
+        s = "set " + k + "=" + s;
         OutLines.Add(s);
         Message = "";
         return 0;
@@ -940,9 +941,11 @@ option:
         else
             res = GetDataList(ref v);
         if (res != 0) return res;
+        var s = v;
 
         // output
-        var s = "set " + k + "=" + v;
+        if (QuotationFlag) s = "\"" + s + "\"";
+        s = "set " + k + "=" + s;
         OutLines.Add(s);
         Message = "";
         return 0;
