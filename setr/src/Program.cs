@@ -8,7 +8,6 @@ using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using System.Drawing;
 using Tmm;
-using System.Runtime.CompilerServices;
 
 internal class Program
 {
@@ -112,7 +111,7 @@ internal class Program
         var line = Environment.CommandLine;
         if (app.ParseCommandLine(line) != 0)
         {
-            var s1 = "cmd line:" + line;
+            var s1 = "command line:" + line;
             system_println("引数が正しくありません。\n" + s1, 3);
             Environment.ExitCode = -1;
             return;
@@ -120,20 +119,20 @@ internal class Program
         app.SetGlobal();
 
         // output file
-        var dst = app.OutputPath;
-        app.Load(dst);
+        var dst = app.Load();
 
         var src = app.InputPath;
-        if (src == "")
+        if (src != "")
         {
-            if (app.Run() < 0)
+            // test source file
+            if (!File.Exists(src))
             {
+                var s1 = src;
+                system_println("入力ファイルがありません。\n" + s1, 3);
                 Environment.ExitCode = -1;
                 return;
             }
-        }
-        else
-        {
+
             // test update destination file
             if (!app.UpdateMode && File.Exists(dst))
             {
@@ -151,9 +150,16 @@ internal class Program
                 return;
             }
         }
+        else
+        {
+            if (app.Run() < 0)
+            {
+                Environment.ExitCode = -1;
+                return;
+            }
+        }
 
         // save output line data
-        if (app.OutLines.Count == 0) return;
         app.Save(dst);
     }
 
@@ -170,34 +176,158 @@ internal class Program
 #endif
     }
 
+    //////////////////////////////////////////////////////////////////////////
+    /// 
+
+    /// <summary>
+    /// load initialize file
+    /// </summary>
+    /// <param name="path"></param>
+    /// <returns></returns>
+    string Load(string path = "")
+    {
+        var f = path;
+        if (f == "") f = OutputPath;
+        if (!File.Exists(f)) return "";
+
+        var enc = Encoding.GetEncoding(932);
+        foreach (var line in File.ReadAllLines(f, enc))
+        {
+            var ss = line.Split(new char[] { ' ' }, 2);
+            if (ss.Length != 2) continue;
+            ss = ss[1].Split(new char[] { '=' }, 2);
+            if (ss.Length != 2) continue;
+            var k = ss[0];
+            var v = ss[1];
+            v = ApplyEnvironment(v, BaseValue);
+            if (BaseValue.ContainsKey(k)) BaseValue.Remove(k);
+            BaseValue.Add(k, v);
+        }
+        return f;
+    }
+
+    /// <summary>
+    /// save to output path
+    /// </summary>
+    /// <param name="path"></param>
+    void Save(string path = "")
+    {
+        if (OutLines.Count == 0) return;
+
+        var f = path;
+        if (f == "") f = OutputPath;
+
+        if (f == "")
+        {
+            foreach (var line in OutLines)
+            {
+                Console.WriteLine(line);
+            }
+            return;
+        }
+
+        if (!_append)
+        {
+            if (File.Exists(f)) File.Delete(f);
+        }
+
+        var enc = Encoding.GetEncoding(932);
+        foreach (var line in OutLines)
+        {
+            var s = line + Environment.NewLine;
+            File.AppendAllText(f, s, enc);
+        }
+    }
+
+    //////////////////////////////////////////////////////////////////////////
+    /// 
+
+    /// <summary>
+    /// run script
+    /// </summary>
+    /// <param name="path"></param>
+    /// <returns></returns>
+    private bool RunScript(string path)
+    {
+        if (!File.Exists(path)) return false;
+        var enc = Encoding.GetEncoding(932);
+        var ptn = "^[\\s@]*rem\\s+([#*])(.*)$";
+        var re1 = new Regex(ptn, RegexOptions.IgnoreCase);
+        var re2 = new Regex("[^\\^](\\^\\^)*\\^$");
+
+        var buf = "";
+        foreach (var line in File.ReadAllLines(path, enc))
+        {
+            var m = re1.Match(line);
+            if (!m.Success)
+            {
+                buf = "";
+                continue;
+            }
+            var t = m.Groups[1].Value;
+            var s = m.Groups[2].Value;
+
+            //comment line
+            if (t == "#")
+            {
+                buf = "";
+                OutLines.Add("rem " + s);
+                continue;
+            }
+
+            //continus line
+            m = re2.Match(s);
+            if (m.Success)
+            {
+                buf += s.Substring(0, s.Length - 1);
+                continue;
+            }
+            s = ApplyEnvironment(buf + s);
+            buf = "";
+
+            //set command
+            Reset();
+            if (ParseCommandLine(s, 0) != 0)
+            {
+                var s1 = "cmd line:" + s;
+                system_println("引数が正しくありません。\n" + s1, 3);
+                continue;
+            }
+            if (Run() < 0) return false;
+        }
+        return true;
+    }
+
     /// <summary>
     /// Commandline parser
     /// </summary>
     /// <param name="line">commandline</param>
     /// <returns>error code</returns>
-    private int ParseCommandLine(string line)
+    private int ParseCommandLine(string line, int skip = 1)
     {
-        var args = GetArgs(line);
+        var atk = new Tmm.ArgsTokener();
 
+        var re = new Regex(@"^(--?|/)(\w+)(?:(-|\+)?|=(.*))?$");
         var opt_flg = false;
         var opt = "";
         var res = 0;
-        foreach (var arg in args)
+        foreach (var arg in atk.Tokens(line).Skip(skip))
         {
             var s = arg.Trim();
             if (s.Length == 0) continue;
             if (!opt_flg)
             {
-                var re = new Regex(@"^(--?|/)(\w+)(?:(-|\+)?|=(.*))?$");
+                //analyze option
                 var m = re.Match(s);
                 if (!m.Success)
                 {
+                    s = RemoveQuotation(s);
                     Items.Add(s);
                     continue;
                 }
-
                 opt = m.Groups[2].Value;
-                s = m.Groups[4].Value;
+
+                //long option name
                 if (m.Groups[1].Value.Length > 1)
                 {
                     switch (opt.ToLower())
@@ -208,6 +338,8 @@ internal class Program
                         case "console": opt = "C"; break;
                     }
                 }
+
+                //short option name
                 var b = false;
                 switch (opt)
                 {
@@ -220,6 +352,7 @@ internal class Program
                     case "q": b = !QuotationFlag; break;
                     case "d": Command = opt; continue; //delete
                     case "p": Command = opt; continue; //prompt
+                    case "b": Command = opt; continue; //message
                     case "y": Command = opt; continue; //yesno
                     case "f": Command = opt; continue; //file select
                     case "g": Command = opt; continue; //folder select
@@ -240,11 +373,12 @@ internal class Program
                     case "r": RelativeFlag = b; continue;
                     case "q": QuotationFlag = b; continue;
                 }
+
+                s = m.Groups[4].Value;
                 opt_flg = true;
             }
             if (!opt_flg || s.Length == 0) continue;
             s = RemoveQuotation(s);
-            s = RemoveEscape(s);
             switch (opt)
             {
                 case "i": InputPath = s; break;
@@ -258,6 +392,508 @@ internal class Program
             opt_flg = false;
         }
         return res;
+    }
+
+    /// <summary>
+    /// run command
+    /// </summary>
+    /// <returns>error code, 0 is ok</returns>
+    private int Run()
+    {
+        var res = 0;
+
+        foreach (var s in Items)
+        {
+            _name = s;
+
+            var i = s.IndexOf('=');
+            if (i > 0)
+            {
+                _value = s.Substring(i + 1).Trim();
+                _name = s.Substring(0, i).Trim();
+            }
+
+            switch (Command)
+            {
+                case "": Cmd_Set(); break;                //set constant
+                case "d": res = Cmd_Set(); break;         //set delete
+                case "p": res = Cmd_Prompt(); break;      //set input string
+                case "b": res = Cmd_MsgBox(); break;      //set message
+                case "y": res = Cmd_YesNo(); break;       //set yesyno
+                case "f": res = Cmd_File(); break;        //set file
+                case "g": res = Cmd_Folder(); break;      //set folder
+                case "l": res = Cmd_List(); break;        //set list
+                case "x": res = Cmd_Test(); break;
+                default: break;
+            }
+
+            if (res != 0) break;
+        }
+
+        return res;
+    }
+
+    //////////////////////////////////////////////////////////////////////////
+    /// 
+
+    /// <summary>
+    /// print version
+    /// </summary>
+    /// <returns></returns>
+    int Cmd_Version()
+    {
+        Console.WriteLine(_version);
+        return 0;
+    }
+
+    /// <summary>
+    /// print help
+    /// </summary>
+    /// <returns></returns>
+    private int Cmd_Help()
+    {
+        var msg = AppName() + @".exe {option...} [script...]
+
+option:
+  mode flag:
+  --version     print version
+  -h,--help     print help
+  -v,--verbose  verbose mode
+  -C,--console  gui mode
+  -u            update mode
+  -a            append mode
+  -r            relative mode
+  -q            quotation mode
+  command:
+  -d            delete        (set XXX=)
+  -p            prompt        (set XXX={input text})
+  -y            yesno         (set XXX={1:yes,0:no})
+  -f            choose file   (set XXX={file_path})
+  -g            choose folder (set XXX={folder_path})
+  -l            list select   (set XXX={selected text})
+  parameter:
+  -i <path>     set input-file path
+  -o <path>     set output-file path(default:.tmp/<app>.cmd)
+  -c <path>     set current-directory path
+  -t <title>    set title
+  -m <message>  set message
+";
+        system_println(msg, 0, true);
+        return 0;
+    }
+
+    /// <summary>
+    /// test command
+    /// </summary>
+    /// <returns></returns>
+    int Cmd_Test()
+    {
+        Console.WriteLine("version      : " + _version);
+        Console.WriteLine("verbose      : " + _verbose);
+        Console.WriteLine("cui          : " + _cui);
+        Console.WriteLine("append       : " + _append);
+        Console.WriteLine("UpdateMode   : " + UpdateMode);
+        Console.WriteLine("RelativeFlag : " + RelativeFlag);
+        Console.WriteLine("CurrentPath  : " + CurrentPath);
+        Console.WriteLine("InputPath    : " + InputPath);
+        Console.WriteLine("OutputPath   : " + OutputPath);
+        Console.WriteLine("ScriptPath   : " + ScriptPath);
+        Console.WriteLine("Title        : " + Title);
+        Console.WriteLine("Message      : " + Message);
+        Console.WriteLine("Command      : " + Command);
+        Console.WriteLine("g_cpath      : " + _g_cpath);
+        Console.WriteLine("g_title      : " + _g_title);
+
+        Console.WriteLine("name  =" + _name);
+        Console.WriteLine("value =" + _value);
+
+        Console.WriteLine("cmds.count=" + Items.Count);
+        for (var i = 0; i < Items.Count; i++)
+        {
+            Console.WriteLine(i + ": " + Items[i]);
+        }
+
+        Console.WriteLine("outs.count=" + OutLines.Count);
+        for (var i = 0; i < OutLines.Count; i++)
+        {
+            Console.WriteLine(i + ": " + OutLines[i]);
+        }
+
+        Console.WriteLine("base.count=" + BaseValue.Count);
+        for (var i = 0; i < BaseValue.Count; i++)
+        {
+            var ks = BaseValue.Keys.ToArray();
+            Console.WriteLine(i + ": " + ks[i] + " = " + BaseValue[ks[i]]);
+        }
+        return 0;
+    }
+
+    /// <summary>
+    /// set string
+    /// </summary>
+    /// <returns></returns>
+    int Cmd_Set()
+    {
+        // set name
+        var k = _name;
+
+        // set value
+        var v = _value;
+        v = v.Trim();
+
+        // output
+        if (QuotationFlag) v = "\"" + v + "\"";
+        var s = "set " + k + "=" + v;
+        OutLines.Add(s);
+        Message = "";
+        return 0;
+    }
+
+    /// <summary>
+    /// set input string
+    /// </summary>
+    /// <returns></returns>
+    int Cmd_Prompt()
+    {
+        // set name
+        var k = _name;
+
+        // set value
+        var v = _value;
+        v = RemoveQuotation(v);
+        if (v == "" && BaseValue.ContainsKey(k))
+            v = BaseValue[k];
+
+        var msg = Message;
+        if (msg == "") msg = k + "?";
+
+        if (_cui)
+        {
+            var res = Prompt(ref v);
+            if (res != 0) return res;
+        }
+        else
+        {
+            var res = ShowInputBox(ref v, msg, Title);
+            if (res != DialogResult.OK) return -1;
+        }
+
+        // output
+        if (QuotationFlag) v = "\"" + v + "\"";
+        var s = "set " + k + "=" + v;
+        OutLines.Add(s);
+        Message = "";
+        return 0;
+    }
+
+    /// <summary>
+    /// message dialog
+    /// </summary>
+    /// <returns></returns>
+    int Cmd_MsgBox()
+    {
+        var msg = "";
+        foreach (var s in Items)
+            msg += " " + s;
+        msg = msg.Trim();
+
+        if (_cui)
+            Console.WriteLine(msg);
+        else
+            MessageBox.Show(
+                msg, Title, MessageBoxButtons.OK,
+                MessageBoxIcon.Question);
+
+        return 1;
+    }
+
+    /// <summary>
+    /// message
+    /// </summary>
+    /// <returns></returns>
+    int Cmd_YesNo()
+    {
+        // set name
+        var k = _name;
+
+        var msg = RemoveQuotation(Message);
+        if (msg == "") msg = k + "?";
+        if (_cui) msg += " [Yes/No/Cancel]";
+
+        // set value
+        var v0 = "0";
+        var v1 = "1";
+        if (Items.Count > 1) { v0 = ""; v1 = Items[1]; }
+        if (Items.Count > 2) { v0 = Items[2]; }
+        var v = _value;
+        v = RemoveQuotation(v);
+        if (v == "" && BaseValue.ContainsKey(k))
+            v = BaseValue[k];
+        if (v == "") v = v1;
+
+        if (_cui)
+        {
+            while (true)
+            {
+                Console.WriteLine(msg);
+                Console.Write(Title + "> ");
+                var s2 = Console.ReadLine();
+                if (s2 == null) return -1;
+                s2 = s2.Trim().ToLower();
+                if (s2.Length < 1) continue;
+                switch (v[0])
+                {
+                    case 'y': v = v1; break;
+                    case 'n': v = v0; break;
+                    case 'c': return -2;
+                }
+                break;
+            }
+        }
+        else
+        {
+            var btn = MessageBoxDefaultButton.Button1;
+            if (v != v1) btn = MessageBoxDefaultButton.Button2;
+
+            // show dialog
+            switch (MessageBox.Show(
+                msg, Title, MessageBoxButtons.YesNoCancel,
+                MessageBoxIcon.Question, btn))
+            {
+                case DialogResult.Yes: v = v1; break;
+                case DialogResult.No: v = v0; break;
+                default: return -1;
+            }
+        }
+
+        // output
+        if (QuotationFlag) v = "\"" + v + "\"";
+        var s = "set " + k + "=" + v;
+        OutLines.Add(s);
+        Message = "";
+        return 1;
+    }
+
+    /// <summary>
+    /// set path
+    /// </summary>
+    /// <returns></returns>
+    int Cmd_File()
+    {
+        // set name
+        string k = _name;
+
+        // set value
+        var v = _value;
+        v = v.Trim();
+
+        if (v == "")
+            if (BaseValue.ContainsKey(k))
+                v = BaseValue[k];
+        if (v == "") v = CurrentPath;
+
+        // choose
+        var res = 0;
+        if (_cui)
+            res = Prompt(ref v);
+        else
+            res = GetFile(ref v, Items.Skip(1).ToList());
+        if (res != 0) return res;
+
+        // output
+        if (RelativeFlag) v = GetRelativePath(v, CurrentPath);
+        if (QuotationFlag) v = "\"" + v + "\"";
+        var s = "set " + k + "=" + v;
+        OutLines.Add(s);
+        Title = "";
+        Message = "";
+        return 1;
+    }
+
+    private int GetFile(ref string p, List<string> flts)
+    {
+        // create dialog
+        OpenFileDialog dlg = new OpenFileDialog();
+        if (Message != "") dlg.Title = Message;
+
+        // set directory and file namw
+        var s = Path.GetFullPath(p);
+        if (Directory.Exists(s))
+        {
+            Console.WriteLine("InitialDirectory:" + s + ":");
+            dlg.InitialDirectory = s;
+            s = "";
+        }
+        else
+        {
+            var d = Path.GetDirectoryName(s);
+            if (d == null) d = CurrentPath;
+            if (Directory.Exists(d))
+                dlg.InitialDirectory = d;
+            s = Path.GetFileName(s);
+            dlg.FileNames.Append(s);
+            dlg.FileName = s;
+        }
+
+        // set filter
+        var flt = GetFileNameFilter(flts);
+        dlg.Filter = flt;
+        if (s != "")
+        {
+            s = Path.GetExtension(s);
+            if (s != "")
+            {
+                var i = flt.IndexOf("*" + s);
+                if (i >= 0)
+                {
+                    s = flt.Substring(0, i);
+                    i = s.Split('|').Count() / 2;
+                    dlg.FilterIndex = i;
+                }
+            }
+            s = "";
+        }
+
+        // show dialog
+        if (dlg.ShowDialog() == DialogResult.OK)
+        {
+            s = dlg.FileName;
+        }
+        dlg.Dispose();
+        if (s == "") return -1;
+        p = s;
+        return 0;
+    }
+
+    private static string GetFileNameFilter(List<string> items)
+    {
+        var k1 = "";
+        var flt = "";
+        foreach (var v1 in items)
+        {
+            if (k1 == "")
+            {
+                k1 = v1;
+                continue;
+            }
+            flt += k1 + "|" + v1 + "|";
+            k1 = "";
+        }
+        if (flt != "")
+        {
+            flt += "すべてのファイル|*.*";
+        }
+        return flt;
+    }
+
+    /// <summary>
+    /// set folder
+    /// </summary>
+    /// <returns></returns>
+    int Cmd_Folder()
+    {
+        // set name
+        string k = _name;
+
+        // set value
+        var v = _value;
+        v = v.Trim();
+
+        if (v == "")
+            if (BaseValue.ContainsKey(k))
+                v = BaseValue[k];
+        if (v == "") v = CurrentPath;
+
+        // choose
+        var res = 0;
+        if (_cui)
+            res = Prompt(ref v);
+        else
+            res = GetFolder(ref v);
+        if (res != 0) return res;
+
+        // output
+        if (RelativeFlag) v = GetRelativePath(v, CurrentPath);
+        if (QuotationFlag) v = "\"" + v + "\"";
+        var s = "set " + k + "=" + v;
+        OutLines.Add(s);
+        Message = "";
+        return 1;
+    }
+
+    private int GetFolder(ref string p)
+    {
+        FolderBrowserDialog dlg = new FolderBrowserDialog();
+        dlg.ShowNewFolderButton = true;
+        if (Message != "") dlg.Description = Message;
+        dlg.SelectedPath = p;
+
+        // show dialog
+        var s = "";
+        if (dlg.ShowDialog() == DialogResult.OK)
+        {
+            s = dlg.SelectedPath;
+        }
+        dlg.Dispose();
+        if (s == "") return -1;
+        p = s;
+        return 0;
+    }
+
+    /// <summary>
+    /// set datalist
+    /// </summary>
+    /// <returns></returns>
+    int Cmd_List()
+    {
+        // set name
+        string k = _name;
+
+        // set value
+        var v = _value;
+        v = v.Trim();
+
+        if (v == "")
+            if (BaseValue.ContainsKey(k))
+                v = BaseValue[k];
+
+        // choose
+        var res = 0;
+        if (_cui)
+            res = Prompt(ref v);
+        else
+            res = GetDataList(ref v);
+        if (res != 0) return res;
+
+        // output
+        if (QuotationFlag) v = "\"" + v + "\"";
+        var s = "set " + k + "=" + v;
+        OutLines.Add(s);
+        Message = "";
+        return 1;
+    }
+
+    private int GetDataList(ref string v)
+    {
+        var dlg = new Tmm.UI.InputDialog(Message, Title, true);
+
+        if (v != "")
+            if (!Items.Contains(v)) dlg.AddListItem(v);
+        foreach (var item in Items.Skip(1))
+            dlg.AddListItem(item);
+        dlg.Value = v;
+        dlg.FocusList(v);
+
+        // show dialog
+        var s = "";
+        if (dlg.ShowDialog() == DialogResult.OK)
+        {
+            s = dlg.Value;
+        }
+        dlg.Dispose();
+        if (s == "") return -1;
+        v = s;
+        return 0;
     }
 
     //////////////////////////////////////////////////////////////////////////
@@ -321,76 +957,6 @@ internal class Program
     /// 
 
     /// <summary>
-    /// get arguments array
-    /// </summary>
-    /// <returns></returns>
-    private static string[] GetArgs(string line)
-    {
-        var arr = (new List<string>(TokenArgs(line))).Skip(1).ToArray();
-        return arr;
-    }
-
-    private static IEnumerable<string> TokenArgs(string s, string prev = "")
-    {
-        var sb = new StringBuilder(prev);
-        var seq = 0;
-        var esc = '^';
-        var esc2 = '^';
-        var cqt = '\0';
-        foreach (var c in (s + ' '))
-        {
-            switch (seq)
-            {
-                case 0:         //idle
-                    {
-                        if (Char.IsWhiteSpace(c)) continue;
-                        else if (c == esc) seq = 2;
-                        else if (c == '"') { cqt = c; seq = 3; }
-                        else { sb.Append(c); seq = 1; }
-                    }
-                    break;
-                case 1:         //normal
-                    {
-                        if (Char.IsWhiteSpace(c))
-                        {
-                            yield return sb.ToString();
-                            sb.Clear();
-                            seq = 0;
-                        }
-                        else if (c == esc) seq = 2;
-                        else if (c == '"') { cqt = c; seq = 3; }
-                        else sb.Append(c);
-                    }
-                    break;
-                case 2:         //escape
-                    {
-                        var c1 = c;
-                        sb.Append(c1);
-                        seq = 1;
-                    }
-                    break;
-                case 3:         //string
-                    {
-                        if (c == cqt) { seq = 1; continue; }
-                        else if (c == esc2) seq = 4;
-                        else sb.Append(c);
-                    }
-                    break;
-                case 4:         //string-escape
-                    {
-                        var c1 = c;
-                        sb.Append(c1);
-                        seq = 3;
-                    }
-                    break;
-                default:
-                    break;
-            }
-        }
-        if (sb.Length > 0) yield return sb.ToString();
-    }
-
-    /// <summary>
     /// Remove quate character from string
     /// </summary>
     /// <param name="s">target string</param>
@@ -417,561 +983,65 @@ internal class Program
         return String.Format(s);
     }
 
-    //////////////////////////////////////////////////////////////////////////
-    /// 
-
-    /// <summary>
-    /// run script
-    /// </summary>
-    /// <param name="path"></param>
-    /// <returns></returns>
-    private bool RunScript(string path)
+    private static string ApplyEnvironment(string s, Dictionary<string, string> dic = null)
     {
-        if (!File.Exists(path)) return false;
-        var enc = Encoding.GetEncoding(932);
-
-        // filter comment(rem) line
-        var lines = new List<string>();
-        foreach (var line in File.ReadAllLines(path, enc))
+        var sb = new StringBuilder();
+        var kw = "";
+        var seq = 0;
+        var ret = 0;
+        foreach (var c in s)
         {
-            var s = line.Trim();
-            if (s.Length < 4) continue;
-            if (s.Substring(0, 4).ToLower() != "rem ") continue;
-            lines.Add(s.Substring(4).Trim());
-        }
-
-        foreach (var line in lines)
-        {
-            var s = line.Trim();
-            if (s.Length < 1) continue;
-
-            //output comment line
-            if (s[0] == '#')
+            switch (seq)
             {
-                s = s.Substring(1).Trim();
-                OutLines.Add("rem " + s);
-                continue;
-            }
-
-            //output set command
-            if (s[0] == '*')
-            {
-                s = "* " + s.Substring(1).Trim();
-                Reset();
-                if (ParseCommandLine(s) != 0)
-                {
-                    var s1 = "cmd line:" + s;
-                    system_println("引数が正しくありません。\n" + s1, 3);
-                    continue;
-                }
-                if (Run() < 0) return false;
-            }
-        }
-        return true;
-    }
-
-    /// <summary>
-    /// run command
-    /// </summary>
-    /// <returns>error code, 0 is ok</returns>
-    private int Run()
-    {
-        if (Items.Count > 0)
-        {
-            var s = Items[0];
-            Items.RemoveAt(0);
-            _name = s;
-
-            var i = s.IndexOf('=');
-            if (i > 0)
-            {
-                _value = s.Substring(i + 1).Trim();
-                _name = s.Substring(0, i).Trim();
-            }
-        }
-
-        var res = 0;
-        switch (Command)
-        {
-            case "": Cmd_Set(); break;                //set constant
-            case "d": res = Cmd_Set(); break;         //set delete
-            case "p": res = Cmd_Prompt(); break;      //set input string
-            case "y": res = Cmd_YesNo(); break;       //set message
-            case "f": res = Cmd_File(); break;        //set file
-            case "g": res = Cmd_Folder(); break;      //set folder
-            case "l": res = Cmd_List(); break;        //set list
-            case "x": res = Cmd_Test(); break;
-            default: break;
-        }
-        return res;
-    }
-
-    //////////////////////////////////////////////////////////////////////////
-    /// 
-
-    /// <summary>
-    /// print version
-    /// </summary>
-    /// <returns></returns>
-    int Cmd_Version()
-    {
-        Console.WriteLine(_version);
-        return 0;
-    }
-
-    /// <summary>
-    /// print help
-    /// </summary>
-    /// <returns></returns>
-    private int Cmd_Help()
-    {
-        var msg = AppName() + @".exe {option...} [script...]
-
-option:
-  mode flag:
-  --version     print version
-  -h,--help     print help
-  -v,--verbose  verbose mode
-  -C,--console  gui mode
-  -u            update mode
-  -a            append mode
-  -r            relative mode
-  command:
-  -d            delete        (set XXX=)
-  -p            prompt        (set XXX={input text})
-  -y            yesno         (set XXX={1:yes,0:no})
-  -f            choose file   (set XXX={file_path})
-  -g            choose folder (set XXX={folder_path})
-  -l            list select   (set XXX={selected text})
-  parameter:
-  -i <path>     set input-file path
-  -o <path>     set output-file path(default:.tmp/<app>.cmd)
-  -c <command>  command script
-  -s <path>     set script path
-  -t <title>    set title
-  -m <message>  set message
-";
-        system_println(msg, 0, true);
-        return 0;
-    }
-
-    /// <summary>
-    /// test command
-    /// </summary>
-    /// <returns></returns>
-    int Cmd_Test()
-    {
-
-        Console.WriteLine("version      : " + _version);
-        Console.WriteLine("verbose      : " + _verbose);
-        Console.WriteLine("cui          : " + _cui);
-        Console.WriteLine("append       : " + _append);
-        Console.WriteLine("UpdateMode   : " + UpdateMode);
-        Console.WriteLine("RelativeFlag : " + RelativeFlag);
-        Console.WriteLine("CurrentPath  : " + CurrentPath);
-        Console.WriteLine("InputPath    : " + InputPath);
-        Console.WriteLine("OutputPath   : " + OutputPath);
-        Console.WriteLine("ScriptPath   : " + ScriptPath);
-        Console.WriteLine("Title        : " + Title);
-        Console.WriteLine("Message      : " + Message);
-        Console.WriteLine("Command      : " + Command);
-        Console.WriteLine("Message      : " + Message);
-        Console.WriteLine("g_cpath      : " + _g_cpath);
-        Console.WriteLine("g_title      : " + _g_title);
-
-        Console.WriteLine("name  =" + _name);
-        Console.WriteLine("value =" + _value);
-
-        Console.WriteLine("cmds.count=" + Items.Count);
-        for (var i = 0; i < Items.Count; i++)
-        {
-            Console.WriteLine(i + ": " + Items[i]);
-        }
-
-        Console.WriteLine("outs.count=" + OutLines.Count);
-        for (var i = 0; i < OutLines.Count; i++)
-        {
-            Console.WriteLine(i + ": " + OutLines[i]);
-        }
-
-        Console.WriteLine("base.count=" + BaseValue.Count);
-        for (var i = 0; i < BaseValue.Count; i++)
-        {
-            var ks = BaseValue.Keys.ToArray();
-            Console.WriteLine(i + ": " + ks[i] + " = " + BaseValue[ks[i]]);
-        }
-        return 0;
-    }
-
-    /// <summary>
-    /// set string
-    /// </summary>
-    /// <returns></returns>
-    int Cmd_Set()
-    {
-        // set name
-        string k = _name;
-        if (k.Length < 1) return 0;
-
-        // set default value
-        var v = _value;
-
-        var s = v;
-        for (var i = 0; i < Items.Count; i++)
-        {
-            s += " " + Items[i];
-        }
-
-        // output
-        if (QuotationFlag) s = "\"" + s + "\"";
-        s = "set " + k + "=" + s;
-        OutLines.Add(s);
-        Message = "";
-        return 0;
-    }
-
-    /// <summary>
-    /// set input string
-    /// </summary>
-    /// <returns></returns>
-    int Cmd_Prompt()
-    {
-        // set name
-        string k = _name;
-        if (k.Length < 1) return 0;
-
-        // set default value
-        var v = _value;
-        if (v == "")
-            if (BaseValue.ContainsKey(k))
-                v = BaseValue[k];
-
-        var s = RemoveQuotation(v);
-        if (s == "" && BaseValue.ContainsKey(k))
-            s = BaseValue[k];
-
-        if (_cui)
-        {
-            var res = Prompt(ref s);
-            if (res != 0) return res;
-        }
-        else
-        {
-            Console.WriteLine("msg:" + Message);
-            var res = ShowInputBox(ref s, Message, Title);
-            if (res != DialogResult.OK) return -1;
-        }
-
-        // output
-        if (QuotationFlag) s = "\"" + s + "\"";
-        s = "set " + k + "=" + s;
-        OutLines.Add(s);
-        Message = "";
-        return 0;
-    }
-
-    /// <summary>
-    /// message
-    /// </summary>
-    /// <returns></returns>
-    int Cmd_YesNo()
-    {
-        string k = _name;
-        if (k.Length < 1) return 0;
-
-        var v = (_value == "") ? "1" : _value;
-        if (BaseValue.ContainsKey(k))
-        {
-            if (Items.Count > 0)
-            {
-                if (BaseValue[k] == Items[0]) v = "1";
-            }
-            if (Items.Count > 1)
-            {
-                if (BaseValue[k] == Items[1]) v = "0";
-            }
-        }
-
-        var s = RemoveQuotation(Message);
-        if (_cui)
-        {
-            if (s == "") s = _name + " ?";
-            s += " [Yes/No/Cancel]";
-            while (true)
-            {
-                Console.WriteLine(s);
-                Console.Write(Title + "> ");
-                var s2 = Console.ReadLine();
-                if (s2 == null) return -1;
-                s2 = s2.Trim().ToLower();
-                if (s2.Length < 1) continue;
-                switch (s2[0])
-                {
-                    case 'y':
-                        if (Items.Count > 0) s = Items[0];
-                        else s = "1";
+                case 0:
+                    if (c == '^') seq = 2;
+                    else if (c == '%') { ret = 0; seq = 3; }
+                    else { sb.Append(c); }
+                    if (c == '"') seq = 1;
+                    break;
+                case 1:
+                    if (c == '%') { ret = 1; seq = 3; break; }
+                    sb.Append(c);
+                    if (c == '"') seq = 0;
+                    break;
+                case 2:
+                    sb.Append(c);
+                    seq = 0;
+                    break;
+                case 3:
+                    if (Char.IsLetterOrDigit(c) || c == '_')
+                    {
+                        kw += c;
                         break;
-                    case 'n':
-                        s = "";
-                        if (Items.Count > 1) s = Items[1];
-                        else if (Items.Count < 1) s = "0";
-                        break;
-                    case 'c':
-                        s = "";
-                        return -2;
-                }
+                    }
+                    if (c == '%')
+                        kw = GetEnvironmentVariable(kw, dic);
+                    else
+                        kw = "%" + kw + c;
+                    sb.Append(kw);
+                    kw = "";
+                    seq = ret;
+                    break;
             }
         }
-        else
-        {
-            if (s == "") s = k + " ?";
-            var btn = MessageBoxDefaultButton.Button1;
-            if (v == "0") btn = MessageBoxDefaultButton.Button2;
+        return sb.ToString();
+    }
 
-            // show dialog
-            DialogResult res = MessageBox.Show(
-                s, Title, MessageBoxButtons.YesNoCancel,
-                MessageBoxIcon.Question, btn);
-            s = "";
-            if (res == DialogResult.Yes)
+    private static string GetEnvironmentVariable(string kw, Dictionary<string, string> dic)
+    {
+        var v = kw;
+        if (dic != null)
+        {
+            if (dic.ContainsKey(kw))
             {
-                if (Items.Count > 0) s = Items[0];
-                else s = "1";
+                v = dic[kw];
             }
-            else if (res == DialogResult.No)
-            {
-                if (Items.Count > 1) s = Items[1];
-                else s = "0";
-            }
-            else return -1;
-        }
-
-        // output
-        if (QuotationFlag) s = "\"" + s + "\"";
-        s = "set " + k + "=" + s;
-        OutLines.Add(s);
-        Message = "";
-        return 0;
-    }
-
-    /// <summary>
-    /// set path
-    /// </summary>
-    /// <returns></returns>
-    int Cmd_File()
-    {
-        // set name
-        string k = _name;
-        if (k.Length < 1) return 0;
-
-        // set default value
-        var v = _value;
-        if (v == "")
-            if (BaseValue.ContainsKey(k))
-                v = BaseValue[k];
-        if (v == "") v = CurrentPath;
-
-        // choose
-        var res = 0;
-        if (_cui)
-            res = Prompt(ref v);
-        else
-            res = GetFile(ref v);
-        if (res != 0) return res;
-        var s = v;
-
-        // output
-        if (RelativeFlag) s = GetRelativePath(s, CurrentPath);
-        if (QuotationFlag) s = "\"" + s + "\"";
-        s = "set " + k + "=" + s;
-        OutLines.Add(s);
-        Title = "";
-        Message = "";
-        return 0;
-    }
-
-    private int GetFile(ref string p)
-    {
-        // create dialog
-        OpenFileDialog dlg = new OpenFileDialog();
-        if (Message != "") dlg.Title = Message;
-
-        // set directory and file namw
-        var s = Path.GetFullPath(p);
-        if (Directory.Exists(s))
-        {
-            dlg.InitialDirectory = s;
-            s = "";
+            else
+                v = Environment.GetEnvironmentVariable(kw);
         }
         else
-        {
-            var d = Path.GetDirectoryName(s);
-            if (d == null) d = CurrentPath;
-            if (Directory.Exists(d))
-                dlg.InitialDirectory = d;
-            s = Path.GetFileName(s);
-            dlg.FileName = s;
-        }
-
-        // set filter
-        var flt = GetFileNameFilter();
-        dlg.Filter = flt;
-        if (s != "")
-        {
-            s = Path.GetExtension(s);
-            if (s != "")
-            {
-                var i = flt.IndexOf("*" + s);
-                if (i >= 0)
-                {
-                    s = flt.Substring(0, i);
-                    i = s.Split('|').Count() / 2;
-                    dlg.FilterIndex = i;
-                }
-            }
-            s = "";
-        }
-
-        // show dialog
-        if (dlg.ShowDialog() == DialogResult.OK)
-        {
-            s = dlg.FileName;
-        }
-        dlg.Dispose();
-        if (s == "") return -1;
-        p = s;
-        return 0;
-    }
-
-    private string GetFileNameFilter()
-    {
-        var k1 = "";
-        var flt = "";
-        foreach (var v1 in Items)
-        {
-            if (k1 == "")
-            {
-                k1 = v1;
-                continue;
-            }
-            flt += k1 + "|" + v1 + "|";
-            k1 = "";
-        }
-        if (flt != "")
-        {
-            flt += "すべてのファイル|*.*";
-        }
-        return flt;
-    }
-
-    /// <summary>
-    /// set folder
-    /// </summary>
-    /// <returns></returns>
-    int Cmd_Folder()
-    {
-        // set name
-        string k = _name;
-        if (k.Length < 1) return 0;
-
-        // set default value
-        var v = _value;
-        if (v == "")
-            if (BaseValue.ContainsKey(k))
-                v = BaseValue[k];
-        if (v == "") v = CurrentPath;
-
-        // choose
-        var res = 0;
-        if (_cui)
-            res = Prompt(ref v);
-        else
-            res = GetFolder(ref v);
-        if (res != 0) return res;
-        var s = v;
-
-        // output
-        if (RelativeFlag) s = GetRelativePath(s, CurrentPath);
-        if (QuotationFlag) s = "\"" + s + "\"";
-        s = "set " + k + "=" + s;
-        OutLines.Add(s);
-        Message = "";
-        return 0;
-    }
-
-    private int GetFolder(ref string p)
-    {
-        FolderBrowserDialog dlg = new FolderBrowserDialog();
-        dlg.ShowNewFolderButton = true;
-        if (Message != "") dlg.Description = Message;
-        dlg.SelectedPath = p;
-
-        // show dialog
-        var s = "";
-        if (dlg.ShowDialog() == DialogResult.OK)
-        {
-            s = dlg.SelectedPath;
-        }
-        dlg.Dispose();
-        if (s == "") return -1;
-        p = s;
-        return 0;
-    }
-
-    /// <summary>
-    /// set datalist
-    /// </summary>
-    /// <returns></returns>
-    int Cmd_List()
-    {
-        // set name
-        string k = _name;
-        if (k.Length < 1) return 0;
-
-        // set default value
-        var v = _value;
-        if (v == "")
-            if (BaseValue.ContainsKey(k))
-                v = BaseValue[k];
-
-        // choose
-        var res = 0;
-        if (_cui)
-            res = Prompt(ref v);
-        else
-            res = GetDataList(ref v);
-        if (res != 0) return res;
-        var s = v;
-
-        // output
-        if (QuotationFlag) s = "\"" + s + "\"";
-        s = "set " + k + "=" + s;
-        OutLines.Add(s);
-        Message = "";
-        return 0;
-    }
-
-    private int GetDataList(ref string v)
-    {
-        var dlg = new Tmm.UI.InputDialog(Message, Title, true);
-
-        if (!Items.Contains(v)) dlg.AddListItem(v);
-        foreach (var item in Items)
-            dlg.AddListItem(item);
-        dlg.Value = v;
-        dlg.Text = Message;
-        dlg.FocusList(v);
-
-        // show dialog
-        var s = "";
-        if (dlg.ShowDialog() == DialogResult.OK)
-        {
-            s = dlg.Value;
-        }
-        dlg.Dispose();
-        if (s == "") return -1;
-        v = s;
-        return 0;
+            v = Environment.GetEnvironmentVariable(kw);
+        return v;
     }
 
     //////////////////////////////////////////////////////////////////////////
@@ -1112,54 +1182,5 @@ option:
         }
         res = "." + res;
         return res;
-    }
-
-    void Load(string path)
-    {
-        if (path == "") return;
-        if (!File.Exists(path)) return;
-
-        var enc = Encoding.GetEncoding(932);
-        foreach (var line in File.ReadLines(path))
-        {
-            var ss = line.Split(new char[] { ' ' }, 2);
-            if (ss.Length != 2) continue;
-            ss = ss[1].Split(new char[] { '=' }, 2);
-            if (ss.Length != 2) continue;
-            var k = ss[0];
-            var v = ss[1];
-            if (BaseValue.ContainsKey(k)) BaseValue.Remove(k);
-            BaseValue.Add(k, v);
-        }
-    }
-
-    /// <summary>
-    /// save to output path
-    /// </summary>
-    /// <param name="path"></param>
-    void Save(string path)
-    {
-        if (OutLines.Count == 0) return;
-
-        if (path == "")
-        {
-            foreach (var line in OutLines)
-            {
-                Console.WriteLine(line);
-            }
-            return;
-        }
-
-        if (!_append)
-        {
-            if (File.Exists(path)) File.Delete(path);
-        }
-
-        var enc = Encoding.GetEncoding(932);
-        foreach (var line in OutLines)
-        {
-            var s = line + Environment.NewLine;
-            File.AppendAllText(path, s, enc);
-        }
     }
 }
